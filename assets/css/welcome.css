@@ -1,0 +1,274 @@
+/* =============================================
+   Barangay Connect – Landing Page
+   ============================================= */
+
+/* Page Transition Overlay */
+.page-transition {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--green-dark);
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.page-transition.fade-out {
+    opacity: 1;
+}
+
+body.page-loaded {
+    animation: fadeInPage 0.5s ease forwards;
+}
+
+@keyframes fadeInPage {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- Navbar --- */
+.landing-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--green-dark);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 40px;
+    z-index: 100;
+    animation: slideDown 0.6s ease forwards;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.landing-nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-logo {
+    font-size: 1.6rem;
+}
+
+.brand-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: 0.3px;
+}
+
+.brand-sub {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.landing-nav-right {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 0.5px;
+}
+
+/* --- Main --- */
+.landing-main {
+    min-height: 100vh;
+    background: var(--green-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 100px 24px 60px;
+}
+
+/* --- Hero --- */
+.landing-hero {
+    text-align: center;
+    max-width: 680px;
+    margin-bottom: 48px;
+    animation: heroFadeIn 0.8s ease 0.2s both;
+}
+
+@keyframes heroFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-seal {
+    font-size: 72px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    height: 120px;
+    background: var(--green-main);
+    border-radius: 50%;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-md);
+    animation: sealPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both;
+}
+
+@keyframes sealPop {
+    from {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.hero-label {
+    font-size: 0.72rem;
+    letter-spacing: 3px;
+    color: var(--text-light);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+
+.hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.2rem;
+    color: var(--green-dark);
+    line-height: 1.15;
+    margin-bottom: 20px;
+}
+
+.hero-accent {
+    color: var(--green-mid);
+}
+
+.hero-desc {
+    font-size: 1rem;
+    color: var(--text-mid);
+    line-height: 1.8;
+    margin-bottom: 36px;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.hero-btn-primary {
+    padding: 14px 32px;
+    background: var(--green-dark);
+    color: var(--white);
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 50px;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.hero-btn-primary:hover {
+    background: var(--green-main);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.hero-btn-secondary {
+    padding: 14px 32px;
+    background: var(--white);
+    color: var(--green-dark);
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 50px;
+    border: 2px solid var(--green-pale);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.hero-btn-secondary:hover {
+    border-color: var(--green-mid);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+/* --- Service Pills --- */
+.service-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    animation: pillsFadeIn 0.8s ease 0.5s both;
+}
+
+@keyframes pillsFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.service-pill {
+    padding: 10px 20px;
+    background: var(--white);
+    border: 1.5px solid var(--green-pale);
+    border-radius: 50px;
+    font-size: 0.85rem;
+    color: var(--text-mid);
+    font-weight: 500;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.service-pill:hover {
+    border-color: var(--green-light);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* --- Footer --- */
+.landing-footer {
+    background: var(--green-dark);
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+    padding: 16px;
+    font-size: 0.82rem;
+}

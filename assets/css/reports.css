@@ -1,0 +1,43 @@
+/* =============================================
+   Barangay Connect – Reports
+   ============================================= */
+
+.report-section {
+    margin-bottom: 32px;
+}
+
+.report-section h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--green-dark);
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--green-pale);
+}
+
+.report-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.report-summary-item {
+    background: var(--green-bg);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    text-align: center;
+    border: 1px solid var(--green-pale);
+}
+
+.report-summary-item .value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--green-dark);
+}
+
+.report-summary-item .label {
+    font-size: 0.78rem;
+    color: var(--text-light);
+    margin-top: 4px;
+}

@@ -1,0 +1,40 @@
+/* =============================================
+   Barangay Connect – Complaints
+   ============================================= */
+
+.complaint-timeline {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.timeline-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.timeline-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--green-main);
+    margin-top: 4px;
+    flex-shrink: 0;
+}
+
+.timeline-content {
+    flex: 1;
+}
+
+.timeline-date {
+    font-size: 0.78rem;
+    color: var(--text-light);
+    margin-bottom: 4px;
+}
+
+.timeline-text {
+    font-size: 0.9rem;
+    color: var(--text-dark);
+}

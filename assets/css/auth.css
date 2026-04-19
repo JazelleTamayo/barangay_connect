@@ -1,0 +1,509 @@
+/* =============================================
+   Barangay Connect – Auth Pages
+   ============================================= */
+
+/* --- Page Transition (shared) --- */
+.page-transition {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--green-dark);
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.page-transition.fade-out {
+    opacity: 1;
+}
+
+body.page-loaded {
+    animation: fadeInPage 0.5s ease forwards;
+}
+
+@keyframes fadeInPage {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- Login Layout --- */
+.login-page {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+}
+
+/* --- Left Panel --- */
+.login-left {
+    background: linear-gradient(160deg,
+            var(--green-dark) 0%,
+            var(--green-main) 100%);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    animation: slideInLeft 0.7s ease both;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-40px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.login-left-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 400px;
+}
+
+/* Decorative circles */
+.login-circles {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+.circle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.circle-1 {
+    width: 380px;
+    height: 380px;
+    top: -80px;
+    left: -80px;
+}
+
+.circle-2 {
+    width: 280px;
+    height: 280px;
+    bottom: -60px;
+    right: -60px;
+}
+
+.login-left-content {
+    position: relative;
+    z-index: 2;
+}
+
+.login-seal {
+    font-size: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    margin-bottom: 20px;
+}
+
+.login-left h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--white);
+    margin-bottom: 12px;
+}
+
+.login-left p {
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.75);
+    line-height: 1.7;
+    margin-bottom: 28px;
+}
+
+.login-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.login-features li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.feat-icon-box {
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* --- Right Panel --- */
+.login-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    background: var(--white);
+    animation: slideInRight 0.7s ease both;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.login-form-box {
+    width: 100%;
+    max-width: 400px;
+}
+
+.back-link {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    display: inline-block;
+    margin-bottom: 32px;
+    transition: var(--transition);
+}
+
+.back-link:hover {
+    color: var(--green-main);
+}
+
+.login-form-box h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+}
+
+.form-subtitle {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    margin-bottom: 28px;
+}
+
+/* --- Form --- */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-mid);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 14px;
+    font-size: 1rem;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.input-wrap input {
+    width: 100%;
+    padding: 13px 14px 13px 42px;
+    border: 1.5px solid #e8e8e8;
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    background: #fafafa;
+    transition: var(--transition);
+}
+
+.input-wrap input:focus {
+    outline: none;
+    border-color: var(--green-mid);
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(64, 145, 108, 0.12);
+}
+
+.form-row-end {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 6px;
+}
+
+.form-row-end a {
+    font-size: 0.82rem;
+    color: var(--green-mid);
+    font-weight: 500;
+}
+
+.form-row-end a:hover {
+    color: var(--green-dark);
+}
+
+.btn-login {
+    width: 100%;
+    padding: 14px;
+    background: var(--green-dark);
+    color: var(--white);
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow-md);
+    letter-spacing: 0.3px;
+}
+
+.btn-login:hover {
+    background: var(--green-main);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.login-divider {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 0.85rem;
+    margin: 20px 0;
+    position: relative;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 44%;
+    height: 1px;
+    background: #e8e8e8;
+}
+
+.login-divider::before {
+    left: 0;
+}
+
+.login-divider::after {
+    right: 0;
+}
+
+.register-link-box {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-mid);
+}
+
+.register-link-box a {
+    color: var(--green-dark);
+}
+
+.register-link-box a:hover {
+    color: var(--green-mid);
+}
+
+/* --- Register Page --- */
+.register-page {
+    min-height: 100vh;
+    background: var(--green-bg);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 20px;
+    animation: fadeInPage 0.5s ease both;
+}
+
+.register-box {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    padding: 40px;
+    width: 100%;
+    max-width: 760px;
+}
+
+.register-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.register-header .brand-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.register-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: var(--green-dark);
+    margin-bottom: 8px;
+}
+
+.register-header p {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .login-page {
+        grid-template-columns: 1fr;
+    }
+
+    .login-left {
+        display: none;
+    }
+
+    .register-box {
+        padding: 24px;
+    }
+}
+
+/* --- Register Page Layout (matches login) --- */
+.register-page-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+}
+
+/* Left panel stays fixed/sticky */
+.register-page-layout .login-left {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Right panel scrolls independently */
+.register-right {
+    background: var(--white);
+    display: flex;
+    justify-content: center;
+    padding: 48px;
+    overflow-y: auto;
+    min-height: 100vh;
+    animation: slideInRight 0.7s ease both;
+}
+
+.register-form-box {
+    width: 100%;
+    max-width: 520px;
+    padding: 20px 0;
+    /* Ensures content starts from top, not center */
+    align-self: flex-start;
+}
+
+.register-form-box h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+}
+
+/* Two column grid for form fields */
+.register-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.register-full {
+    grid-column: 1 / -1;
+}
+
+/* Section titles inside form */
+.register-section-title {
+    grid-column: 1 / -1;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-light);
+    padding-bottom: 8px;
+    border-bottom: 1.5px solid var(--green-pale);
+    margin-top: 8px;
+}
+
+/* Make form-input match input-wrap style */
+.register-form-grid .form-input {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1.5px solid #e8e8e8;
+    border-radius: var(--radius-sm);
+    font-size: 0.92rem;
+    color: var(--text-dark);
+    background: #fafafa;
+    transition: var(--transition);
+}
+
+.register-form-grid .form-input:focus {
+    outline: none;
+    border-color: var(--green-mid);
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(64, 145, 108, 0.12);
+}
+
+.register-form-grid .input-wrap .form-input {
+    padding-left: 42px;
+}
+
+@media (max-width: 768px) {
+    .register-page-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .register-page-layout .login-left {
+        display: none;
+        position: relative;
+        height: auto;
+    }
+
+    .register-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .register-right {
+        padding: 24px;
+    }
+}

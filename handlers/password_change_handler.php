@@ -54,10 +54,23 @@ $audit->log(
     "UserAccountID: " . $_SESSION['user_id']
 );
 
-// Redirect based on role
-if ($role === 'resident') {
-    header('Location: ../resident/my_profile.php?msg=password_changed');
-} else {
-    header('Location: ../public/login.php?msg=password_changed');
+// FIXED: Role-based redirect after password change
+switch ($role) {
+    case 'secretary':
+        header('Location: ../secretary/dashboard.php?msg=password_changed');
+        break;
+    case 'staff':
+        header('Location: ../staff/dashboard.php?msg=password_changed');
+        break;
+    case 'captain':
+        header('Location: ../captain/dashboard.php?msg=password_changed');
+        break;
+    case 'sysadmin':
+        header('Location: ../sysadmin/dashboard.php?msg=password_changed');
+        break;
+    case 'resident':
+    default:
+        header('Location: ../resident/my_profile.php?msg=password_changed');
+        break;
 }
 exit;

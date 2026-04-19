@@ -1,6 +1,7 @@
 <?php
 // Barangay Connect – Session & Access Control
 // config/session.php
+// FIXED: updated paths to match folder name 'barangay_connect'
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -17,7 +18,7 @@ if (session_status() === PHP_SESSION_NONE) {
 function require_role(string $role): void
 {
     if (!isset($_SESSION['user_id'])) {
-        header('Location: /BARANGAY_CONNECT/public/login.php');
+        header('Location: /barangay_connect/public/login.php');
         exit;
     }
     if ($_SESSION['role'] !== $role) {
@@ -25,7 +26,7 @@ function require_role(string $role): void
     }
     if (in_array($_SESSION['account_status'] ?? '', ['PendingVerification', 'Rejected'])) {
         session_destroy();
-        header('Location: /BARANGAY_CONNECT/public/login.php?error=account_inactive');
+        header('Location: /barangay_connect/public/login.php?error=account_inactive');
         exit;
     }
 }
@@ -36,7 +37,7 @@ function require_role(string $role): void
 function require_login(): void
 {
     if (!isset($_SESSION['user_id'])) {
-        header('Location: /BARANGAY_CONNECT/public/login.php');
+        header('Location: /barangay_connect/public/login.php');
         exit;
     }
 }
@@ -48,13 +49,13 @@ function redirect_to_dashboard(): void
 {
     $role = $_SESSION['role'] ?? '';
     $map  = [
-        'captain'   => '/BARANGAY_CONNECT/captain/dashboard.php',
-        'secretary' => '/BARANGAY_CONNECT/secretary/dashboard.php',
-        'staff'     => '/BARANGAY_CONNECT/staff/dashboard.php',
-        'sysadmin'  => '/BARANGAY_CONNECT/sysadmin/dashboard.php',
-        'resident'  => '/BARANGAY_CONNECT/resident/dashboard.php',
+        'captain'   => '/barangay_connect/captain/dashboard.php',
+        'secretary' => '/barangay_connect/secretary/dashboard.php',
+        'staff'     => '/barangay_connect/staff/dashboard.php',
+        'sysadmin'  => '/barangay_connect/sysadmin/dashboard.php',
+        'resident'  => '/barangay_connect/resident/dashboard.php',
     ];
-    $url = $map[$role] ?? '/BARANGAY_CONNECT/public/login.php';
+    $url = $map[$role] ?? '/barangay_connect/public/login.php';
     header("Location: $url");
     exit;
 }
@@ -78,7 +79,7 @@ function logout(): void
         );
     }
     session_destroy();
-    header('Location: /BARANGAY_CONNECT/public/login.php');
+    header('Location: /barangay_connect/public/login.php');
     exit;
 }
 

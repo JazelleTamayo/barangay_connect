@@ -1,7 +1,5 @@
 <?php
-// Barangay Connect – Login Page
-// public/login.php
-
+// Barangay Connect – Login Page (database only – no hardcoded users)
 require_once '../config/session.php';
 require_once '../config/db.php';
 require_once '../config/constants.php';
@@ -10,76 +8,37 @@ if (isset($_SESSION['user_id'])) {
     redirect_to_dashboard();
 }
 
-$demo_users = [
-    'captain'   => ['password' => 'captain123',   'role' => 'captain',   'full_name' => 'Hon. Juan dela Cruz', 'status' => 'Active'],
-    'secretary' => ['password' => 'secretary123', 'role' => 'secretary', 'full_name' => 'Maria Santos',        'status' => 'Active'],
-    'staff'     => ['password' => 'staff123',     'role' => 'staff',     'full_name' => 'Jose Reyes',          'status' => 'Active'],
-    'sysadmin'  => ['password' => 'sysadmin123',  'role' => 'sysadmin',  'full_name' => 'Tech Admin',          'status' => 'Active'],
-    'resident'  => ['password' => 'resident123',  'role' => 'resident',  'full_name' => 'Ana Gonzales',        'status' => 'Active'],
-];
-
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password']      ?? '';
+    $password = $_POST['password'] ?? '';
 
     if (empty($username) || empty($password)) {
         $error = 'Please enter your username and password.';
     } else {
-        $logged_in = false;
+        try {
+            $pdo = get_db();
+            $stmt = $pdo->prepare("SELECT * FROM UserAccount WHERE Username = ? LIMIT 1");
+            $stmt->execute([$username]);
+            $user = $stmt->fetch();
 
-        // 1. Check demo accounts
-        if (
-            isset($demo_users[$username]) &&
-            $demo_users[$username]['password'] === $password
-        ) {
-            $u = $demo_users[$username];
-            $_SESSION['user_id']        = $username;
-            $_SESSION['username']       = $username;
-            $_SESSION['full_name']      = $u['full_name'];
-            $_SESSION['role']           = $u['role'];
-            $_SESSION['account_status'] = $u['status'];
-            $logged_in = true;
-        }
-
-        // 2. Check database
-        if (!$logged_in) {
-            try {
-                $pdo  = get_db();
-                $stmt = $pdo->prepare("
-                    SELECT * FROM UserAccount
-                    WHERE Username = ? LIMIT 1
-                ");
-                $stmt->execute([$username]);
-                $user = $stmt->fetch();
-
-                if ($user && password_verify(
-                    $password,
-                    $user['PasswordHash']
-                )) {
-                    if ($user['AccountStatus'] !== 'Active') {
-                        $error = 'Your account is ' .
-                            htmlspecialchars($user['AccountStatus']) .
-                            '. Please contact the barangay office.';
-                    } else {
-                        $_SESSION['user_id']        = $user['UserAccountID'];
-                        $_SESSION['username']       = $user['Username'];
-                        $_SESSION['full_name']      = $user['FullName'];
-                        $_SESSION['role']           = strtolower($user['Role']);
-                        $_SESSION['account_status'] = $user['AccountStatus'];
-                        $logged_in = true;
-                    }
+            if ($user && password_verify($password, $user['PasswordHash'])) {
+                if ($user['AccountStatus'] !== 'Active') {
+                    $error = 'Your account is ' . htmlspecialchars($user['AccountStatus']) . '. Please contact the barangay office.';
+                } else {
+                    $_SESSION['user_id']        = $user['UserAccountID'];
+                    $_SESSION['username']       = $user['Username'];
+                    $_SESSION['full_name']      = $user['FullName'];
+                    $_SESSION['role']           = strtolower($user['Role']);
+                    $_SESSION['account_status'] = $user['AccountStatus'];
+                    redirect_to_dashboard();
                 }
-            } catch (PDOException $e) {
-                // DB not yet ready — demo mode only
+            } else {
+                $error = 'Invalid username or password. Please try again.';
             }
-        }
-
-        if ($logged_in) {
-            redirect_to_dashboard();
-        } elseif (empty($error)) {
-            $error = 'Invalid username or password. Please try again.';
+        } catch (PDOException $e) {
+            $error = 'Database error. Please try again later.';
         }
     }
 }
@@ -168,9 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 id="username"
                                 name="username"
                                 placeholder="Enter your username"
-                                value="<?= htmlspecialchars(
-                                            $_POST['username'] ?? ''
-                                        ) ?>"
+                                value="<?= htmlspecialchars($_POST['username'] ?? '') ?>"
                                 required
                                 autocomplete="username" />
                         </div>

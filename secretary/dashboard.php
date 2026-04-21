@@ -7,6 +7,62 @@ require_once '../config/db.php';
 require_once '../config/constants.php';
 require_role('secretary');
 
+$pdo = get_db();
+
+// --- Stat counts ---
+$pendingVerif = $pdo->query(
+    "SELECT COUNT(*) FROM UserAccount WHERE AccountStatus = 'PendingVerification'"
+)->fetchColumn();
+
+$forApproval = $pdo->query(
+    "SELECT COUNT(*) FROM ServiceRequest WHERE Status = 'ForApproval'"
+)->fetchColumn();
+
+$readyRelease = $pdo->query(
+    "SELECT COUNT(*) FROM ServiceRequest WHERE Status = 'Approved'"
+)->fetchColumn();
+
+$openComplaints = $pdo->query(
+    "SELECT COUNT(*) FROM ServiceRequest WHERE RequestType = 'Complaint'
+     AND Status NOT IN ('Rejected','Cancelled','Released')"
+)->fetchColumn();
+
+// --- Requests For Approval ---
+$approvalRequests = $pdo->query(
+    "SELECT sr.RequestID, sr.ReferenceNo, sr.RequestType, sr.Purpose,
+            sr.Status, sr.CreatedAt,
+            CONCAT(r.FirstName,' ',r.LastName) AS ResidentName
+     FROM ServiceRequest sr
+     JOIN Resident r ON sr.ResidentID = r.ResidentID
+     WHERE sr.Status IN ('Pending','ForApproval')
+     ORDER BY sr.CreatedAt ASC
+     LIMIT 10"
+)->fetchAll(PDO::FETCH_ASSOC);
+
+// --- Pending Verifications ---
+$pendingResidents = $pdo->query(
+    "SELECT ua.UserAccountID, ua.CreatedAt, ua.AccountStatus,
+            CONCAT(r.FirstName,' ',r.LastName) AS ResidentName,
+            r.GovIDType
+     FROM UserAccount ua
+     JOIN Resident r ON ua.ResidentID = r.ResidentID
+     WHERE ua.AccountStatus = 'PendingVerification'
+     ORDER BY ua.CreatedAt ASC
+     LIMIT 10"
+)->fetchAll(PDO::FETCH_ASSOC);
+
+// --- Documents Ready for Release (Approved) ---
+$readyDocs = $pdo->query(
+    "SELECT sr.RequestID, sr.ReferenceNo, sr.RequestType,
+            sr.ProcessedAt,
+            CONCAT(r.FirstName,' ',r.LastName) AS ResidentName
+     FROM ServiceRequest sr
+     JOIN Resident r ON sr.ResidentID = r.ResidentID
+     WHERE sr.Status = 'Approved'
+     ORDER BY sr.ProcessedAt ASC
+     LIMIT 10"
+)->fetchAll(PDO::FETCH_ASSOC);
+
 $page_title = 'Secretary Dashboard';
 include '../includes/header.php';
 ?>
@@ -25,28 +81,28 @@ include '../includes/header.php';
                 <div class="stat-card stat-yellow">
                     <div class="stat-icon">⏳</div>
                     <div class="stat-info">
-                        <span class="stat-value">—</span>
+                        <span class="stat-value"><?= $pendingVerif ?></span>
                         <span class="stat-label">Pending Verification</span>
                     </div>
                 </div>
                 <div class="stat-card stat-blue">
                     <div class="stat-icon">📥</div>
                     <div class="stat-info">
-                        <span class="stat-value">—</span>
+                        <span class="stat-value"><?= $forApproval ?></span>
                         <span class="stat-label">For Approval</span>
                     </div>
                 </div>
                 <div class="stat-card stat-green">
                     <div class="stat-icon">📬</div>
                     <div class="stat-info">
-                        <span class="stat-value">—</span>
+                        <span class="stat-value"><?= $readyRelease ?></span>
                         <span class="stat-label">Ready for Release</span>
                     </div>
                 </div>
                 <div class="stat-card stat-red">
                     <div class="stat-icon">⚠️</div>
                     <div class="stat-info">
-                        <span class="stat-value">—</span>
+                        <span class="stat-value"><?= $openComplaints ?></span>
                         <span class="stat-label">Open Complaints</span>
                     </div>
                 </div>
@@ -70,9 +126,22 @@ include '../includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td colspan="6" class="empty-row">No requests waiting for approval.</td>
-                        </tr>
+                        <?php if (empty($approvalRequests)): ?>
+                            <tr>
+                                <td colspan="6" class="empty-row">No requests waiting for approval.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($approvalRequests as $req): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($req['ReferenceNo']) ?></td>
+                                    <td><?= htmlspecialchars($req['ResidentName']) ?></td>
+                                    <td><?= htmlspecialchars($req['RequestType']) ?></td>
+                                    <td><?= date('M d, Y h:i A', strtotime($req['CreatedAt'])) ?></td>
+                                    <td><span class="badge badge-<?= strtolower($req['Status']) ?>"><?= $req['Status'] ?></span></td>
+                                    <td><a href="request_processing.php?id=<?= $req['RequestID'] ?>" class="btn btn-small btn-primary">Process</a></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -93,9 +162,20 @@ include '../includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td colspan="4" class="empty-row">No pending verifications.</td>
-                        </tr>
+                        <?php if (empty($pendingResidents)): ?>
+                            <tr>
+                                <td colspan="4" class="empty-row">No pending verifications.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($pendingResidents as $res): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($res['ResidentName']) ?></td>
+                                    <td><?= date('M d, Y', strtotime($res['CreatedAt'])) ?></td>
+                                    <td><?= htmlspecialchars($res['GovIDType'] ?? '—') ?></td>
+                                    <td><a href="resident_verification.php?id=<?= $res['UserAccountID'] ?>" class="btn btn-small btn-secondary">Review</a></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -103,7 +183,7 @@ include '../includes/header.php';
             <!-- Documents Ready for Release -->
             <div class="card">
                 <div class="card-header">
-                    <h3>Documents Ready for Release Today</h3>
+                    <h3>Documents Ready for Release</h3>
                     <a href="document_release.php" class="btn btn-secondary btn-small">View All</a>
                 </div>
                 <table class="data-table">
@@ -117,9 +197,21 @@ include '../includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td colspan="5" class="empty-row">No documents ready for release.</td>
-                        </tr>
+                        <?php if (empty($readyDocs)): ?>
+                            <tr>
+                                <td colspan="5" class="empty-row">No documents ready for release.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($readyDocs as $doc): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($doc['ReferenceNo']) ?></td>
+                                    <td><?= htmlspecialchars($doc['ResidentName']) ?></td>
+                                    <td><?= htmlspecialchars($doc['RequestType']) ?></td>
+                                    <td><?= $doc['ProcessedAt'] ? date('M d, Y', strtotime($doc['ProcessedAt'])) : '—' ?></td>
+                                    <td><a href="document_release.php?id=<?= $doc['RequestID'] ?>" class="btn btn-small btn-secondary">Release</a></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>

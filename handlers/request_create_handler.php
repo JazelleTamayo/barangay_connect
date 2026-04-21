@@ -21,9 +21,15 @@ $resident_id   = (int) ($_POST['resident_id'] ?? 0);
 $submitted_by  = trim($_POST['submitted_by']  ?? 'staff');
 
 // If submitted by resident, get their resident ID from session
+
 if ($submitted_by === 'resident') {
-    // TODO: Get ResidentID linked to session user
-    // $resident_id = get resident id from UserAccount
+    $residentObj = new Resident();
+    $residentData = $residentObj->getByUserAccountId($_SESSION['user_id']);
+    if (!$residentData) {
+        header('Location: ../resident/new_request.php?msg=resident_not_found');
+        exit;
+    }
+    $resident_id = (int) $residentData['ResidentID'];
 }
 
 if (empty($request_type) || empty($purpose)) {

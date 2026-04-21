@@ -41,6 +41,19 @@ class Resident
     }
 
     /**
+     * Get a resident record linked to a UserAccount.
+     */
+    public function getByUserAccountId(int $userAccountId): ?array
+    {
+        return $this->db->fetchOne(
+            "SELECT r.* FROM Resident r
+         JOIN UserAccount ua ON ua.ResidentID = r.ResidentID
+         WHERE ua.UserAccountID = ?",
+            [$userAccountId]
+        );
+    }
+
+    /**
      * Search residents by name or purok.
      */
     public function search(string $keyword): array

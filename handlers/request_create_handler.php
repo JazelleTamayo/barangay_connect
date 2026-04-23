@@ -77,12 +77,40 @@ if ($request_type === 'FacilityReservation') {
     $timeSlot        = trim($_POST['time_slot']           ?? '');
 
     if ($facilityId && $reservationDate) {
-        // Check double booking
-        if ($sr->isFacilityBooked($facilityId, $reservationDate)) {
-            header('Location: ../resident/new_request.php
-                    ?type=FacilityReservation&msg=double_booking');
+        
+        //FIX: 3-working-day lead time validation
+        require_once '../config/constants.php'; // ensure constant is loaded
+
+        $today       = new DateTime('today');
+        $workingDays = 0;
+        $check       = clone $today;
+
+        while ($workingDays < RESERVATION_LEAD_DAYS) {
+            $check->modify('+1 day');
+            $dayOfWeek = (int) $check->format('N'); // 1=Mon … 7=Sun
+            if ($dayOfWeek < 6) { // Mon–Fri only
+                $workingDays++;
+            }
+        }
+
+        // $check is now the EARLIEST allowed reservation date
+        $earliest        = $check;
+        $requestedDate   = new DateTime($reservationDate);
+
+        if ($requestedDate < $earliest) {
+            // Reservation is too soon — redirect with error
+            header('Location: ../resident/new_request.php'
+                 . '?type=FacilityReservation&msg=lead_time_error');
             exit;
         }
+
+        // Check double booking (existing logic, unchanged)
+        if ($sr->isFacilityBooked($facilityId, $reservationDate)) {
+            header('Location: ../resident/new_request.php'
+                    . '?type=FacilityReservation&msg=double_booking');
+            exit;
+        }
+
         $pdo  = get_db();
         $stmt = $pdo->prepare(
             "INSERT INTO FacilityReservation

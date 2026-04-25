@@ -75,6 +75,25 @@ if ($request_type === 'Complaint') {
     ]);
 }
 
+// FIXED: Handle Indigency extra data — insert a row into IndigencyDetail
+// AssessmentNotes may be provided by staff; ApprovedBy is left NULL at creation
+// and filled in later during the approval flow.
+if ($request_type === 'Indigency') {
+    $assessmentNotes = trim($_POST['assessment_notes'] ?? '');
+
+    $pdo  = get_db();
+    $stmt = $pdo->prepare(
+        "INSERT INTO IndigencyDetail
+            (RequestID, AssessmentNotes, ApprovedBy)
+         VALUES (?, ?, NULL)"
+    );
+    $stmt->execute([
+        $requestId,
+        $assessmentNotes ?: null,
+    ]);
+}
+// FIXED end
+
 // Handle facility reservation extra data
 if ($request_type === 'FacilityReservation') {
     $facilityId      = (int) ($_POST['facility_id']    ?? 0);

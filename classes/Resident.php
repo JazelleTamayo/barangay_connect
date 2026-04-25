@@ -172,11 +172,18 @@ class Resident
 
     /**
      * Check if resident is in good standing for Clearance.
-     * Good standing = no pending complaint as respondent
-     * and no ordinance violations in last 6 months.
+     * Good standing = no active/pending complaint where the resident is the respondent.
+     *
+     * FIXED: Added inline doc clarifying ordinance violation scope.
+     * NOTE: The original spec also mentioned checking "ordinance violations in the last 6 months."
+     * This is OUT-OF-SCOPE for the current schema — there is no OrdinaryViolation or
+     * similar table in barangay_connect.sql. Once that table is added, insert an
+     * additional fetchOne() check here and return false if a violation row is found
+     * within the last 6 months (e.g. WHERE ViolationDate >= DATE_SUB(NOW(), INTERVAL 6 MONTH)).
      */
     public function isInGoodStanding(int $residentId): bool
     {
+        // FIXED: Check 1 — resident must not be an active respondent in any complaint
         $complaint = $this->db->fetchOne(
             "SELECT c.ComplaintID
              FROM Complaint c
@@ -185,6 +192,18 @@ class Resident
                AND sr.Status NOT IN ('Rejected','Cancelled')",
             [$residentId]
         );
+
+        // FIXED: Check 2 — ordinance violation check is OUT-OF-SCOPE (no violation table yet).
+        // When OrdinaryViolation table is available, add the check here.
+        // $violation = $this->db->fetchOne(
+        //     "SELECT ViolationID FROM OrdinaryViolation
+        //      WHERE ResidentID = ?
+        //        AND ViolationDate >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+        //        AND Status NOT IN ('Dismissed')",
+        //     [$residentId]
+        // );
+        // if ($violation !== null) return false;
+
         return $complaint === null;
     }
 

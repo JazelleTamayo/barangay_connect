@@ -7,6 +7,30 @@ require_once '../config/db.php';
 require_once '../config/constants.php';
 require_role('secretary');
 
+//FIX: Load Active Complaints from DB.
+// Joins: Complaint → ServiceRequest → Resident
+// Excludes terminal statuses (Rejected, Cancelled, Released).
+$pdo = get_db();
+$stmt = $pdo->prepare(
+    "SELECT
+         sr.ReferenceNo,
+         CONCAT(r.FirstName, ' ', r.LastName)  AS ComplainantName,
+         c.RespondentName,
+         c.IncidentDate,
+         sr.Status,
+         c.MediationDate,
+         sr.RequestID
+     FROM Complaint c
+     JOIN ServiceRequest sr ON c.RequestID  = sr.RequestID
+     JOIN Resident r        ON sr.ResidentID = r.ResidentID
+     WHERE sr.RequestType = 'Complaint'
+       AND sr.Status NOT IN ('Rejected', 'Cancelled', 'Released')
+     ORDER BY sr.CreatedAt DESC"
+);
+$stmt->execute();
+$complaints = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
 $page_title = 'Complaint Management';
 include '../includes/header.php';
 ?>
@@ -53,9 +77,30 @@ include '../includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td colspan="7" class="empty-row">No complaints found.</td>
-                        </tr>
+                        <?php if (empty($complaints)): ?>
+                            <tr>
+                                <td colspan="7" class="empty-row">No active complaints found.</td>
+                            </tr>
+                        <?php else: foreach ($complaints as $c): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($c['ReferenceNo'])     ?></td>
+                                <td><?= htmlspecialchars($c['ComplainantName']) ?></td>
+                                <td><?= htmlspecialchars($c['RespondentName'])  ?></td>
+                                <td><?= htmlspecialchars($c['IncidentDate'])    ?></td>
+                                <td>
+                                    <span class="badge badge-<?= strtolower($c['Status']) ?>">
+                                        <?= htmlspecialchars($c['Status']) ?>
+                                    </span>
+                                </td>
+                                <td><?= $c['MediationDate']
+                                        ? htmlspecialchars($c['MediationDate'])
+                                        : '<em>Not set</em>' ?></td>
+                                <td>
+                                    <a href="complaint_detail.php?id=<?= $c['RequestID'] ?>"
+                                       class="btn btn-sm btn-outline">View</a>
+                                </td>
+                            </tr>
+                        <?php endforeach; endif; ?>
                     </tbody>
                 </table>
             </div>

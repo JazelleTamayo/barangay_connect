@@ -7,6 +7,43 @@ require_once '../config/db.php';
 require_once '../config/constants.php';
 require_role('secretary');
 
+// FIX: Load all ServiceRequest rows with optional type/status filters.
+// Filters come from GET params so the existing <select> dropdowns
+// in the card-actions can be wired up client-side or as a form.
+$pdo = get_db();
+
+$filterType   = trim($_GET['type']   ?? '');
+$filterStatus = trim($_GET['status'] ?? '');
+
+$sql    = "SELECT
+               sr.RequestID,
+               sr.ReferenceNo,
+               CONCAT(r.FirstName, ' ', r.LastName) AS ResidentName,
+               sr.RequestType,
+               sr.CreatedAt,
+               sr.Status,
+               TIMESTAMPDIFF(HOUR, sr.CreatedAt, NOW()) AS HoursElapsed
+           FROM ServiceRequest sr
+           JOIN Resident r ON sr.ResidentID = r.ResidentID
+           WHERE 1=1";
+$params = [];
+
+if ($filterType !== '') {
+    $sql     .= " AND sr.RequestType = ?";
+    $params[] = $filterType;
+}
+if ($filterStatus !== '') {
+    $sql     .= " AND sr.Status = ?";
+    $params[] = $filterStatus;
+}
+
+$sql .= " ORDER BY sr.CreatedAt DESC";
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
 $page_title = 'Process Requests';
 include '../includes/header.php';
 ?>
@@ -65,9 +102,43 @@ include '../includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td colspan="7" class="empty-row">No requests found.</td>
-                        </tr>
+                        <?php if (empty($requests)): ?>
+                            <tr>
+                                <td colspan="7" class="empty-row">No requests found.</td>
+                            </tr>
+                        <?php else: foreach ($requests as $req): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($req['ReferenceNo'])  ?></td>
+                                <td><?= htmlspecialchars($req['ResidentName']) ?></td>
+                                <td><?= htmlspecialchars($req['RequestType'])  ?></td>
+                                <td><?= htmlspecialchars(date('M d, Y', strtotime($req['CreatedAt']))) ?></td>
+                                <td>
+                                    <span class="badge badge-<?= strtolower($req['Status']) ?>">
+                                        <?= htmlspecialchars($req['Status']) ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <?php
+                                    // Simple SLA indicator — hours elapsed vs type limit
+                                    $slaMap = [
+                                        'Clearance'           => SLA_CLEARANCE,
+                                        'Indigency'           => SLA_INDIGENCY,
+                                        'FacilityReservation' => SLA_RESERVATION,
+                                        'Complaint'           => SLA_COMPLAINT,
+                                    ];
+                                    $limit   = $slaMap[$req['RequestType']] ?? 72;
+                                    $elapsed = (int) $req['HoursElapsed'];
+                                    $pct     = min(100, round($elapsed / $limit * 100));
+                                    $cls     = $pct >= 100 ? 'danger' : ($pct >= 75 ? 'warning' : 'ok');
+                                    echo "<span class=\"sla-badge sla-$cls\">{$elapsed}h / {$limit}h</span>";
+                                    ?>
+                                </td>
+                                <td>
+                                    <a href="request_detail.php?id=<?= $req['RequestID'] ?>"
+                                       class="btn btn-sm btn-outline">Review</a>
+                                </td>
+                            </tr>
+                        <?php endforeach; endif; ?>
                     </tbody>
                 </table>
             </div>

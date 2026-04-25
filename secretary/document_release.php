@@ -55,7 +55,7 @@ include '../includes/header.php';
                     <p class="card-desc">Fill in the details after the resident claims the document in person.</p>
                 </div>
                 <form method="POST"
-                    action="../handlers/release_handler.php"
+                    action="../handlers/request_release_handler.php"
                     class="form-vertical validate-form">
                     <div class="form-group">
                         <label>Reference Number *</label>

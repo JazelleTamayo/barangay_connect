@@ -7,6 +7,37 @@ require_once '../config/db.php';
 require_once '../config/constants.php';
 require_role('sysadmin');
 
+// ── Filters ───────────────────────────────────────────────────────────────────
+$search = trim($_GET['search'] ?? '');
+$role   = trim($_GET['role']   ?? '');
+$status = trim($_GET['status'] ?? '');
+
+$where  = ['1=1'];
+$params = [];
+
+if ($search !== '') {
+    $where[]  = "(u.username LIKE :search OR u.full_name LIKE :search)";
+    $params[':search'] = "%$search%";
+}
+if ($role !== '') {
+    $where[]  = "u.role = :role";
+    $params[':role'] = $role;
+}
+if ($status !== '') {
+    $where[]  = "u.status = :status";
+    $params[':status'] = $status;
+}
+
+$sql = "SELECT u.id, u.username, u.full_name, u.role, u.status,
+               u.created_at, u.email
+        FROM   useraccount u
+        WHERE  " . implode(' AND ', $where) . "
+        ORDER  BY u.created_at DESC";
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$accounts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 $page_title = 'User Account Management';
 include '../includes/header.php';
 ?>
@@ -20,14 +51,16 @@ include '../includes/header.php';
         </div>
         <div class="page-body">
 
-            <?php if (isset($_GET['msg']) && $_GET['msg'] === 'created'): ?>
-                <div class="alert alert-success">✅ Account created successfully.</div>
-            <?php endif; ?>
-            <?php if (isset($_GET['msg']) && $_GET['msg'] === 'disabled'): ?>
-                <div class="alert alert-warning">⚠️ Account has been disabled.</div>
-            <?php endif; ?>
-            <?php if (isset($_GET['msg']) && $_GET['msg'] === 'enabled'): ?>
-                <div class="alert alert-success">✅ Account has been enabled.</div>
+            <?php if (isset($_GET['msg'])): ?>
+                <?php $msgs = [
+                    'created'  => ['success', '✅ Account created successfully.'],
+                    'disabled' => ['warning', '⚠️ Account has been disabled.'],
+                    'enabled'  => ['success', '✅ Account has been enabled.'],
+                    'deleted'  => ['success', '✅ Account has been deleted.'],
+                ]; ?>
+                <?php if (isset($msgs[$_GET['msg']])): [$type, $text] = $msgs[$_GET['msg']]; ?>
+                    <div class="alert alert-<?= $type ?>"><?= $text ?></div>
+                <?php endif; ?>
             <?php endif; ?>
 
             <!-- Account List -->
@@ -35,24 +68,31 @@ include '../includes/header.php';
                 <div class="card-header">
                     <h3>All User Accounts</h3>
                     <div class="card-actions">
-                        <input type="text"
-                            class="search-input"
-                            placeholder="Search by username or name..." />
-                        <select class="filter-select">
-                            <option value="">All Roles</option>
-                            <option value="captain">Captain</option>
-                            <option value="secretary">Secretary</option>
-                            <option value="staff">Staff</option>
-                            <option value="sysadmin">Sysadmin</option>
-                            <option value="resident">Resident</option>
-                        </select>
-                        <select class="filter-select">
-                            <option value="">All Status</option>
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                            <option value="PendingVerification">Pending</option>
-                            <option value="Rejected">Rejected</option>
-                        </select>
+                        <!-- Filter form (GET so filters stay in URL) -->
+                        <form method="GET" action="user_accounts.php"
+                              style="display:contents;">
+                            <input type="text" name="search"
+                                class="search-input"
+                                placeholder="Search by username or name..."
+                                value="<?= htmlspecialchars($search) ?>" />
+                            <select name="role" class="filter-select">
+                                <option value="">All Roles</option>
+                                <?php foreach (['captain','secretary','staff','sysadmin','resident'] as $r): ?>
+                                <option value="<?= $r ?>" <?= $role === $r ? 'selected' : '' ?>>
+                                    <?= ucfirst($r) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <select name="status" class="filter-select">
+                                <option value="">All Status</option>
+                                <?php foreach (['Active','Inactive','PendingVerification','Rejected'] as $s): ?>
+                                <option value="<?= $s ?>" <?= $status === $s ? 'selected' : '' ?>>
+                                    <?= $s ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <button type="submit" class="btn btn-secondary btn-small">Filter</button>
+                        </form>
                         <button class="btn btn-primary btn-small"
                             onclick="document.getElementById('create-form').style.display='block';
                                      this.style.display='none'">
@@ -72,48 +112,71 @@ include '../includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
+                    <?php if (empty($accounts)): ?>
+                        <tr><td colspan="6" class="empty-row">No accounts found.</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($accounts as $acc): ?>
                         <tr>
-                            <td colspan="6" class="empty-row">No accounts found.</td>
+                            <td><?= htmlspecialchars($acc['username']) ?></td>
+                            <td><?= htmlspecialchars($acc['full_name'] ?? '—') ?></td>
+                            <td><?= htmlspecialchars(ucfirst($acc['role'])) ?></td>
+                            <td>
+                                <?php
+                                $badge = [
+                                    'Active'              => 'badge-green',
+                                    'Inactive'            => 'badge-red',
+                                    'PendingVerification' => 'badge-yellow',
+                                    'Rejected'            => 'badge-gray',
+                                ][$acc['status']] ?? 'badge-gray';
+                                ?>
+                                <span class="badge <?= $badge ?>">
+                                    <?= htmlspecialchars($acc['status']) ?>
+                                </span>
+                            </td>
+                            <td><?= htmlspecialchars($acc['created_at']) ?></td>
+                            <td class="table-actions">
+                                <?php if ($acc['status'] === 'Active'): ?>
+                                    <a href="../handlers/user_account_handler.php?action=disable&id=<?= $acc['id'] ?>"
+                                       class="btn btn-warning btn-small"
+                                       onclick="return confirm('Disable this account?')">Disable</a>
+                                <?php else: ?>
+                                    <a href="../handlers/user_account_handler.php?action=enable&id=<?= $acc['id'] ?>"
+                                       class="btn btn-success btn-small"
+                                       onclick="return confirm('Enable this account?')">Enable</a>
+                                <?php endif; ?>
+                                <a href="../handlers/user_account_handler.php?action=delete&id=<?= $acc['id'] ?>"
+                                   class="btn btn-danger btn-small"
+                                   onclick="return confirm('Permanently delete this account?')">Delete</a>
+                            </td>
                         </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                     </tbody>
                 </table>
             </div>
 
             <!-- Create Account Form -->
             <div class="card mt-4" id="create-form" style="display:none;">
-                <div class="card-header">
-                    <h3>Create New Account</h3>
-                </div>
+                <div class="card-header"><h3>Create New Account</h3></div>
                 <form method="POST"
-                    action="../handlers/user_account_handler.php"
-                    class="form-grid validate-form">
+                      action="../handlers/user_account_handler.php"
+                      class="form-grid validate-form">
+                    <input type="hidden" name="action" value="create" />
                     <div class="form-group">
                         <label>Username *</label>
-                        <input type="text"
-                            name="username"
-                            class="form-input"
-                            required />
+                        <input type="text" name="username" class="form-input" required />
                     </div>
                     <div class="form-group">
                         <label>Full Name *</label>
-                        <input type="text"
-                            name="full_name"
-                            class="form-input"
-                            required />
+                        <input type="text" name="full_name" class="form-input" required />
                     </div>
                     <div class="form-group">
                         <label>Password *</label>
-                        <input type="password"
-                            name="password"
-                            class="form-input"
-                            required />
+                        <input type="password" name="password" class="form-input" required />
                     </div>
                     <div class="form-group">
                         <label>Confirm Password *</label>
-                        <input type="password"
-                            name="confirm_password"
-                            class="form-input"
-                            required />
+                        <input type="password" name="confirm_password" class="form-input" required />
                     </div>
                     <div class="form-group">
                         <label>Role *</label>
@@ -127,15 +190,12 @@ include '../includes/header.php';
                     </div>
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="email"
-                            name="email"
-                            class="form-input" />
+                        <input type="email" name="email" class="form-input" />
                     </div>
                     <div class="form-group form-full">
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary">Create Account</button>
-                            <button type="button"
-                                class="btn btn-secondary"
+                            <button type="button" class="btn btn-secondary"
                                 onclick="document.getElementById('create-form').style.display='none'">
                                 Cancel
                             </button>

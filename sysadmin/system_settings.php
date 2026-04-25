@@ -6,6 +6,8 @@ require_once '../config/session.php';
 require_once '../config/db.php';
 require_once '../config/constants.php';
 require_role('sysadmin');
+require_once '../config/settings.php';
+$settings = load_settings();
 
 $page_title = 'System Settings';
 include '../includes/header.php';
@@ -37,27 +39,30 @@ include '../includes/header.php';
                         <input type="text"
                             name="brgy_name"
                             class="form-input"
-                            value="Barangay Connect"
+                            value="<?= htmlspecialchars($settings['barangay_name']) ?>"
                             required />
                     </div>
                     <div class="form-group">
                         <label>Municipality / City</label>
                         <input type="text"
                             name="municipality"
-                            class="form-input" />
+                            class="form-input"
+                            value="<?= htmlspecialchars($settings['municipality']) ?>" />
                     </div>
                     <div class="form-group">
                         <label>Contact Number</label>
                         <input type="text"
                             name="contact"
                             class="form-input"
+                            value="<?= htmlspecialchars($settings['contact']) ?>"
                             placeholder="09XXXXXXXXX" />
                     </div>
                     <div class="form-group">
                         <label>Email Address</label>
                         <input type="email"
                             name="email"
-                            class="form-input" />
+                            class="form-input"
+                            value="<?= htmlspecialchars($settings['email']) ?>" />
                     </div>
                     <div class="form-group">
                         <label>Clearance Fee (₱)</label>
@@ -66,13 +71,13 @@ include '../includes/header.php';
                             class="form-input"
                             step="0.01"
                             min="0"
-                            value="50.00" />
+                            value="<?= htmlspecialchars($settings['clearance_fee']) ?>" />
                     </div>
                     <div class="form-group">
                         <label>Maintenance Mode</label>
                         <select name="maintenance" class="form-select">
-                            <option value="0">Off</option>
-                            <option value="1">On</option>
+                            <option value="0" <?= $settings['maintenance_mode'] === '0' ? 'selected' : '' ?>>Off</option>
+                            <option value="1" <?= $settings['maintenance_mode'] === '1' ? 'selected' : '' ?>>On</option>
                         </select>
                     </div>
                     <div class="form-group form-full">

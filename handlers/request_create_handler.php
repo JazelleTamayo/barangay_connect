@@ -18,12 +18,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $request_type  = trim($_POST['request_type']  ?? '');
 $purpose       = trim($_POST['purpose']       ?? '');
 $resident_id   = (int) ($_POST['resident_id'] ?? 0);
-$submitted_by  = trim($_POST['submitted_by']  ?? 'staff');
+$submitted_by  = trim($_POST['submitted_by']  ?? ''); //FIXED: default to empty string, not 'staff'
+
+//FIXED: explicitly resolve submitted_by — only treat as staff if form sends 'staff'
+if ($submitted_by !== 'staff') {
+    $submitted_by = 'resident';
+}
+//FIXED end
 
 // If submitted by resident, get their resident ID from session
-
 if ($submitted_by === 'resident') {
-    $residentObj = new Resident();
+    $residentObj  = new Resident();
     $residentData = $residentObj->getByUserAccountId($_SESSION['user_id']);
     if (!$residentData) {
         header('Location: ../resident/new_request.php?msg=resident_not_found');
@@ -61,25 +66,24 @@ $requestId = $sr->create([
 if ($request_type === 'Complaint') {
     $complaint = new Complaint();
     $complaint->create([
-        'request_id'        => $requestId,
-        'respondent_name'   => trim($_POST['respondent_name']    ?? ''),
+        'request_id'         => $requestId,
+        'respondent_name'    => trim($_POST['respondent_name']    ?? ''),
         'respondent_contact' => trim($_POST['respondent_contact'] ?? ''),
-        'incident_date'     => trim($_POST['incident_date']      ?? ''),
-        'incident_location' => trim($_POST['incident_location']  ?? ''),
-        'description'       => $purpose,
+        'incident_date'      => trim($_POST['incident_date']      ?? ''),
+        'incident_location'  => trim($_POST['incident_location']  ?? ''),
+        'description'        => $purpose,
     ]);
 }
 
 // Handle facility reservation extra data
 if ($request_type === 'FacilityReservation') {
-    $facilityId      = (int) ($_POST['facility_id']      ?? 0);
-    $reservationDate = trim($_POST['reservation_date']    ?? '');
-    $timeSlot        = trim($_POST['time_slot']           ?? '');
+    $facilityId      = (int) ($_POST['facility_id']    ?? 0);
+    $reservationDate = trim($_POST['reservation_date'] ?? '');
+    $timeSlot        = trim($_POST['time_slot']        ?? '');
 
     if ($facilityId && $reservationDate) {
-        
-        //FIX: 3-working-day lead time validation
-        require_once '../config/constants.php'; // ensure constant is loaded
+
+        require_once '../config/constants.php';
 
         $today       = new DateTime('today');
         $workingDays = 0;
@@ -87,24 +91,21 @@ if ($request_type === 'FacilityReservation') {
 
         while ($workingDays < RESERVATION_LEAD_DAYS) {
             $check->modify('+1 day');
-            $dayOfWeek = (int) $check->format('N'); // 1=Mon … 7=Sun
-            if ($dayOfWeek < 6) { // Mon–Fri only
+            $dayOfWeek = (int) $check->format('N');
+            if ($dayOfWeek < 6) {
                 $workingDays++;
             }
         }
 
-        // $check is now the EARLIEST allowed reservation date
-        $earliest        = $check;
-        $requestedDate   = new DateTime($reservationDate);
+        $earliest      = $check;
+        $requestedDate = new DateTime($reservationDate);
 
         if ($requestedDate < $earliest) {
-            // Reservation is too soon — redirect with error
             header('Location: ../resident/new_request.php'
                  . '?type=FacilityReservation&msg=lead_time_error');
             exit;
         }
 
-        // Check double booking (existing logic, unchanged)
         if ($sr->isFacilityBooked($facilityId, $reservationDate)) {
             header('Location: ../resident/new_request.php'
                     . '?type=FacilityReservation&msg=double_booking');

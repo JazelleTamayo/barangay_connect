@@ -36,6 +36,8 @@ include '../includes/header.php';
                     class="form-vertical validate-form"
                     id="request-form">
 
+                    <input type="hidden" name="submitted_by" value="staff"> <!-- FIXED: added hidden input so handler knows this is a staff submission -->
+
                     <div class="form-group">
                         <label>Request Type *</label>
                         <select name="request_type"

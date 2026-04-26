@@ -1,15 +1,12 @@
 <?php
 // Barangay Connect – Request Processing
-// secretary/resquest_processing.php
+// secretary/request_processing.php
 
 require_once '../config/session.php';
 require_once '../config/db.php';
 require_once '../config/constants.php';
 require_role('secretary');
 
-// FIX: Load all ServiceRequest rows with optional type/status filters.
-// Filters come from GET params so the existing <select> dropdowns
-// in the card-actions can be wired up client-side or as a form.
 $pdo = get_db();
 
 $filterType   = trim($_GET['type']   ?? '');
@@ -43,7 +40,6 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-
 $page_title = 'Process Requests';
 include '../includes/header.php';
 ?>
@@ -68,17 +64,15 @@ include '../includes/header.php';
                 <div class="card-header">
                     <h3>All Service Requests</h3>
                     <div class="card-actions">
-                        <input type="text"
-                            class="search-input"
-                            placeholder="Search by reference no. or name..." />
-                        <select class="filter-select">
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search by reference no. or name..." />
+                        <select id="typeFilter" class="filter-select">
                             <option value="">All Types</option>
                             <option value="Clearance">Clearance</option>
                             <option value="Indigency">Indigency</option>
                             <option value="FacilityReservation">Facility Reservation</option>
                             <option value="Complaint">Complaint</option>
                         </select>
-                        <select class="filter-select">
+                        <select id="statusFilter" class="filter-select">
                             <option value="">All Status</option>
                             <option value="Pending">Pending</option>
                             <option value="ForApproval">For Approval</option>
@@ -89,7 +83,7 @@ include '../includes/header.php';
                         </select>
                     </div>
                 </div>
-                <table class="data-table">
+                <table class="data-table" id="requestsTable">
                     <thead>
                         <tr>
                             <th>Reference No.</th>
@@ -103,42 +97,40 @@ include '../includes/header.php';
                     </thead>
                     <tbody>
                         <?php if (empty($requests)): ?>
-                            <tr>
-                                <td colspan="7" class="empty-row">No requests found.</td>
-                            </tr>
-                        <?php else: foreach ($requests as $req): ?>
-                            <tr>
-                                <td><?= htmlspecialchars($req['ReferenceNo'])  ?></td>
-                                <td><?= htmlspecialchars($req['ResidentName']) ?></td>
-                                <td><?= htmlspecialchars($req['RequestType'])  ?></td>
-                                <td><?= htmlspecialchars(date('M d, Y', strtotime($req['CreatedAt']))) ?></td>
-                                <td>
-                                    <span class="badge badge-<?= strtolower($req['Status']) ?>">
-                                        <?= htmlspecialchars($req['Status']) ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <?php
-                                    // Simple SLA indicator — hours elapsed vs type limit
-                                    $slaMap = [
-                                        'Clearance'           => SLA_CLEARANCE,
-                                        'Indigency'           => SLA_INDIGENCY,
-                                        'FacilityReservation' => SLA_RESERVATION,
-                                        'Complaint'           => SLA_COMPLAINT,
-                                    ];
-                                    $limit   = $slaMap[$req['RequestType']] ?? 72;
-                                    $elapsed = (int) $req['HoursElapsed'];
-                                    $pct     = min(100, round($elapsed / $limit * 100));
-                                    $cls     = $pct >= 100 ? 'danger' : ($pct >= 75 ? 'warning' : 'ok');
-                                    echo "<span class=\"sla-badge sla-$cls\">{$elapsed}h / {$limit}h</span>";
-                                    ?>
-                                </td>
-                                <td>
-                                    <a href="request_detail.php?id=<?= $req['RequestID'] ?>"
-                                       class="btn btn-sm btn-outline">Review</a>
-                                </td>
-                            </tr>
-                        <?php endforeach; endif; ?>
+                            <tr><td colspan="7" class="empty-row">No requests found.</td></tr>
+                        <?php else: ?>
+                            <?php foreach ($requests as $req): ?>
+                                <?php
+                                $slaMap = [
+                                    'Clearance'           => SLA_CLEARANCE,
+                                    'Indigency'           => SLA_INDIGENCY,
+                                    'FacilityReservation' => SLA_RESERVATION,
+                                    'Complaint'           => SLA_COMPLAINT,
+                                ];
+                                $limit   = $slaMap[$req['RequestType']] ?? 72;
+                                $elapsed = (int)$req['HoursElapsed'];
+                                $cls     = $elapsed >= $limit ? 'danger' : ($elapsed >= $limit * 0.75 ? 'warning' : 'ok');
+                                ?>
+                                <tr data-type="<?= htmlspecialchars($req['RequestType']) ?>"
+                                    data-status="<?= htmlspecialchars($req['Status']) ?>"
+                                    data-name="<?= htmlspecialchars(strtolower($req['ResidentName'])) ?>"
+                                    data-ref="<?= htmlspecialchars(strtolower($req['ReferenceNo'])) ?>">
+                                    <td><?= htmlspecialchars($req['ReferenceNo']) ?></td>
+                                    <td><?= htmlspecialchars($req['ResidentName']) ?></td>
+                                    <td><?= htmlspecialchars($req['RequestType']) ?></td>
+                                    <td><?= date('M d, Y', strtotime($req['CreatedAt'])) ?></td>
+                                    <td><span class="badge badge-<?= strtolower($req['Status']) ?>"><?= htmlspecialchars($req['Status']) ?></span></td>
+                                    <td><span class="sla-badge sla-<?= $cls ?>"><?= $elapsed ?>h / <?= $limit ?>h</span></td>
+                                    <td>
+                                        <a href="request_detail.php?id=<?= $req['RequestID'] ?>"
+                                           class="btn btn-small"
+                                           style="background:#2e7d32; color:white; text-decoration:none; padding:5px 12px; border-radius:4px;">
+                                            Review
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -146,4 +138,35 @@ include '../includes/header.php';
         </div>
     </main>
 </div>
+
+<script>
+    const searchInput  = document.getElementById('searchInput');
+    const typeFilter   = document.getElementById('typeFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const tableRows    = document.querySelectorAll('#requestsTable tbody tr');
+
+    function filterTable() {
+        const searchTerm     = searchInput.value.toLowerCase();
+        const selectedType   = typeFilter.value;
+        const selectedStatus = statusFilter.value;
+
+        tableRows.forEach(row => {
+            const ref    = row.getAttribute('data-ref')    || '';
+            const name   = row.getAttribute('data-name')   || '';
+            const type   = row.getAttribute('data-type')   || '';
+            const status = row.getAttribute('data-status') || '';
+
+            const matchesSearch = ref.includes(searchTerm) || name.includes(searchTerm);
+            const matchesType   = selectedType   === '' || type   === selectedType;
+            const matchesStatus = selectedStatus === '' || status === selectedStatus;
+
+            row.style.display = (matchesSearch && matchesType && matchesStatus) ? '' : 'none';
+        });
+    }
+
+    if (searchInput)  searchInput.addEventListener('keyup',  filterTable);
+    if (typeFilter)   typeFilter.addEventListener('change',  filterTable);
+    if (statusFilter) statusFilter.addEventListener('change', filterTable);
+</script>
+
 <?php include '../includes/footer.php'; ?>

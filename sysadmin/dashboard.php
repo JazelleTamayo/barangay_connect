@@ -7,21 +7,25 @@ require_once '../config/db.php';
 require_once '../config/constants.php';
 require_role('sysadmin');
 
-// ── Stat counts ───────────────────────────────────────────────────────────────
-$total    = $pdo->query("SELECT COUNT(*) FROM useraccount")->fetchColumn();
-$active   = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE status = 'Active'")->fetchColumn();
-$pending  = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE status = 'PendingVerification'")->fetchColumn();
-$disabled = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE status = 'Inactive'")->fetchColumn();
+$pdo = get_db(); // Get the PDO connection
 
-// ── Recent activity (last 10) ─────────────────────────────────────────────────
-$activity = $pdo->query("
-    SELECT a.created_at, a.action, a.record_affected,
-           u.username, u.role
-    FROM   auditlog a
-    LEFT JOIN useraccount u ON u.id = a.user_id
-    ORDER  BY a.created_at DESC
-    LIMIT  10
-")->fetchAll(PDO::FETCH_ASSOC);
+// ── Stat counts using correct column names ───────────────────────────────────
+$total    = $pdo->query("SELECT COUNT(*) FROM useraccount")->fetchColumn();
+$active   = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE AccountStatus = 'Active'")->fetchColumn();
+$pending  = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE AccountStatus = 'PendingVerification'")->fetchColumn();
+$disabled = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE AccountStatus = 'Inactive'")->fetchColumn();
+
+// ── Recent activity (last 10) using correct column names ────────────────────
+$stmt = $pdo->prepare("
+    SELECT a.LoggedAt as created_at, a.Action, a.RecordAffected,
+           u.Username, u.Role
+    FROM auditlog a
+    LEFT JOIN useraccount u ON u.UserAccountID = a.UserAccountID
+    ORDER BY a.LoggedAt DESC
+    LIMIT 10
+");
+$stmt->execute();
+$activity = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $page_title = 'System Admin Dashboard';
 include '../includes/header.php';
@@ -97,15 +101,15 @@ include '../includes/header.php';
                     </thead>
                     <tbody>
                     <?php if (empty($activity)): ?>
-                        <tr><td colspan="5" class="empty-row">No recent activity.</td></tr>
+                        <tr><td colspan="5" class="empty-row">No recent activity.<?= " " ?></td></td>?>
                     <?php else: ?>
                         <?php foreach ($activity as $row): ?>
                         <tr>
                             <td><?= htmlspecialchars($row['created_at']) ?></td>
-                            <td><?= htmlspecialchars($row['username'] ?? '—') ?></td>
-                            <td><?= htmlspecialchars($row['role']     ?? '—') ?></td>
-                            <td><?= htmlspecialchars($row['action']) ?></td>
-                            <td><?= htmlspecialchars($row['record_affected'] ?? '—') ?></td>
+                            <td><?= htmlspecialchars($row['Username'] ?? '—') ?></td>
+                            <td><?= htmlspecialchars($row['Role'] ?? '—') ?></td>
+                            <td><?= htmlspecialchars($row['Action']) ?></td>
+                            <td><?= htmlspecialchars($row['RecordAffected'] ?? '—') ?></td>
                         </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>

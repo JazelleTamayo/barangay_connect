@@ -1,11 +1,21 @@
 <?php
 // Barangay Connect – Captain Audit Log
 // captain/audit_log.php
+// FIXED: Added PHP query to load AuditLog entries (previously hardcoded empty table)
 
 require_once '../config/session.php';
 require_once '../config/db.php';
 require_once '../config/constants.php';
 require_role('captain');
+
+// FIXED: Load all audit log entries, newest first
+$pdo = get_db();
+$auditLogs = $pdo->query(
+    "SELECT LogID, Username, Role, Action, RecordAffected, IPAddress, LoggedAt
+     FROM AuditLog
+     ORDER BY LoggedAt DESC
+     LIMIT 200"
+)->fetchAll(PDO::FETCH_ASSOC);
 
 $page_title = 'Audit Log';
 include '../includes/header.php';
@@ -39,9 +49,22 @@ include '../includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td colspan="5" class="empty-row">No log entries yet.</td>
-                        </tr>
+                        <!-- FIXED: Table now populated from AuditLog DB query -->
+                        <?php if (empty($auditLogs)): ?>
+                            <tr>
+                                <td colspan="5" class="empty-row">No log entries yet.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($auditLogs as $log): ?>
+                                <tr>
+                                    <td><?= date('M d, Y h:i A', strtotime($log['LoggedAt'])) ?></td>
+                                    <td><?= htmlspecialchars($log['Username']) ?></td>
+                                    <td><?= htmlspecialchars($log['Role']) ?></td>
+                                    <td><?= htmlspecialchars($log['Action']) ?></td>
+                                    <td><?= htmlspecialchars($log['RecordAffected'] ?? '—') ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>

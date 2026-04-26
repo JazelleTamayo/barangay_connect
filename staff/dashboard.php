@@ -48,14 +48,16 @@ $pendingRequests = $pdo->query(
      LIMIT 10"
 )->fetchAll(PDO::FETCH_ASSOC);
 
-// --- Documents to Prepare (ForApproval = approved, needs document prep) ---
+// FIXED: Documents to Prepare now correctly queries Status=Approved
+// (previously used ForApproval which is the wrong stage — Approved means captain signed off,
+//  ready for staff to prepare the physical document)
 $docsToPrepare = $pdo->query(
     "SELECT sr.RequestID, sr.ReferenceNo, sr.RequestType,
             sr.ProcessedAt,
             CONCAT(r.FirstName,' ',r.LastName) AS ResidentName
      FROM ServiceRequest sr
      JOIN Resident r ON sr.ResidentID = r.ResidentID
-     WHERE sr.Status = 'ForApproval'
+     WHERE sr.Status = 'Approved'
      ORDER BY sr.ProcessedAt ASC
      LIMIT 10"
 )->fetchAll(PDO::FETCH_ASSOC);

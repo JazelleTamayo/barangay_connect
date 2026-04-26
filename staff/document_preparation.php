@@ -1,11 +1,27 @@
 <?php
 // Barangay Connect – Document Preparation
 // staff/document_preparation.php
+// FIXED: Added PHP query to load Status=Approved requests (previously hardcoded empty table)
 
 require_once '../config/session.php';
 require_once '../config/db.php';
 require_once '../config/constants.php';
 require_role('staff');
+
+// FIXED: Load Approved requests — these are captain-signed-off requests
+//        that staff must now prepare as physical documents for Secretary release
+$pdo = get_db();
+$approvedRequests = $pdo->query(
+    "SELECT sr.RequestID, sr.ReferenceNo, sr.RequestType,
+            sr.ProcessedAt, sr.ProcessedBy,
+            CONCAT(r.FirstName,' ',r.LastName) AS ResidentName,
+            CONCAT(ua.FullName) AS PreparedByName
+     FROM ServiceRequest sr
+     JOIN Resident r ON sr.ResidentID = r.ResidentID
+     LEFT JOIN UserAccount ua ON sr.ProcessedBy = ua.UserAccountID
+     WHERE sr.Status = 'Approved'
+     ORDER BY sr.ProcessedAt ASC"
+)->fetchAll(PDO::FETCH_ASSOC);
 
 $page_title = 'Document Preparation';
 include '../includes/header.php';
@@ -44,9 +60,26 @@ include '../includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td colspan="6" class="empty-row">No documents to prepare.</td>
-                        </tr>
+                        <!-- FIXED: Table now populated from DB query for Approved requests -->
+                        <?php if (empty($approvedRequests)): ?>
+                            <tr>
+                                <td colspan="6" class="empty-row">No documents to prepare.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($approvedRequests as $doc): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($doc['ReferenceNo']) ?></td>
+                                    <td><?= htmlspecialchars($doc['ResidentName']) ?></td>
+                                    <td><?= htmlspecialchars($doc['RequestType']) ?></td>
+                                    <td><?= $doc['ProcessedAt'] ? date('M d, Y', strtotime($doc['ProcessedAt'])) : '—' ?></td>
+                                    <td><?= htmlspecialchars($doc['PreparedByName'] ?? '—') ?></td>
+                                    <td>
+                                        <a href="document_preparation.php?id=<?= $doc['RequestID'] ?>"
+                                           class="btn btn-small btn-secondary">Prepare</a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>

@@ -70,25 +70,25 @@ include '../includes/header.php';
                     <div class="card-actions">
                         <!-- Filter form (GET so filters stay in URL) -->
                         <form method="GET" action="user_accounts.php"
-                              style="display:contents;">
+                            style="display:contents;">
                             <input type="text" name="search"
                                 class="search-input"
                                 placeholder="Search by username or name..."
                                 value="<?= htmlspecialchars($search) ?>" />
                             <select name="role" class="filter-select">
                                 <option value="">All Roles</option>
-                                <?php foreach (['captain','secretary','staff','sysadmin','resident'] as $r): ?>
-                                <option value="<?= $r ?>" <?= $role === $r ? 'selected' : '' ?>>
-                                    <?= ucfirst($r) ?>
-                                </option>
+                                <?php foreach (['captain', 'secretary', 'staff', 'sysadmin', 'resident'] as $r): ?>
+                                    <option value="<?= $r ?>" <?= $role === $r ? 'selected' : '' ?>>
+                                        <?= ucfirst($r) ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                             <select name="status" class="filter-select">
                                 <option value="">All Status</option>
-                                <?php foreach (['Active','Inactive','PendingVerification','Rejected'] as $s): ?>
-                                <option value="<?= $s ?>" <?= $status === $s ? 'selected' : '' ?>>
-                                    <?= $s ?>
-                                </option>
+                                <?php foreach (['Active', 'Inactive', 'PendingVerification', 'Rejected'] as $s): ?>
+                                    <option value="<?= $s ?>" <?= $status === $s ? 'selected' : '' ?>>
+                                        <?= $s ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                             <button type="submit" class="btn btn-secondary btn-small">Filter</button>
@@ -112,55 +112,59 @@ include '../includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
-                    <?php if (empty($accounts)): ?>
-                        <tr><td colspan="6" class="empty-row">No accounts found.</td></tr>
-                    <?php else: ?>
-                        <?php foreach ($accounts as $acc): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($acc['username']) ?></td>
-                            <td><?= htmlspecialchars($acc['full_name'] ?? '—') ?></td>
-                            <td><?= htmlspecialchars(ucfirst($acc['role'])) ?></td>
-                            <td>
-                                <?php
-                                $badge = [
-                                    'Active'              => 'badge-green',
-                                    'Inactive'            => 'badge-red',
-                                    'PendingVerification' => 'badge-yellow',
-                                    'Rejected'            => 'badge-gray',
-                                ][$acc['status']] ?? 'badge-gray';
-                                ?>
-                                <span class="badge <?= $badge ?>">
-                                    <?= htmlspecialchars($acc['status']) ?>
-                                </span>
-                            </td>
-                            <td><?= htmlspecialchars($acc['created_at']) ?></td>
-                            <td class="table-actions">
-                                <?php if ($acc['status'] === 'Active'): ?>
-                                    <a href="../handlers/user_account_handler.php?action=disable&id=<?= $acc['id'] ?>"
-                                       class="btn btn-warning btn-small"
-                                       onclick="return confirm('Disable this account?')">Disable</a>
-                                <?php else: ?>
-                                    <a href="../handlers/user_account_handler.php?action=enable&id=<?= $acc['id'] ?>"
-                                       class="btn btn-success btn-small"
-                                       onclick="return confirm('Enable this account?')">Enable</a>
-                                <?php endif; ?>
-                                <a href="../handlers/user_account_handler.php?action=delete&id=<?= $acc['id'] ?>"
-                                   class="btn btn-danger btn-small"
-                                   onclick="return confirm('Permanently delete this account?')">Delete</a>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                        <?php if (empty($accounts)): ?>
+                            <tr>
+                                <td colspan="6" class="empty-row">No accounts found.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($accounts as $acc): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($acc['username']) ?></td>
+                                    <td><?= htmlspecialchars($acc['full_name'] ?? '—') ?></td>
+                                    <td><?= htmlspecialchars(ucfirst($acc['role'])) ?></td>
+                                    <td>
+                                        <?php
+                                        $badge = [
+                                            'Active'              => 'badge-green',
+                                            'Inactive'            => 'badge-red',
+                                            'PendingVerification' => 'badge-yellow',
+                                            'Rejected'            => 'badge-gray',
+                                        ][$acc['status']] ?? 'badge-gray';
+                                        ?>
+                                        <span class="badge <?= $badge ?>">
+                                            <?= htmlspecialchars($acc['status']) ?>
+                                        </span>
+                                    </td>
+                                    <td><?= htmlspecialchars($acc['created_at']) ?></td>
+                                    <td class="table-actions">
+                                        <?php if ($acc['status'] === 'Active'): ?>
+                                            <a href="../handlers/user_account_handler.php?action=disable&id=<?= $acc['id'] ?>"
+                                                class="btn btn-warning btn-small"
+                                                onclick="return confirm('Disable this account?')">Disable</a>
+                                        <?php else: ?>
+                                            <a href="../handlers/user_account_handler.php?action=enable&id=<?= $acc['id'] ?>"
+                                                class="btn btn-success btn-small"
+                                                onclick="return confirm('Enable this account?')">Enable</a>
+                                        <?php endif; ?>
+                                        <a href="../handlers/user_account_handler.php?action=delete&id=<?= $acc['id'] ?>"
+                                            class="btn btn-danger btn-small"
+                                            onclick="return confirm('Permanently delete this account?')">Delete</a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
 
             <!-- Create Account Form -->
             <div class="card mt-4" id="create-form" style="display:none;">
-                <div class="card-header"><h3>Create New Account</h3></div>
+                <div class="card-header">
+                    <h3>Create New Account</h3>
+                </div>
                 <form method="POST"
-                      action="../handlers/user_account_handler.php"
-                      class="form-grid validate-form">
+                    action="../handlers/user_account_handler.php"
+                    class="form-grid validate-form">
                     <input type="hidden" name="action" value="create" />
                     <div class="form-group">
                         <label>Username *</label>
@@ -207,5 +211,5 @@ include '../includes/header.php';
         </div>
     </main>
 </div>
-<script src="/BARANGAY_CONNECT/assets/js/form_validation.js"></script>
+<script src="/barangay_connect/assets/css/js/form_validation.js"></script>
 <?php include '../includes/footer.php'; ?>

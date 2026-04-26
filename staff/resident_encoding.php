@@ -132,5 +132,5 @@ include '../includes/header.php';
         </div>
     </main>
 </div>
-<script src="/BARANGAY_CONNECT/assets/js/form_validation.js"></script>
+<script src="/barangay_connect/assets/css/js/form_validation.js"></script>
 <?php include '../includes/footer.php'; ?>

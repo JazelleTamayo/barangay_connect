@@ -81,26 +81,27 @@ include '../includes/header.php';
                             <tr>
                                 <td colspan="7" class="empty-row">No active complaints found.</td>
                             </tr>
-                        <?php else: foreach ($complaints as $c): ?>
-                            <tr>
-                                <td><?= htmlspecialchars($c['ReferenceNo'])     ?></td>
-                                <td><?= htmlspecialchars($c['ComplainantName']) ?></td>
-                                <td><?= htmlspecialchars($c['RespondentName'])  ?></td>
-                                <td><?= htmlspecialchars($c['IncidentDate'])    ?></td>
-                                <td>
-                                    <span class="badge badge-<?= strtolower($c['Status']) ?>">
-                                        <?= htmlspecialchars($c['Status']) ?>
-                                    </span>
-                                </td>
-                                <td><?= $c['MediationDate']
-                                        ? htmlspecialchars($c['MediationDate'])
-                                        : '<em>Not set</em>' ?></td>
-                                <td>
-                                    <a href="complaint_detail.php?id=<?= $c['RequestID'] ?>"
-                                       class="btn btn-sm btn-outline">View</a>
-                                </td>
-                            </tr>
-                        <?php endforeach; endif; ?>
+                            <?php else: foreach ($complaints as $c): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($c['ReferenceNo'])     ?></td>
+                                    <td><?= htmlspecialchars($c['ComplainantName']) ?></td>
+                                    <td><?= htmlspecialchars($c['RespondentName'])  ?></td>
+                                    <td><?= htmlspecialchars($c['IncidentDate'])    ?></td>
+                                    <td>
+                                        <span class="badge badge-<?= strtolower($c['Status']) ?>">
+                                            <?= htmlspecialchars($c['Status']) ?>
+                                        </span>
+                                    </td>
+                                    <td><?= $c['MediationDate']
+                                            ? htmlspecialchars($c['MediationDate'])
+                                            : '<em>Not set</em>' ?></td>
+                                    <td>
+                                        <a href="complaint_detail.php?id=<?= $c['RequestID'] ?>"
+                                            class="btn btn-sm btn-outline">View</a>
+                                    </td>
+                                </tr>
+                        <?php endforeach;
+                        endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -154,5 +155,5 @@ include '../includes/header.php';
         </div>
     </main>
 </div>
-<script src="/BARANGAY_CONNECT/assets/js/form_validation.js"></script>
+<script src="/barangay_connect/assets/css/js/form_validation.js"></script>
 <?php include '../includes/footer.php'; ?>

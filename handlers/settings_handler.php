@@ -12,17 +12,45 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$brgy_name    = trim($_POST['brgy_name']    ?? '');
-$municipality = trim($_POST['municipality'] ?? '');
-$contact      = trim($_POST['contact']      ?? '');
-$email        = trim($_POST['email']        ?? '');
-$clearance_fee = (float) ($_POST['clearance_fee'] ?? 0);
-$maintenance  = (int) ($_POST['maintenance'] ?? 0);
+$brgy_name     = trim($_POST['brgy_name']     ?? '');
+$municipality  = trim($_POST['municipality']  ?? '');
+$contact       = trim($_POST['contact']       ?? '');
+$email         = trim($_POST['email']         ?? '');
+$clearance_fee = number_format((float)($_POST['clearance_fee'] ?? 0), 2, '.', '');
+$maintenance   = in_array($_POST['maintenance'] ?? '0', ['0','1']) ? $_POST['maintenance'] : '0';
+
+$pairs = [
+    'barangay_name'    => $brgy_name,
+    'municipality'     => $municipality,
+    'contact'          => $contact,
+    'email'            => $email,
+    'clearance_fee'    => $clearance_fee,
+    'maintenance_mode' => $maintenance,
+];
+
+try {
+    $sql = "INSERT INTO systemsettings (`key`, `value`)
+                VALUES (:key, :value)
+            ON DUPLICATE KEY UPDATE
+                `value`    = VALUES(`value`),
+                updated_at = CURRENT_TIMESTAMP";
+
+    $stmt = $pdo->prepare($sql);
+
+    $pdo->beginTransaction();
+    foreach ($pairs as $key => $value) {
+        $stmt->execute([':key' => $key, ':value' => $value]);
+    }
+    $pdo->commit();
+
+} catch (PDOException $e) {
+    $pdo->rollBack();
+    error_log('settings_handler error: ' . $e->getMessage());
+    header('Location: ../sysadmin/system_settings.php?msg=error');
+    exit;
+}
 
 $audit = new AuditLog();
-
-// TODO: Save settings to a settings table or config file
-// For now we just log and redirect
 $audit->log("Updated system settings");
 
 header('Location: ../sysadmin/system_settings.php?msg=saved');

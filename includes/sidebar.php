@@ -28,6 +28,7 @@ $menus = [
         ['href' => '/BARANGAY_CONNECT/secretary/resident_verification.php', 'icon' => '👤', 'label' => 'Resident Verification'],
         ['href' => '/BARANGAY_CONNECT/secretary/resident_management.php',   'icon' => '👥', 'label' => 'Residents'],
         ['href' => '/BARANGAY_CONNECT/secretary/request_processing.php',    'icon' => '📄', 'label' => 'Process Requests'],
+        ['href' => '/BARANGAY_CONNECT/secretary/approved_requests.php',     'icon' => '✅', 'label' => 'Approved Requests'], // NEW
         ['href' => '/BARANGAY_CONNECT/secretary/document_release.php',      'icon' => '📬', 'label' => 'Release Documents'],
         ['href' => '/BARANGAY_CONNECT/secretary/complaint_management.php',  'icon' => '⚠️', 'label' => 'Complaints'],
         ['href' => '/BARANGAY_CONNECT/secretary/reports.php',               'icon' => '📊', 'label' => 'Reports'],
@@ -38,6 +39,7 @@ $menus = [
         ['href' => '/BARANGAY_CONNECT/staff/request_acceptance.php',    'icon' => '📥', 'label' => 'Accept Request'],
         ['href' => '/BARANGAY_CONNECT/staff/request_status_update.php', 'icon' => '🔄', 'label' => 'Update Status'],
         ['href' => '/BARANGAY_CONNECT/staff/document_preparation.php',  'icon' => '📄', 'label' => 'Prepare Documents'],
+        ['href' => '/BARANGAY_CONNECT/staff/release_document.php',      'icon' => '💰', 'label' => 'Release Document & Payment'],
     ],
     'sysadmin' => [
         ['href' => '/BARANGAY_CONNECT/sysadmin/dashboard.php',       'icon' => '🖥️', 'label' => 'Dashboard'],
@@ -48,10 +50,10 @@ $menus = [
     ],
     'resident' => [
         ['href' => '/BARANGAY_CONNECT/resident/dashboard.php',         'icon' => '🏠', 'label' => 'Dashboard'],
-        ['href' => '/BARANGAY_CONNECT/resident/my_profile.php',        'icon' => '👤', 'label' => 'My Profile'],
         ['href' => '/BARANGAY_CONNECT/resident/new_request.php',       'icon' => '📄', 'label' => 'New Request'],
         ['href' => '/BARANGAY_CONNECT/resident/track_request.php',     'icon' => '🔍', 'label' => 'Track Request'],
         ['href' => '/BARANGAY_CONNECT/resident/facility_schedule.php', 'icon' => '📅', 'label' => 'Facility Schedule'],
+        ['href' => '/BARANGAY_CONNECT/resident/my_profile.php',        'icon' => '👤', 'label' => 'My Profile'],
     ],
 ];
 

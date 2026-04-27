@@ -18,13 +18,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $request_type  = trim($_POST['request_type']  ?? '');
 $purpose       = trim($_POST['purpose']       ?? '');
 $resident_id   = (int) ($_POST['resident_id'] ?? 0);
-$submitted_by  = trim($_POST['submitted_by']  ?? ''); //FIXED: default to empty string, not 'staff'
+$submitted_by  = trim($_POST['submitted_by']  ?? '');
 
-//FIXED: explicitly resolve submitted_by — only treat as staff if form sends 'staff'
+// Resolve submitted_by
 if ($submitted_by !== 'staff') {
     $submitted_by = 'resident';
 }
-//FIXED end
 
 // If submitted by resident, get their resident ID from session
 if ($submitted_by === 'resident') {
@@ -42,7 +41,7 @@ if (empty($request_type) || empty($purpose)) {
     exit;
 }
 
-// Clearance — check good standing
+// Clearance – check good standing
 if ($request_type === 'Clearance' && $resident_id) {
     $residentClass = new Resident();
     if (!$residentClass->isInGoodStanding($resident_id)) {
@@ -75,24 +74,29 @@ if ($request_type === 'Complaint') {
     ]);
 }
 
-// FIXED: Handle Indigency extra data — insert a row into IndigencyDetail
-// AssessmentNotes may be provided by staff; ApprovedBy is left NULL at creation
-// and filled in later during the approval flow.
+// Handle Indigency extra data – store financial assessment details
 if ($request_type === 'Indigency') {
-    $assessmentNotes = trim($_POST['assessment_notes'] ?? '');
+    $monthly_income      = !empty($_POST['monthly_income']) ? (float) $_POST['monthly_income'] : null;
+    $household_size      = !empty($_POST['household_size']) ? (int) $_POST['household_size'] : null;
+    $employment_status   = trim($_POST['employment_status'] ?? '');
+    $income_source       = trim($_POST['income_source'] ?? '');
+    $assistance_received = trim($_POST['assistance_received'] ?? '');
 
-    $pdo  = get_db();
-    $stmt = $pdo->prepare(
-        "INSERT INTO IndigencyDetail
-            (RequestID, AssessmentNotes, ApprovedBy)
-         VALUES (?, ?, NULL)"
-    );
+    $pdo = get_db();
+    $stmt = $pdo->prepare("
+        INSERT INTO IndigencyDetail 
+        (RequestID, MonthlyIncome, HouseholdSize, EmploymentStatus, IncomeSource, AssistanceReceived)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ");
     $stmt->execute([
         $requestId,
-        $assessmentNotes ?: null,
+        $monthly_income,
+        $household_size,
+        $employment_status ?: null,
+        $income_source ?: null,
+        $assistance_received ?: null
     ]);
 }
-// FIXED end
 
 // Handle facility reservation extra data
 if ($request_type === 'FacilityReservation') {
@@ -101,7 +105,6 @@ if ($request_type === 'FacilityReservation') {
     $timeSlot        = trim($_POST['time_slot']        ?? '');
 
     if ($facilityId && $reservationDate) {
-
         require_once '../config/constants.php';
 
         $today       = new DateTime('today');
@@ -160,3 +163,4 @@ if ($submitted_by === 'resident') {
     header('Location: ../staff/request_acceptance.php?msg=created');
 }
 exit;
+?>

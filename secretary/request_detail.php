@@ -38,6 +38,14 @@ if (!$request) {
     die("Request not found.");
 }
 
+// Fetch Indigency details if applicable
+$indigency = null;
+if ($request['RequestType'] === 'Indigency') {
+    $stmt = $pdo->prepare("SELECT * FROM IndigencyDetail WHERE RequestID = ?");
+    $stmt->execute([$request_id]);
+    $indigency = $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 // Handle approval or rejection
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
@@ -57,14 +65,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } elseif ($action === 'reject') {
         $new_status = 'Rejected';
-        $log = "\n[" . date('Y-m-d H:i:s') . "] Secretary Rejected: " . $remarks;
+        $rejection_reason = $remarks ?: 'No reason provided.';
+        $log = !empty($remarks) ? "\n[" . date('Y-m-d H:i:s') . "] Secretary Rejected: " . $remarks : "";
         $update = $pdo->prepare("
             UPDATE ServiceRequest 
             SET Status = ?,
+                RejectionReason = ?,
                 Remarks = CONCAT(IFNULL(Remarks, ''), ?)
             WHERE RequestID = ?
         ");
-        $update->execute([$new_status, $log, $request_id]);
+        $update->execute([$new_status, $rejection_reason, $log, $request_id]);
         $msg = 'rejected';
 
     } else {
@@ -85,7 +95,7 @@ include '../includes/header.php';
         <?php include '../includes/navbar.php'; ?>
         <div class="page-header">
             <h1>Review Request</h1>
-            <span class="page-subtitle"><?= htmlspecialchars($request['ReferenceNo']) ?></span>
+            <span class="page-subtitle"><?= htmlspecialchars($request['ReferenceNo'] ?? '') ?></span>
         </div>
         <div class="page-body">
 
@@ -98,15 +108,15 @@ include '../includes/header.php';
                     <table class="info-table">
                         <tr>
                             <th>Reference No.</th>
-                            <td><?= htmlspecialchars($request['ReferenceNo']) ?></td>
+                            <td><?= htmlspecialchars($request['ReferenceNo'] ?? '—') ?></td>
                         </tr>
                         <tr>
                             <th>Resident</th>
-                            <td><?= htmlspecialchars($request['ResidentName']) ?></td>
+                            <td><?= htmlspecialchars($request['ResidentName'] ?? '—') ?></td>
                         </tr>
                         <tr>
                             <th>Address</th>
-                            <td><?= nl2br(htmlspecialchars($request['Address'])) ?></td>
+                            <td><?= nl2br(htmlspecialchars($request['Address'] ?? '—')) ?></td>
                         </tr>
                         <tr>
                             <th>Contact</th>
@@ -118,7 +128,7 @@ include '../includes/header.php';
                         </tr>
                         <tr>
                             <th>Request Type</th>
-                            <td><?= htmlspecialchars($request['RequestType']) ?></td>
+                            <td><?= htmlspecialchars($request['RequestType'] ?? '—') ?></td>
                         </tr>
                         <tr>
                             <th>Purpose</th>
@@ -126,15 +136,17 @@ include '../includes/header.php';
                         </tr>
                         <tr>
                             <th>Current Status</th>
-                            <td><span
-                                    class="badge badge-<?= strtolower($request['Status']) ?>"><?= $request['Status'] ?></span>
+                            <td>
+                                <span class="badge badge-<?= strtolower($request['Status'] ?? '') ?>">
+                                    <?= htmlspecialchars($request['Status'] ?? '—') ?>
+                                </span>
                             </td>
                         </tr>
                         <tr>
                             <th>Submitted</th>
-                            <td><?= date('M d, Y h:i A', strtotime($request['CreatedAt'])) ?></td>
+                            <td><?= isset($request['CreatedAt']) ? date('M d, Y h:i A', strtotime($request['CreatedAt'])) : '—' ?></td>
                         </tr>
-                        <?php if ($request['RequestType'] == 'FacilityReservation'): ?>
+                        <?php if (($request['RequestType'] ?? '') == 'FacilityReservation'): ?>
                             <tr>
                                 <th>Facility</th>
                                 <td><?= htmlspecialchars($request['FacilityName'] ?? '—') ?></td>
@@ -147,7 +159,7 @@ include '../includes/header.php';
                                 <th>Time Slot</th>
                                 <td><?= htmlspecialchars($request['TimeSlot'] ?? '—') ?></td>
                             </tr>
-                        <?php elseif ($request['RequestType'] == 'Complaint'): ?>
+                        <?php elseif (($request['RequestType'] ?? '') == 'Complaint'): ?>
                             <tr>
                                 <th>Respondent</th>
                                 <td><?= htmlspecialchars($request['RespondentName'] ?? '—') ?></td>
@@ -177,40 +189,62 @@ include '../includes/header.php';
                 <div class="remarks-box">
                     <?php
                     $raw_remarks = trim($request['Remarks'] ?? '');
-
-                    // Keep only lines that are Staff lines, strip Secretary action logs
                     $lines = explode("\n", $raw_remarks);
                     $staff_lines = array_filter($lines, function ($line) {
                         $trimmed = trim($line);
-                        if (empty($trimmed))
-                            return false;
-                        // Strip secretary log lines only
-                        if (preg_match('/Secretary\s+(Approved|Rejected)/i', $trimmed))
-                            return false;
+                        if (empty($trimmed)) return false;
+                        if (preg_match('/Secretary\s+(Approved|Rejected)/i', $trimmed)) return false;
                         return true;
                     });
-
-                    // Clean up the timestamp prefix from staff lines for display
                     $display_lines = array_map(function ($line) {
-                        // Remove [YYYY-MM-DD HH:MM:SS] Staff: prefix, keep just the message
                         return preg_replace('/^\[?\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\]?\s*Staff:\s*/i', '', trim($line));
                     }, $staff_lines);
-
                     $clean_remarks = trim(implode("\n", $display_lines));
                     ?>
-
                     <?php if (empty($clean_remarks)): ?>
                         <p class="remarks-empty">No remarks from staff.</p>
                     <?php else: ?>
                         <p class="remarks-text"><?= nl2br(htmlspecialchars($clean_remarks)) ?></p>
                     <?php endif; ?>
-
                     <small class="remarks-hint">📝 Remarks added by staff when they forwarded this request.</small>
                 </div>
             </div>
-            
+
+            <!-- ===== INDIGENCY FINANCIAL DETAILS (if applicable) ===== -->
+            <?php if (($request['RequestType'] ?? '') === 'Indigency' && $indigency): ?>
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h3>📋 Financial Assessment Details</h3>
+                </div>
+                <div class="card-body">
+                    <table class="info-table">
+                        <tr>
+                            <th>Monthly Income</th>
+                            <td>₱<?= number_format($indigency['MonthlyIncome'] ?? 0, 2) ?></td>
+                        </tr>
+                        <tr>
+                            <th>Household Size</th>
+                            <td><?= htmlspecialchars($indigency['HouseholdSize'] ?? '—') ?></td>
+                        </tr>
+                        <tr>
+                            <th>Employment Status</th>
+                            <td><?= htmlspecialchars($indigency['EmploymentStatus'] ?? '—') ?></td>
+                        </tr>
+                        <tr>
+                            <th>Source of Income</th>
+                            <td><?= nl2br(htmlspecialchars($indigency['IncomeSource'] ?? '—')) ?></td>
+                        </tr>
+                        <tr>
+                            <th>Government Assistance</th>
+                            <td><?= nl2br(htmlspecialchars($indigency['AssistanceReceived'] ?? '—')) ?></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <!-- Approval/Rejection Form -->
-            <?php if ($request['Status'] === 'ForApproval'): ?>
+            <?php if (($request['Status'] ?? '') === 'ForApproval'): ?>
                 <div class="card mt-4">
                     <div class="card-header">
                         <h3>Take Action</h3>
@@ -219,8 +253,7 @@ include '../includes/header.php';
                         <form method="POST" id="actionForm">
                             <input type="hidden" name="action" id="actionInput" value="">
                             <div class="form-group">
-                                <label class="form-label">Remarks <span
-                                        style="color:#6b7280;font-weight:400;">(optional)</span></label>
+                                <label class="form-label">Remarks <span style="color:#6b7280;font-weight:400;">(optional)</span></label>
                                 <textarea name="remarks" class="form-textarea" rows="3"
                                     placeholder="Add a reason for rejection, or a note for approval..."></textarea>
                                 <small class="form-hint">
@@ -242,7 +275,7 @@ include '../includes/header.php';
                 </div>
             <?php else: ?>
                 <div class="alert alert-info" style="margin-top: 1rem;">
-                    This request is <strong><?= htmlspecialchars($request['Status']) ?></strong> and cannot be modified.
+                    This request is <strong><?= htmlspecialchars($request['Status'] ?? 'Unknown') ?></strong> and cannot be modified.
                     <a href="request_processing.php" style="margin-left:8px;">← Back to list</a>
                 </div>
             <?php endif; ?>
@@ -269,7 +302,6 @@ include '../includes/header.php';
         width: 100%;
         border-collapse: collapse;
     }
-
     .info-table th,
     .info-table td {
         padding: 10px 14px;
@@ -277,14 +309,12 @@ include '../includes/header.php';
         text-align: left;
         vertical-align: top;
     }
-
     .info-table th {
         width: 180px;
         background: #f8fafc;
         color: #374151;
         font-weight: 600;
     }
-
     .info-table tr:last-child th,
     .info-table tr:last-child td {
         border-bottom: none;
@@ -294,7 +324,6 @@ include '../includes/header.php';
     .remarks-box {
         padding: 16px 20px;
     }
-
     .remarks-text {
         margin: 0 0 10px 0;
         padding: 14px 16px;
@@ -306,30 +335,31 @@ include '../includes/header.php';
         line-height: 1.7;
         white-space: pre-wrap;
     }
-
     .remarks-empty {
         margin: 0 0 10px 0;
         color: #9ca3af;
         font-style: italic;
     }
-
     .remarks-hint {
         color: #6b7280;
         font-size: 0.8rem;
+    }
+
+    /* Card body for extra details */
+    .card-body {
+        padding: 20px;
     }
 
     /* Action Box */
     .action-box {
         padding: 20px;
     }
-
     .form-label {
         display: block;
         font-weight: 600;
         margin-bottom: 6px;
         color: #374151;
     }
-
     .form-textarea {
         width: 100%;
         padding: 10px 12px;
@@ -342,13 +372,11 @@ include '../includes/header.php';
         font-family: inherit;
         color: #1f2937;
     }
-
     .form-textarea:focus {
         outline: none;
         border-color: #6366f1;
         box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
     }
-
     .form-hint {
         color: #6b7280;
         font-size: 0.8rem;
@@ -356,7 +384,6 @@ include '../includes/header.php';
         margin-top: 6px;
         line-height: 1.5;
     }
-
     .form-actions {
         display: flex;
         gap: 10px;
@@ -376,33 +403,28 @@ include '../includes/header.php';
         text-decoration: none;
         display: inline-block;
     }
-
     .btn-success {
         background: #2e7d32;
         color: white;
     }
-
     .btn-success:hover {
         background: #1b5e20;
     }
-
     .btn-danger {
         background: #c62828;
         color: white;
     }
-
     .btn-danger:hover {
         background: #7f0000;
     }
-
     .btn-secondary {
         background: #6b7280;
         color: white;
     }
-
     .btn-secondary:hover {
         background: #4b5563;
     }
+    .mt-4 { margin-top: 1rem; }
 </style>
 
 <?php include '../includes/footer.php'; ?>

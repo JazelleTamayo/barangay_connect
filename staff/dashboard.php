@@ -14,8 +14,14 @@ $pendingCount = $pdo->query(
     "SELECT COUNT(*) FROM ServiceRequest WHERE Status = 'Pending'"
 )->fetchColumn();
 
+// FIXED: Docs to Prepare = Approved (physical document not yet prepared)
 $prepareCount = $pdo->query(
-    "SELECT COUNT(*) FROM ServiceRequest WHERE Status = 'ForApproval'"
+    "SELECT COUNT(*) FROM ServiceRequest WHERE Status = 'Approved'"
+)->fetchColumn();
+
+// NEW: Ready for Release = Prepared (document ready, waiting for payment & release)
+$readyReleaseCount = $pdo->query(
+    "SELECT COUNT(*) FROM ServiceRequest WHERE Status = 'Prepared'"
 )->fetchColumn();
 
 $processedToday = $pdo->query(
@@ -36,7 +42,7 @@ $overdueCount = $pdo->query(
      )"
 )->fetchColumn();
 
-// --- Pending Requests (all pending for staff to work on) ---
+// --- Pending Requests (staff review) ---
 $pendingRequests = $pdo->query(
     "SELECT sr.RequestID, sr.ReferenceNo, sr.RequestType,
             sr.Status, sr.CreatedAt,
@@ -48,9 +54,7 @@ $pendingRequests = $pdo->query(
      LIMIT 10"
 )->fetchAll(PDO::FETCH_ASSOC);
 
-// FIXED: Documents to Prepare now correctly queries Status=Approved
-// (previously used ForApproval which is the wrong stage — Approved means captain signed off,
-//  ready for staff to prepare the physical document)
+// --- Documents to Prepare (Approved) ---
 $docsToPrepare = $pdo->query(
     "SELECT sr.RequestID, sr.ReferenceNo, sr.RequestType,
             sr.ProcessedAt,
@@ -59,6 +63,18 @@ $docsToPrepare = $pdo->query(
      JOIN Resident r ON sr.ResidentID = r.ResidentID
      WHERE sr.Status = 'Approved'
      ORDER BY sr.ProcessedAt ASC
+     LIMIT 10"
+)->fetchAll(PDO::FETCH_ASSOC);
+
+// --- NEW: Ready for Release (Prepared) ---
+$readyForRelease = $pdo->query(
+    "SELECT sr.RequestID, sr.ReferenceNo, sr.RequestType,
+            sr.PreparedAt,
+            CONCAT(r.FirstName,' ',r.LastName) AS ResidentName
+     FROM ServiceRequest sr
+     JOIN Resident r ON sr.ResidentID = r.ResidentID
+     WHERE sr.Status = 'Prepared'
+     ORDER BY sr.PreparedAt ASC
      LIMIT 10"
 )->fetchAll(PDO::FETCH_ASSOC);
 
@@ -75,7 +91,7 @@ include '../includes/header.php';
         </div>
         <div class="page-body">
 
-            <!-- Stats -->
+            <!-- Stats (now 5 cards) -->
             <div class="stats-grid">
                 <div class="stat-card stat-blue">
                     <div class="stat-icon">📥</div>
@@ -89,6 +105,13 @@ include '../includes/header.php';
                     <div class="stat-info">
                         <span class="stat-value"><?= $prepareCount ?></span>
                         <span class="stat-label">Docs to Prepare</span>
+                    </div>
+                </div>
+                <div class="stat-card stat-purple">
+                    <div class="stat-icon">📬</div>
+                    <div class="stat-info">
+                        <span class="stat-value"><?= $readyReleaseCount ?></span>
+                        <span class="stat-label">Ready for Release</span>
                     </div>
                 </div>
                 <div class="stat-card stat-green">
@@ -145,7 +168,7 @@ include '../includes/header.php';
                 </table>
             </div>
 
-            <!-- Documents to Prepare -->
+            <!-- Documents to Prepare (Approved) -->
             <div class="card">
                 <div class="card-header">
                     <h3>Documents to Prepare</h3>
@@ -181,7 +204,51 @@ include '../includes/header.php';
                 </table>
             </div>
 
+            <!-- NEW: Ready for Release (Prepared) -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Ready for Release</h3>
+                    <a href="release_document.php" class="btn btn-primary btn-small">View All</a>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Reference No.</th>
+                            <th>Resident</th>
+                            <th>Type</th>
+                            <th>Prepared Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($readyForRelease)): ?>
+                            <tr>
+                                <td colspan="5" class="empty-row">No documents ready for release.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($readyForRelease as $doc): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($doc['ReferenceNo']) ?></td>
+                                    <td><?= htmlspecialchars($doc['ResidentName']) ?></td>
+                                    <td><?= htmlspecialchars($doc['RequestType']) ?></td>
+                                    <td><?= $doc['PreparedAt'] ? date('M d, Y', strtotime($doc['PreparedAt'])) : '—' ?></td>
+                                    <td><a href="release_document.php?id=<?= $doc['RequestID'] ?>" class="btn btn-small btn-primary">Release</a></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+
         </div>
     </main>
 </div>
+
+<!-- Additional style for purple stat card (if not already defined) -->
+<style>
+.stat-purple {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+}
+</style>
+
 <?php include '../includes/footer.php'; ?>

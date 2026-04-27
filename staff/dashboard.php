@@ -137,7 +137,7 @@ include '../includes/header.php';
                                     <td><?= htmlspecialchars($req['RequestType']) ?></td>
                                     <td><?= date('M d, Y h:i A', strtotime($req['CreatedAt'])) ?></td>
                                     <td><span class="badge badge-pending"><?= $req['Status'] ?></span></td>
-                                    <td><a href="request_status_update.php?id=<?= $req['RequestID'] ?>" class="btn btn-small btn-primary">Update</a></td>
+                                    <td><a href="request_status_update.php?id=<?= $req['RequestID'] ?>" class="btn btn-small btn-primary">Review</a></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>

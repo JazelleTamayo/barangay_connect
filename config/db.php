@@ -35,3 +35,6 @@ function get_db(): PDO
     }
     return $pdo;
 }
+
+// Global $pdo available to all files that include config/db.php
+$pdo = get_db();

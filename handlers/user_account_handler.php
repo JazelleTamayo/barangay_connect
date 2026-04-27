@@ -8,18 +8,24 @@ require_once '../classes/UserAccount.php';
 require_once '../classes/AuditLog.php';
 require_role('sysadmin');
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../sysadmin/user_accounts.php');
-    exit;
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action     = trim($_POST['action']   ?? '');
+    $account_id = (int) ($_POST['account_id'] ?? 0);
+} else {
+    // GET-based actions from action links (disable, enable, delete)
+    $action     = trim($_GET['action'] ?? '');
+    $account_id = (int) ($_GET['id']   ?? 0);
 }
-
-$action     = trim($_POST['action']   ?? 'create');
-$account_id = (int) ($_POST['account_id'] ?? 0);
 
 $ua    = new UserAccount();
 $audit = new AuditLog();
 
 if ($action === 'create') {
+    // Create must be POST
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        header('Location: ../sysadmin/user_accounts.php');
+        exit;
+    }
     $username        = trim($_POST['username']         ?? '');
     $full_name       = trim($_POST['full_name']        ?? '');
     $password        = $_POST['password']              ?? '';
@@ -71,6 +77,13 @@ if ($action === 'create') {
         "UserAccountID: $account_id"
     );
     header('Location: ../sysadmin/user_accounts.php?msg=enabled');
+} elseif ($action === 'delete') {
+    $ua->deleteAccount($account_id);
+    $audit->log(
+        "Deleted user account",
+        "UserAccountID: $account_id"
+    );
+    header('Location: ../sysadmin/user_accounts.php?msg=deleted');
 } else {
     header('Location: ../sysadmin/user_accounts.php');
 }

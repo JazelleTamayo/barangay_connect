@@ -16,23 +16,24 @@ $where  = ['1=1'];
 $params = [];
 
 if ($search !== '') {
-    $where[]  = "(u.username LIKE :search OR u.full_name LIKE :search)";
+    $where[]  = "(u.Username LIKE :search OR u.FullName LIKE :search)";
     $params[':search'] = "%$search%";
 }
 if ($role !== '') {
-    $where[]  = "u.role = :role";
+    $where[]  = "u.Role = :role";
     $params[':role'] = $role;
 }
 if ($status !== '') {
-    $where[]  = "u.status = :status";
+    $where[]  = "u.AccountStatus = :status";
     $params[':status'] = $status;
 }
 
-$sql = "SELECT u.id, u.username, u.full_name, u.role, u.status,
-               u.created_at, u.email
+$sql = "SELECT u.UserAccountID AS id, u.Username AS username, u.FullName AS full_name,
+               u.Role AS role, u.AccountStatus AS status,
+               u.CreatedAt AS created_at, u.Email AS email
         FROM   useraccount u
         WHERE  " . implode(' AND ', $where) . "
-        ORDER  BY u.created_at DESC";
+        ORDER  BY u.CreatedAt DESC";
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);

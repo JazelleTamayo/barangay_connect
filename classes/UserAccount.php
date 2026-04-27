@@ -179,4 +179,16 @@ class UserAccount
         if (!$user) return false;
         return password_verify($password, $user['PasswordHash']);
     }
+
+    /**
+     * Permanently delete a user account.
+     */
+    public function deleteAccount(int $id): bool
+    {
+        $rows = $this->db->execute(
+            "DELETE FROM useraccount WHERE UserAccountID = ?",
+            [$id]
+        );
+        return $rows > 0;
+    }
 }

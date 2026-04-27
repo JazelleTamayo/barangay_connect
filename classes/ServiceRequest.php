@@ -106,7 +106,7 @@ class ServiceRequest
             "INSERT INTO ServiceRequest
                 (ReferenceNo, ResidentID, RequestType,
                  Purpose, Status, CreatedBy)
-             VALUES (?, ?, ?, ?, 'Pending', ?)",
+             VALUES (?, ?, ?, ?, 'ForApproval', ?)",
             [
                 $refNo,
                 $data['resident_id'],

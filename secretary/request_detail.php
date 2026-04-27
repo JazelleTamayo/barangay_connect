@@ -62,7 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ");
         $update->execute([$new_status, $log, $request_id]);
         $msg = 'approved';
-
     } elseif ($action === 'reject') {
         $new_status = 'Rejected';
         $rejection_reason = $remarks ?: 'No reason provided.';
@@ -76,7 +75,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ");
         $update->execute([$new_status, $rejection_reason, $log, $request_id]);
         $msg = 'rejected';
-
+    } elseif ($action === 'cancel') {
+        $cancel_reason = trim($_POST['cancel_reason'] ?? '') ?: 'Cancelled by Secretary.';
+        $update = $pdo->prepare("
+            UPDATE ServiceRequest
+            SET Status             = 'Cancelled',
+                CancelledBy        = ?,
+                CancelledAt        = NOW(),
+                CancellationReason = ?
+            WHERE RequestID = ?
+        ");
+        $update->execute([$user_id, $cancel_reason, $request_id]);
+        $msg = 'cancelled';
     } else {
         header("Location: request_detail.php?id=$request_id&msg=error");
         exit;
@@ -93,9 +103,12 @@ include '../includes/header.php';
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>Review Request</h1>
-            <span class="page-subtitle"><?= htmlspecialchars($request['ReferenceNo'] ?? '') ?></span>
+        <div class="page-header" style="display:flex; align-items:center; gap:16px;">
+            <a href="request_processing.php" class="btn-back" title="Back to list">&#8592;</a>
+            <div>
+                <h1 style="margin:0;">Review Request</h1>
+                <span class="page-subtitle"><?= htmlspecialchars($request['ReferenceNo'] ?? '') ?></span>
+            </div>
         </div>
         <div class="page-body">
 
@@ -212,35 +225,35 @@ include '../includes/header.php';
 
             <!-- ===== INDIGENCY FINANCIAL DETAILS (if applicable) ===== -->
             <?php if (($request['RequestType'] ?? '') === 'Indigency' && $indigency): ?>
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h3>📋 Financial Assessment Details</h3>
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h3>📋 Financial Assessment Details</h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="info-table">
+                            <tr>
+                                <th>Monthly Income</th>
+                                <td>₱<?= number_format($indigency['MonthlyIncome'] ?? 0, 2) ?></td>
+                            </tr>
+                            <tr>
+                                <th>Household Size</th>
+                                <td><?= htmlspecialchars($indigency['HouseholdSize'] ?? '—') ?></td>
+                            </tr>
+                            <tr>
+                                <th>Employment Status</th>
+                                <td><?= htmlspecialchars($indigency['EmploymentStatus'] ?? '—') ?></td>
+                            </tr>
+                            <tr>
+                                <th>Source of Income</th>
+                                <td><?= nl2br(htmlspecialchars($indigency['IncomeSource'] ?? '—')) ?></td>
+                            </tr>
+                            <tr>
+                                <th>Government Assistance</th>
+                                <td><?= nl2br(htmlspecialchars($indigency['AssistanceReceived'] ?? '—')) ?></td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <table class="info-table">
-                        <tr>
-                            <th>Monthly Income</th>
-                            <td>₱<?= number_format($indigency['MonthlyIncome'] ?? 0, 2) ?></td>
-                        </tr>
-                        <tr>
-                            <th>Household Size</th>
-                            <td><?= htmlspecialchars($indigency['HouseholdSize'] ?? '—') ?></td>
-                        </tr>
-                        <tr>
-                            <th>Employment Status</th>
-                            <td><?= htmlspecialchars($indigency['EmploymentStatus'] ?? '—') ?></td>
-                        </tr>
-                        <tr>
-                            <th>Source of Income</th>
-                            <td><?= nl2br(htmlspecialchars($indigency['IncomeSource'] ?? '—')) ?></td>
-                        </tr>
-                        <tr>
-                            <th>Government Assistance</th>
-                            <td><?= nl2br(htmlspecialchars($indigency['AssistanceReceived'] ?? '—')) ?></td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
             <?php endif; ?>
 
             <!-- Approval/Rejection Form -->
@@ -273,6 +286,30 @@ include '../includes/header.php';
                         </form>
                     </div>
                 </div>
+                <!-- Cancel Request -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h3>❌ Cancel Request</h3>
+                        <span class="card-subtitle">Use only if the request is invalid, fraudulent, or filed in error.</span>
+                    </div>
+                    <div class="action-box">
+                        <form method="POST" id="cancelForm">
+                            <input type="hidden" name="action" value="cancel">
+                            <div class="form-group">
+                                <label class="form-label">Cancellation Reason <span style="color:#dc2626;">*</span></label>
+                                <textarea name="cancel_reason" class="form-textarea" rows="3" required
+                                    placeholder="Why is this request being cancelled?"></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-danger"
+                                    onclick="if(confirm('Cancel this request? This cannot be undone.')) document.getElementById('cancelForm').submit()">
+                                    Cancel This Request
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
             <?php else: ?>
                 <div class="alert alert-info" style="margin-top: 1rem;">
                     This request is <strong><?= htmlspecialchars($request['Status'] ?? 'Unknown') ?></strong> and cannot be modified.
@@ -302,6 +339,7 @@ include '../includes/header.php';
         width: 100%;
         border-collapse: collapse;
     }
+
     .info-table th,
     .info-table td {
         padding: 10px 14px;
@@ -309,12 +347,14 @@ include '../includes/header.php';
         text-align: left;
         vertical-align: top;
     }
+
     .info-table th {
         width: 180px;
         background: #f8fafc;
         color: #374151;
         font-weight: 600;
     }
+
     .info-table tr:last-child th,
     .info-table tr:last-child td {
         border-bottom: none;
@@ -324,6 +364,7 @@ include '../includes/header.php';
     .remarks-box {
         padding: 16px 20px;
     }
+
     .remarks-text {
         margin: 0 0 10px 0;
         padding: 14px 16px;
@@ -335,11 +376,13 @@ include '../includes/header.php';
         line-height: 1.7;
         white-space: pre-wrap;
     }
+
     .remarks-empty {
         margin: 0 0 10px 0;
         color: #9ca3af;
         font-style: italic;
     }
+
     .remarks-hint {
         color: #6b7280;
         font-size: 0.8rem;
@@ -354,12 +397,14 @@ include '../includes/header.php';
     .action-box {
         padding: 20px;
     }
+
     .form-label {
         display: block;
         font-weight: 600;
         margin-bottom: 6px;
         color: #374151;
     }
+
     .form-textarea {
         width: 100%;
         padding: 10px 12px;
@@ -372,11 +417,13 @@ include '../includes/header.php';
         font-family: inherit;
         color: #1f2937;
     }
+
     .form-textarea:focus {
         outline: none;
         border-color: #6366f1;
         box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
     }
+
     .form-hint {
         color: #6b7280;
         font-size: 0.8rem;
@@ -384,6 +431,7 @@ include '../includes/header.php';
         margin-top: 6px;
         line-height: 1.5;
     }
+
     .form-actions {
         display: flex;
         gap: 10px;
@@ -403,28 +451,57 @@ include '../includes/header.php';
         text-decoration: none;
         display: inline-block;
     }
+
     .btn-success {
         background: #2e7d32;
         color: white;
     }
+
     .btn-success:hover {
         background: #1b5e20;
     }
+
     .btn-danger {
         background: #c62828;
         color: white;
     }
+
     .btn-danger:hover {
         background: #7f0000;
     }
+
     .btn-secondary {
         background: #6b7280;
         color: white;
     }
+
     .btn-secondary:hover {
         background: #4b5563;
     }
-    .mt-4 { margin-top: 1rem; }
+
+    .mt-4 {
+        margin-top: 1rem;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: #f1f5f9;
+        color: #374151;
+        font-size: 1.2rem;
+        text-decoration: none;
+        border: 1px solid #e2e8f0;
+        flex-shrink: 0;
+        transition: background 0.15s;
+    }
+
+    .btn-back:hover {
+        background: #e2e8f0;
+    }
 </style>
 
 <?php include '../includes/footer.php'; ?>

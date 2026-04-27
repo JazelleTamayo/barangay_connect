@@ -11,7 +11,7 @@ $pdo = get_db();
 
 // --- Stat counts ---
 $pendingCount = $pdo->query(
-    "SELECT COUNT(*) FROM ServiceRequest WHERE Status = 'Pending'"
+    "SELECT COUNT(*) FROM ServiceRequest WHERE Status = 'ForApproval'"
 )->fetchColumn();
 
 // FIXED: Docs to Prepare = Approved (physical document not yet prepared)
@@ -49,7 +49,7 @@ $pendingRequests = $pdo->query(
             CONCAT(r.FirstName,' ',r.LastName) AS ResidentName
      FROM ServiceRequest sr
      JOIN Resident r ON sr.ResidentID = r.ResidentID
-     WHERE sr.Status = 'Pending'
+     WHERE sr.Status = 'Approved'
      ORDER BY sr.CreatedAt ASC
      LIMIT 10"
 )->fetchAll(PDO::FETCH_ASSOC);
@@ -97,7 +97,7 @@ include '../includes/header.php';
                     <div class="stat-icon">📥</div>
                     <div class="stat-info">
                         <span class="stat-value"><?= $pendingCount ?></span>
-                        <span class="stat-label">Pending Requests</span>
+                        <span class="stat-label">Awaiting Preparation</span>
                     </div>
                 </div>
                 <div class="stat-card stat-yellow">
@@ -130,11 +130,11 @@ include '../includes/header.php';
                 </div>
             </div>
 
-            <!-- Pending Requests -->
+            <!-- Approved - Awaiting Preparation -->
             <div class="card">
                 <div class="card-header">
-                    <h3>Pending Requests</h3>
-                    <a href="request_status_update.php" class="btn btn-primary btn-small">View All</a>
+                    <h3>Approved — Ready to Prepare</h3>
+                    <a href="document_preparation.php" class="btn btn-primary btn-small">View All</a>
                 </div>
                 <table class="data-table">
                     <thead>
@@ -160,7 +160,7 @@ include '../includes/header.php';
                                     <td><?= htmlspecialchars($req['RequestType']) ?></td>
                                     <td><?= date('M d, Y h:i A', strtotime($req['CreatedAt'])) ?></td>
                                     <td><span class="badge badge-pending"><?= $req['Status'] ?></span></td>
-                                    <td><a href="request_status_update.php?id=<?= $req['RequestID'] ?>" class="btn btn-small btn-primary">Review</a></td>
+                                    <td><a href="document_preparation.php?id=<?= $req['RequestID'] ?>" class="btn btn-small btn-primary">Prepare</a></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -246,9 +246,9 @@ include '../includes/header.php';
 
 <!-- Additional style for purple stat card (if not already defined) -->
 <style>
-.stat-purple {
-    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-}
+    .stat-purple {
+        background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    }
 </style>
 
 <?php include '../includes/footer.php'; ?>

@@ -63,6 +63,9 @@ include '../includes/header.php';
             <?php if (isset($_GET['msg']) && $_GET['msg'] === 'rejected'): ?>
                 <div class="alert alert-error">❌ Request has been rejected.</div>
             <?php endif; ?>
+            <?php if (isset($_GET['msg']) && $_GET['msg'] === 'cancelled'): ?>
+                <div class="alert alert-warning">🚫 Request has been cancelled.</div>
+            <?php endif; ?>
 
             <div class="card">
                 <div class="card-header">
@@ -78,7 +81,7 @@ include '../includes/header.php';
                         </select>
                         <select id="statusFilter" class="filter-select">
                             <option value="all" <?= $filterStatus === 'all' ? 'selected' : '' ?>>All Status</option>
-                            <option value="Pending" <?= $filterStatus === 'Pending' ? 'selected' : '' ?>>Pending</option>
+
                             <option value="ForApproval" <?= $filterStatus === 'ForApproval' ? 'selected' : '' ?>>For Approval</option>
                             <option value="Approved" <?= $filterStatus === 'Approved' ? 'selected' : '' ?>>Approved</option>
                             <option value="Rejected" <?= $filterStatus === 'Rejected' ? 'selected' : '' ?>>Rejected</option>
@@ -100,7 +103,9 @@ include '../includes/header.php';
                     </thead>
                     <tbody>
                         <?php if (empty($requests)): ?>
-                            <tr><td colspan="6" class="empty-row">No requests found.</td></tr>
+                            <tr>
+                                <td colspan="6" class="empty-row">No requests found.</td>
+                            </tr>
                         <?php else: ?>
                             <?php foreach ($requests as $req): ?>
                                 <tr data-type="<?= htmlspecialchars($req['RequestType']) ?>"
@@ -114,8 +119,8 @@ include '../includes/header.php';
                                     <td><span class="badge badge-<?= strtolower($req['Status']) ?>"><?= htmlspecialchars($req['Status']) ?></span></td>
                                     <td>
                                         <a href="request_detail.php?id=<?= $req['RequestID'] ?>"
-                                           class="btn btn-small"
-                                           style="background:#2e7d32; color:white; text-decoration:none; padding:5px 12px; border-radius:4px;">
+                                            class="btn btn-small"
+                                            style="background:#2e7d32; color:white; text-decoration:none; padding:5px 12px; border-radius:4px;">
                                             Review
                                         </a>
                                     </td>
@@ -131,32 +136,32 @@ include '../includes/header.php';
 </div>
 
 <script>
-    const searchInput  = document.getElementById('searchInput');
-    const typeFilter   = document.getElementById('typeFilter');
+    const searchInput = document.getElementById('searchInput');
+    const typeFilter = document.getElementById('typeFilter');
     const statusFilter = document.getElementById('statusFilter');
-    const tableRows    = document.querySelectorAll('#requestsTable tbody tr');
+    const tableRows = document.querySelectorAll('#requestsTable tbody tr');
 
     function filterTable() {
-        const searchTerm     = searchInput.value.toLowerCase();
-        const selectedType   = typeFilter.value;
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedType = typeFilter.value;
         const selectedStatus = statusFilter.value;
 
         tableRows.forEach(row => {
-            const ref    = row.getAttribute('data-ref')    || '';
-            const name   = row.getAttribute('data-name')   || '';
-            const type   = row.getAttribute('data-type')   || '';
+            const ref = row.getAttribute('data-ref') || '';
+            const name = row.getAttribute('data-name') || '';
+            const type = row.getAttribute('data-type') || '';
             const status = row.getAttribute('data-status') || '';
 
             const matchesSearch = ref.includes(searchTerm) || name.includes(searchTerm);
-            const matchesType   = selectedType   === '' || type   === selectedType;
+            const matchesType = selectedType === '' || type === selectedType;
             const matchesStatus = selectedStatus === 'all' || selectedStatus === '' || status === selectedStatus;
 
             row.style.display = (matchesSearch && matchesType && matchesStatus) ? '' : 'none';
         });
     }
 
-    if (searchInput)  searchInput.addEventListener('keyup',  filterTable);
-    if (typeFilter)   typeFilter.addEventListener('change',  filterTable);
+    if (searchInput) searchInput.addEventListener('keyup', filterTable);
+    if (typeFilter) typeFilter.addEventListener('change', filterTable);
     if (statusFilter) statusFilter.addEventListener('change', filterTable);
 </script>
 

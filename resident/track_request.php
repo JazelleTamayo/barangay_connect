@@ -89,7 +89,8 @@ if (!empty($ref) && $resident_id) {
     $search_result = $stmt->fetch();
 }
 
-function parseRemarks(string $raw): array {
+function parseRemarks(string $raw): array
+{
     $entries = [];
     $chunks = preg_split('/\n(?=\[)/', trim($raw));
     foreach ($chunks as $chunk) {
@@ -104,7 +105,8 @@ function parseRemarks(string $raw): array {
     return $entries;
 }
 
-function roleLabel(string $role): string {
+function roleLabel(string $role): string
+{
     $r = strtolower($role);
     if (str_contains($r, 'secretary')) return 'Secretary';
     if (str_contains($r, 'staff'))     return 'Staff';
@@ -112,7 +114,8 @@ function roleLabel(string $role): string {
     return ucwords($role);
 }
 
-function roleBadgeClass(string $role): string {
+function roleBadgeClass(string $role): string
+{
     $r = strtolower($role);
     if (str_contains($r, 'secretary')) return 'badge-role-secretary';
     if (str_contains($r, 'staff'))     return 'badge-role-staff';
@@ -120,7 +123,8 @@ function roleBadgeClass(string $role): string {
     return 'badge-role-system';
 }
 
-function statusLabel(string $status): string {
+function statusLabel(string $status): string
+{
     $map = [
         'Pending'     => 'Pending',
         'ForApproval' => 'For Approval',
@@ -142,6 +146,10 @@ function statusLabel(string $status): string {
             <span class="page-subtitle">Track your request using a reference number</span>
         </div>
         <div class="page-body">
+
+            <?php if (isset($_GET['msg']) && $_GET['msg'] === 'submitted'): ?>
+                <div class="alert alert-success">✅ Request submitted! It is now with the Secretary for review. Track it below using your reference number.</div>
+            <?php endif; ?>
 
             <!-- Search -->
             <div class="card">
@@ -218,7 +226,7 @@ function statusLabel(string $status): string {
                                         } else {
                                             $entries = parseRemarks($rawRemarks);
                                             // Only show Staff entries to the resident
-                                            $visible = array_filter($entries, function($e) {
+                                            $visible = array_filter($entries, function ($e) {
                                                 return str_contains(strtolower($e['role']), 'staff');
                                             });
                                             if (empty($visible)) {
@@ -250,10 +258,22 @@ function statusLabel(string $status): string {
                                 </tr>
 
                                 <?php if (!empty($search_result['paid_amount'])): ?>
-                                    <tr><th>Amount Paid</th><td>₱<?= number_format($search_result['paid_amount'], 2) ?></td></tr>
-                                    <tr><th>Receipt No.</th><td><?= htmlspecialchars($search_result['ReceiptNo']) ?></td></tr>
-                                    <tr><th>Payment Method</th><td><?= htmlspecialchars($search_result['PaymentMethod']) ?></td></tr>
-                                    <tr><th>Payment Date</th><td><?= date('M d, Y h:i A', strtotime($search_result['RecordedAt'])) ?></td></tr>
+                                    <tr>
+                                        <th>Amount Paid</th>
+                                        <td>₱<?= number_format($search_result['paid_amount'], 2) ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Receipt No.</th>
+                                        <td><?= htmlspecialchars($search_result['ReceiptNo']) ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Payment Method</th>
+                                        <td><?= htmlspecialchars($search_result['PaymentMethod']) ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Payment Date</th>
+                                        <td><?= date('M d, Y h:i A', strtotime($search_result['RecordedAt'])) ?></td>
+                                    </tr>
                                 <?php else: ?>
                                     <tr>
                                         <th>Payment Status</th>
@@ -262,13 +282,31 @@ function statusLabel(string $status): string {
                                 <?php endif; ?>
 
                                 <?php if ($search_result['RequestType'] === 'FacilityReservation'): ?>
-                                    <tr><th>Facility</th><td><?= htmlspecialchars($search_result['FacilityName'] ?? '—') ?></td></tr>
-                                    <tr><th>Reservation Date</th><td><?= htmlspecialchars($search_result['ReservationDate'] ?? '—') ?></td></tr>
-                                    <tr><th>Time Slot</th><td><?= htmlspecialchars($search_result['TimeSlot'] ?? '—') ?></td></tr>
+                                    <tr>
+                                        <th>Facility</th>
+                                        <td><?= htmlspecialchars($search_result['FacilityName'] ?? '—') ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Reservation Date</th>
+                                        <td><?= htmlspecialchars($search_result['ReservationDate'] ?? '—') ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Time Slot</th>
+                                        <td><?= htmlspecialchars($search_result['TimeSlot'] ?? '—') ?></td>
+                                    </tr>
                                 <?php elseif ($search_result['RequestType'] === 'Complaint'): ?>
-                                    <tr><th>Respondent</th><td><?= htmlspecialchars($search_result['RespondentName'] ?? '—') ?></td></tr>
-                                    <tr><th>Incident Date</th><td><?= htmlspecialchars($search_result['IncidentDate'] ?? '—') ?></td></tr>
-                                    <tr><th>Mediation Date</th><td><?= htmlspecialchars($search_result['MediationDate'] ?? 'Pending') ?></td></tr>
+                                    <tr>
+                                        <th>Respondent</th>
+                                        <td><?= htmlspecialchars($search_result['RespondentName'] ?? '—') ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Incident Date</th>
+                                        <td><?= htmlspecialchars($search_result['IncidentDate'] ?? '—') ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Mediation Date</th>
+                                        <td><?= htmlspecialchars($search_result['MediationDate'] ?? 'Pending') ?></td>
+                                    </tr>
                                 <?php endif; ?>
                             </table>
                         </div>
@@ -288,20 +326,20 @@ function statusLabel(string $status): string {
                     <form method="GET" class="filter-form">
                         <select name="type" class="filter-select" onchange="this.form.submit()">
                             <option value="">All Types</option>
-                            <option value="Clearance"          <?= $filter_type == 'Clearance'          ? 'selected' : '' ?>>Clearance</option>
-                            <option value="Indigency"          <?= $filter_type == 'Indigency'          ? 'selected' : '' ?>>Indigency</option>
-                            <option value="FacilityReservation"<?= $filter_type == 'FacilityReservation'? 'selected' : '' ?>>Facility Reservation</option>
-                            <option value="Complaint"          <?= $filter_type == 'Complaint'          ? 'selected' : '' ?>>Complaint</option>
+                            <option value="Clearance" <?= $filter_type == 'Clearance'          ? 'selected' : '' ?>>Clearance</option>
+                            <option value="Indigency" <?= $filter_type == 'Indigency'          ? 'selected' : '' ?>>Indigency</option>
+                            <option value="FacilityReservation" <?= $filter_type == 'FacilityReservation' ? 'selected' : '' ?>>Facility Reservation</option>
+                            <option value="Complaint" <?= $filter_type == 'Complaint'          ? 'selected' : '' ?>>Complaint</option>
                         </select>
                         <select name="status" class="filter-select" onchange="this.form.submit()">
                             <option value="">All Status</option>
-                            <option value="Pending"     <?= $filter_status == 'Pending'     ? 'selected' : '' ?>>Pending</option>
+                            <option value="Pending" <?= $filter_status == 'Pending'     ? 'selected' : '' ?>>Pending</option>
                             <option value="ForApproval" <?= $filter_status == 'ForApproval' ? 'selected' : '' ?>>For Approval</option>
-                            <option value="Approved"    <?= $filter_status == 'Approved'    ? 'selected' : '' ?>>Approved</option>
-                            <option value="Prepared"    <?= $filter_status == 'Prepared'    ? 'selected' : '' ?>>Ready for Pickup</option>
-                            <option value="Released"    <?= $filter_status == 'Released'    ? 'selected' : '' ?>>Released</option>
-                            <option value="Rejected"    <?= $filter_status == 'Rejected'    ? 'selected' : '' ?>>Rejected</option>
-                            <option value="Cancelled"   <?= $filter_status == 'Cancelled'   ? 'selected' : '' ?>>Cancelled</option>
+                            <option value="Approved" <?= $filter_status == 'Approved'    ? 'selected' : '' ?>>Approved</option>
+                            <option value="Prepared" <?= $filter_status == 'Prepared'    ? 'selected' : '' ?>>Ready for Pickup</option>
+                            <option value="Released" <?= $filter_status == 'Released'    ? 'selected' : '' ?>>Released</option>
+                            <option value="Rejected" <?= $filter_status == 'Rejected'    ? 'selected' : '' ?>>Rejected</option>
+                            <option value="Cancelled" <?= $filter_status == 'Cancelled'   ? 'selected' : '' ?>>Cancelled</option>
                         </select>
                         <?php if (!empty($filter_type) || !empty($filter_status)): ?>
                             <a href="track_request.php" class="btn-link">Clear Filters</a>
@@ -322,7 +360,9 @@ function statusLabel(string $status): string {
                     </thead>
                     <tbody>
                         <?php if (empty($all_requests)): ?>
-                            <tr><td colspan="7" class="empty-row">No requests found. <a href="new_request.php">Create one now.</a></td></tr>
+                            <tr>
+                                <td colspan="7" class="empty-row">No requests found. <a href="new_request.php">Create one now.</a></td>
+                            </tr>
                         <?php else: ?>
                             <?php foreach ($all_requests as $req): ?>
                                 <tr>
@@ -354,61 +394,205 @@ function statusLabel(string $status): string {
     </main>
 </div>
 <style>
-/* Filters */
-.filter-form { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.filter-select { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: white; }
-.btn-link { color: var(--green-dark); text-decoration: none; font-size: 0.85rem; }
+    /* Filters */
+    .filter-form {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
 
-/* Detail table */
-.track-result-details table { width: 100%; border-collapse: collapse; }
-.track-result-details th,
-.track-result-details td { padding: 10px; border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: top; }
-.track-result-details th { width: 180px; background: #f8f9fa; font-weight: 600; }
+    .filter-select {
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background: white;
+    }
 
-/* Pickup banner */
-.pickup-banner {
-    margin: 12px 20px;
-    padding: 14px 18px;
-    background: #d1fae5;
-    border: 1px solid #6ee7b7;
-    border-radius: 8px;
-    color: #065f46;
-    font-size: 0.95rem;
-}
+    .btn-link {
+        color: var(--green-dark);
+        text-decoration: none;
+        font-size: 0.85rem;
+    }
 
-/* Status badges — use two class names to avoid conflicts with global CSS */
-.status-badge,
-.req-status-badge {
-    display: inline-block !important;
-    padding: 3px 12px !important;
-    border-radius: 999px !important;
-    font-size: 0.8rem !important;
-    font-weight: 600 !important;
-    border: 1px solid transparent !important;
-}
-.status-pending,     .req-status-badge.status-pending     { background: #fef9c3 !important; color: #854d0e !important; border-color: #fde047 !important; }
-.status-forapproval, .req-status-badge.status-forapproval { background: #dbeafe !important; color: #1e40af !important; border-color: #93c5fd !important; }
-.status-approved,    .req-status-badge.status-approved     { background: #dcfce7 !important; color: #166534 !important; border-color: #86efac !important; }
-.status-prepared,    .req-status-badge.status-prepared     { background: #d1fae5 !important; color: #065f46 !important; border-color: #34d399 !important; font-weight: 700 !important; }
-.status-released,    .req-status-badge.status-released     { background: #ede9fe !important; color: #5b21b6 !important; border-color: #c4b5fd !important; }
-.status-rejected,    .req-status-badge.status-rejected     { background: #fee2e2 !important; color: #991b1b !important; border-color: #fca5a5 !important; }
-.status-cancelled,   .req-status-badge.status-cancelled    { background: #f3f4f6 !important; color: #6b7280 !important; border-color: #d1d5db !important; }
+    /* Detail table */
+    .track-result-details table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-/* Remarks log */
-.remarks-log { display: flex; flex-direction: column; gap: 8px; }
-.remark-entry { border-left: 4px solid #ccc; border-radius: 0 6px 6px 0; background: #fafafa; padding: 8px 12px; }
-.remark-entry--staff     { border-left-color: #1565c0; background: #f0f5ff; }
-.remark-entry--secretary { border-left-color: #2e7d32; background: #f0faf0; }
-.remark-entry--captain   { border-left-color: #e65100; background: #fff8f0; }
-.remark-entry--note      { border-left-color: #888;    background: #f8f8f8; }
-.remark-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
-.remark-badge { font-size: 0.70rem; font-weight: 700; padding: 2px 9px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
-.badge-role-staff     { background: #dbeafe; color: #1d4ed8; }
-.badge-role-secretary { background: #dcfce7; color: #166534; }
-.badge-role-captain   { background: #ffedd5; color: #9a3412; }
-.badge-role-system    { background: #f3f4f6; color: #4b5563; }
-.remark-time    { font-size: 0.78rem; color: #888; }
-.remark-message { font-size: 0.9rem; color: #333; line-height: 1.5; }
-.remark-none    { color: #999; font-style: italic; font-size: 0.88rem; }
+    .track-result-details th,
+    .track-result-details td {
+        padding: 10px;
+        border-bottom: 1px solid var(--border-color);
+        text-align: left;
+        vertical-align: top;
+    }
+
+    .track-result-details th {
+        width: 180px;
+        background: #f8f9fa;
+        font-weight: 600;
+    }
+
+    /* Pickup banner */
+    .pickup-banner {
+        margin: 12px 20px;
+        padding: 14px 18px;
+        background: #d1fae5;
+        border: 1px solid #6ee7b7;
+        border-radius: 8px;
+        color: #065f46;
+        font-size: 0.95rem;
+    }
+
+    /* Status badges — use two class names to avoid conflicts with global CSS */
+    .status-badge,
+    .req-status-badge {
+        display: inline-block !important;
+        padding: 3px 12px !important;
+        border-radius: 999px !important;
+        font-size: 0.8rem !important;
+        font-weight: 600 !important;
+        border: 1px solid transparent !important;
+    }
+
+    .status-pending,
+    .req-status-badge.status-pending {
+        background: #fef9c3 !important;
+        color: #854d0e !important;
+        border-color: #fde047 !important;
+    }
+
+    .status-forapproval,
+    .req-status-badge.status-forapproval {
+        background: #dbeafe !important;
+        color: #1e40af !important;
+        border-color: #93c5fd !important;
+    }
+
+    .status-approved,
+    .req-status-badge.status-approved {
+        background: #dcfce7 !important;
+        color: #166534 !important;
+        border-color: #86efac !important;
+    }
+
+    .status-prepared,
+    .req-status-badge.status-prepared {
+        background: #d1fae5 !important;
+        color: #065f46 !important;
+        border-color: #34d399 !important;
+        font-weight: 700 !important;
+    }
+
+    .status-released,
+    .req-status-badge.status-released {
+        background: #ede9fe !important;
+        color: #5b21b6 !important;
+        border-color: #c4b5fd !important;
+    }
+
+    .status-rejected,
+    .req-status-badge.status-rejected {
+        background: #fee2e2 !important;
+        color: #991b1b !important;
+        border-color: #fca5a5 !important;
+    }
+
+    .status-cancelled,
+    .req-status-badge.status-cancelled {
+        background: #f3f4f6 !important;
+        color: #6b7280 !important;
+        border-color: #d1d5db !important;
+    }
+
+    /* Remarks log */
+    .remarks-log {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .remark-entry {
+        border-left: 4px solid #ccc;
+        border-radius: 0 6px 6px 0;
+        background: #fafafa;
+        padding: 8px 12px;
+    }
+
+    .remark-entry--staff {
+        border-left-color: #1565c0;
+        background: #f0f5ff;
+    }
+
+    .remark-entry--secretary {
+        border-left-color: #2e7d32;
+        background: #f0faf0;
+    }
+
+    .remark-entry--captain {
+        border-left-color: #e65100;
+        background: #fff8f0;
+    }
+
+    .remark-entry--note {
+        border-left-color: #888;
+        background: #f8f8f8;
+    }
+
+    .remark-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+        flex-wrap: wrap;
+    }
+
+    .remark-badge {
+        font-size: 0.70rem;
+        font-weight: 700;
+        padding: 2px 9px;
+        border-radius: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .badge-role-staff {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .badge-role-secretary {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .badge-role-captain {
+        background: #ffedd5;
+        color: #9a3412;
+    }
+
+    .badge-role-system {
+        background: #f3f4f6;
+        color: #4b5563;
+    }
+
+    .remark-time {
+        font-size: 0.78rem;
+        color: #888;
+    }
+
+    .remark-message {
+        font-size: 0.9rem;
+        color: #333;
+        line-height: 1.5;
+    }
+
+    .remark-none {
+        color: #999;
+        font-style: italic;
+        font-size: 0.88rem;
+    }
 </style>
 <?php include '../includes/footer.php'; ?>

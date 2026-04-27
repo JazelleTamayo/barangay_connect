@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 "ResidentID: $resident_id | Username: $username"
             );
 
-            $success = 'Your registration has been submitted! A barangay staff will review your information within 24 hours. You will be notified once your account is activated.';
+            $success = 'Your registration has been submitted! A barangay secretary will review your information within 24 hours. You will be notified once your account is activated.';
         }
     }
 }

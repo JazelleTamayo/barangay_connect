@@ -124,13 +124,13 @@ if ($request_type === 'FacilityReservation') {
 
         if ($requestedDate < $earliest) {
             header('Location: ../resident/new_request.php'
-                 . '?type=FacilityReservation&msg=lead_time_error');
+                . '?type=FacilityReservation&msg=lead_time_error');
             exit;
         }
 
         if ($sr->isFacilityBooked($facilityId, $reservationDate)) {
             header('Location: ../resident/new_request.php'
-                    . '?type=FacilityReservation&msg=double_booking');
+                . '?type=FacilityReservation&msg=double_booking');
             exit;
         }
 
@@ -158,9 +158,8 @@ $audit->log(
 
 // Redirect based on who submitted
 if ($submitted_by === 'resident') {
-    header('Location: ../resident/new_request.php?msg=created');
+    header('Location: ../resident/track_request.php?msg=submitted');
 } else {
-    header('Location: ../staff/request_acceptance.php?msg=created');
+    header('Location: ../staff/dashboard.php?msg=created');
 }
 exit;
-?>

@@ -1,6 +1,6 @@
 <?php
 // Barangay Connect – Request Processing
-// secretary/request_processing.php
+// secretary/request_processing.php (show For Approval by default)
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -12,25 +12,29 @@ $pdo = get_db();
 $filterType   = trim($_GET['type']   ?? '');
 $filterStatus = trim($_GET['status'] ?? '');
 
-$sql    = "SELECT
-               sr.RequestID,
-               sr.ReferenceNo,
-               CONCAT(r.FirstName, ' ', r.LastName) AS ResidentName,
-               sr.RequestType,
-               sr.CreatedAt,
-               sr.Status,
-               TIMESTAMPDIFF(HOUR, sr.CreatedAt, NOW()) AS HoursElapsed
-           FROM ServiceRequest sr
-           JOIN Resident r ON sr.ResidentID = r.ResidentID
-           WHERE 1=1";
+// Default to 'ForApproval' if no explicit status filter is set
+if ($filterStatus === '' && !isset($_GET['status'])) {
+    $filterStatus = 'ForApproval';
+}
+
+$sql = "SELECT
+            sr.RequestID,
+            sr.ReferenceNo,
+            CONCAT(r.FirstName, ' ', r.LastName) AS ResidentName,
+            sr.RequestType,
+            sr.CreatedAt,
+            sr.Status
+        FROM ServiceRequest sr
+        JOIN Resident r ON sr.ResidentID = r.ResidentID
+        WHERE 1=1";
 $params = [];
 
 if ($filterType !== '') {
-    $sql     .= " AND sr.RequestType = ?";
+    $sql .= " AND sr.RequestType = ?";
     $params[] = $filterType;
 }
-if ($filterStatus !== '') {
-    $sql     .= " AND sr.Status = ?";
+if ($filterStatus !== '' && $filterStatus !== 'all') {
+    $sql .= " AND sr.Status = ?";
     $params[] = $filterStatus;
 }
 
@@ -73,13 +77,13 @@ include '../includes/header.php';
                             <option value="Complaint">Complaint</option>
                         </select>
                         <select id="statusFilter" class="filter-select">
-                            <option value="">All Status</option>
-                            <option value="Pending">Pending</option>
-                            <option value="ForApproval">For Approval</option>
-                            <option value="Approved">Approved</option>
-                            <option value="Rejected">Rejected</option>
-                            <option value="Released">Released</option>
-                            <option value="Cancelled">Cancelled</option>
+                            <option value="all" <?= $filterStatus === 'all' ? 'selected' : '' ?>>All Status</option>
+                            <option value="Pending" <?= $filterStatus === 'Pending' ? 'selected' : '' ?>>Pending</option>
+                            <option value="ForApproval" <?= $filterStatus === 'ForApproval' ? 'selected' : '' ?>>For Approval</option>
+                            <option value="Approved" <?= $filterStatus === 'Approved' ? 'selected' : '' ?>>Approved</option>
+                            <option value="Rejected" <?= $filterStatus === 'Rejected' ? 'selected' : '' ?>>Rejected</option>
+                            <option value="Released" <?= $filterStatus === 'Released' ? 'selected' : '' ?>>Released</option>
+                            <option value="Cancelled" <?= $filterStatus === 'Cancelled' ? 'selected' : '' ?>>Cancelled</option>
                         </select>
                     </div>
                 </div>
@@ -91,26 +95,14 @@ include '../includes/header.php';
                             <th>Type</th>
                             <th>Submitted</th>
                             <th>Status</th>
-                            <th>SLA</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($requests)): ?>
-                            <tr><td colspan="7" class="empty-row">No requests found.</td></tr>
+                            <tr><td colspan="6" class="empty-row">No requests found.</td></tr>
                         <?php else: ?>
                             <?php foreach ($requests as $req): ?>
-                                <?php
-                                $slaMap = [
-                                    'Clearance'           => SLA_CLEARANCE,
-                                    'Indigency'           => SLA_INDIGENCY,
-                                    'FacilityReservation' => SLA_RESERVATION,
-                                    'Complaint'           => SLA_COMPLAINT,
-                                ];
-                                $limit   = $slaMap[$req['RequestType']] ?? 72;
-                                $elapsed = (int)$req['HoursElapsed'];
-                                $cls     = $elapsed >= $limit ? 'danger' : ($elapsed >= $limit * 0.75 ? 'warning' : 'ok');
-                                ?>
                                 <tr data-type="<?= htmlspecialchars($req['RequestType']) ?>"
                                     data-status="<?= htmlspecialchars($req['Status']) ?>"
                                     data-name="<?= htmlspecialchars(strtolower($req['ResidentName'])) ?>"
@@ -120,7 +112,6 @@ include '../includes/header.php';
                                     <td><?= htmlspecialchars($req['RequestType']) ?></td>
                                     <td><?= date('M d, Y', strtotime($req['CreatedAt'])) ?></td>
                                     <td><span class="badge badge-<?= strtolower($req['Status']) ?>"><?= htmlspecialchars($req['Status']) ?></span></td>
-                                    <td><span class="sla-badge sla-<?= $cls ?>"><?= $elapsed ?>h / <?= $limit ?>h</span></td>
                                     <td>
                                         <a href="request_detail.php?id=<?= $req['RequestID'] ?>"
                                            class="btn btn-small"
@@ -158,7 +149,7 @@ include '../includes/header.php';
 
             const matchesSearch = ref.includes(searchTerm) || name.includes(searchTerm);
             const matchesType   = selectedType   === '' || type   === selectedType;
-            const matchesStatus = selectedStatus === '' || status === selectedStatus;
+            const matchesStatus = selectedStatus === 'all' || selectedStatus === '' || status === selectedStatus;
 
             row.style.display = (matchesSearch && matchesType && matchesStatus) ? '' : 'none';
         });

@@ -19,7 +19,7 @@ $forApproval = $pdo->query(
 )->fetchColumn();
 
 $readyRelease = $pdo->query(
-    "SELECT COUNT(*) FROM ServiceRequest WHERE Status = 'Approved'"
+    "SELECT COUNT(*) FROM ServiceRequest WHERE Status = 'Prepared'"
 )->fetchColumn();
 
 $openComplaints = $pdo->query(
@@ -27,14 +27,14 @@ $openComplaints = $pdo->query(
      AND Status NOT IN ('Rejected','Cancelled','Released')"
 )->fetchColumn();
 
-// --- Requests For Approval ---
+// --- Requests For Approval (only ForApproval, not Pending) ---
 $approvalRequests = $pdo->query(
     "SELECT sr.RequestID, sr.ReferenceNo, sr.RequestType, sr.Purpose,
             sr.Status, sr.CreatedAt,
             CONCAT(r.FirstName,' ',r.LastName) AS ResidentName
      FROM ServiceRequest sr
      JOIN Resident r ON sr.ResidentID = r.ResidentID
-     WHERE sr.Status IN ('Pending','ForApproval')
+     WHERE sr.Status = 'ForApproval'
      ORDER BY sr.CreatedAt ASC
      LIMIT 10"
 )->fetchAll(PDO::FETCH_ASSOC);
@@ -51,15 +51,15 @@ $pendingResidents = $pdo->query(
      LIMIT 10"
 )->fetchAll(PDO::FETCH_ASSOC);
 
-// --- Documents Ready for Release (Approved) ---
+// --- Documents Ready for Release (Prepared documents) ---
 $readyDocs = $pdo->query(
     "SELECT sr.RequestID, sr.ReferenceNo, sr.RequestType,
-            sr.ProcessedAt,
+            sr.PreparedAt,
             CONCAT(r.FirstName,' ',r.LastName) AS ResidentName
      FROM ServiceRequest sr
      JOIN Resident r ON sr.ResidentID = r.ResidentID
-     WHERE sr.Status = 'Approved'
-     ORDER BY sr.ProcessedAt ASC
+     WHERE sr.Status = 'Prepared'
+     ORDER BY sr.PreparedAt ASC
      LIMIT 10"
 )->fetchAll(PDO::FETCH_ASSOC);
 
@@ -180,7 +180,7 @@ include '../includes/header.php';
                 </table>
             </div>
 
-            <!-- Documents Ready for Release -->
+            <!-- Documents Ready for Release (Prepared) -->
             <div class="card">
                 <div class="card-header">
                     <h3>Documents Ready for Release</h3>
@@ -192,7 +192,7 @@ include '../includes/header.php';
                             <th>Reference No.</th>
                             <th>Resident</th>
                             <th>Type</th>
-                            <th>Approved Date</th>
+                            <th>Prepared Date</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -207,7 +207,7 @@ include '../includes/header.php';
                                     <td><?= htmlspecialchars($doc['ReferenceNo']) ?></td>
                                     <td><?= htmlspecialchars($doc['ResidentName']) ?></td>
                                     <td><?= htmlspecialchars($doc['RequestType']) ?></td>
-                                    <td><?= $doc['ProcessedAt'] ? date('M d, Y', strtotime($doc['ProcessedAt'])) : '—' ?></td>
+                                    <td><?= $doc['PreparedAt'] ? date('M d, Y', strtotime($doc['PreparedAt'])) : '—' ?></td>
                                     <td><a href="document_release.php?id=<?= $doc['RequestID'] ?>" class="btn btn-small btn-secondary">Release</a></td>
                                 </tr>
                             <?php endforeach; ?>

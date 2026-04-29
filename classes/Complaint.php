@@ -64,17 +64,21 @@ class Complaint
         return $this->db->insert(
             "INSERT INTO Complaint
                 (RequestID, RespondentName, RespondentContact,
-                 RespondentResidentID, IncidentDate,
-                 IncidentLocation, Description)
-             VALUES (?, ?, ?, ?, ?, ?, ?)",
+                 RespondentResidentID, RespondentRelationship,
+                 IncidentDate, IncidentLocation, Description,
+                 Witnesses, ReliefSought)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
                 $data['request_id'],
-                $data['respondent_name']       ?? null,
-                $data['respondent_contact']    ?? null,
-                $data['respondent_resident_id'] ?? null,
-                $data['incident_date']         ?? null,
-                $data['incident_location']     ?? null,
-                $data['description']           ?? null,
+                $data['respondent_name']          ?? null,
+                $data['respondent_contact']       ?? null,
+                $data['respondent_resident_id']   ?? null,
+                $data['respondent_relationship']  ?? null,
+                $data['incident_date']            ?? null,
+                $data['incident_location']        ?? null,
+                $data['description']              ?? null,
+                $data['witnesses']                ?? null,
+                $data['relief_sought']            ?? null,
             ]
         );
     }

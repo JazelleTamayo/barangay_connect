@@ -23,7 +23,10 @@ $stmt = $pdo->prepare("
            CONCAT(r.FirstName,' ',r.LastName) AS ResidentName,
            r.Address, r.ContactNumber, r.Email as ResidentEmail,
            f.FacilityName, fr.ReservationDate, fr.TimeSlot,
-           c.RespondentName, c.IncidentDate, c.IncidentLocation, c.MediationDate
+           c.RespondentName, c.RespondentContact, c.RespondentRelationship,
+           c.IncidentDate, c.IncidentLocation, c.MediationDate,
+           c.Witnesses, c.ReliefSought,
+           fr.EventName, fr.ExpectedAttendees, fr.ContactPerson, fr.ContactPersonNumber
     FROM ServiceRequest sr
     JOIN Resident r ON sr.ResidentID = r.ResidentID
     LEFT JOIN FacilityReservation fr ON sr.RequestID = fr.RequestID
@@ -172,10 +175,34 @@ include '../includes/header.php';
                                 <th>Time Slot</th>
                                 <td><?= htmlspecialchars($request['TimeSlot'] ?? '—') ?></td>
                             </tr>
+                            <tr>
+                                <th>Event / Activity Name</th>
+                                <td><?= htmlspecialchars($request['EventName'] ?? '—') ?></td>
+                            </tr>
+                            <tr>
+                                <th>Expected Attendees</th>
+                                <td><?= htmlspecialchars($request['ExpectedAttendees'] ?? '—') ?></td>
+                            </tr>
+                            <tr>
+                                <th>Contact Person</th>
+                                <td><?= htmlspecialchars($request['ContactPerson'] ?? '—') ?></td>
+                            </tr>
+                            <tr>
+                                <th>Contact Person No.</th>
+                                <td><?= htmlspecialchars($request['ContactPersonNumber'] ?? '—') ?></td>
+                            </tr>
                         <?php elseif (($request['RequestType'] ?? '') == 'Complaint'): ?>
                             <tr>
                                 <th>Respondent</th>
                                 <td><?= htmlspecialchars($request['RespondentName'] ?? '—') ?></td>
+                            </tr>
+                            <tr>
+                                <th>Respondent Contact</th>
+                                <td><?= htmlspecialchars($request['RespondentContact'] ?? '—') ?></td>
+                            </tr>
+                            <tr>
+                                <th>Relationship</th>
+                                <td><?= htmlspecialchars($request['RespondentRelationship'] ?? '—') ?></td>
                             </tr>
                             <tr>
                                 <th>Incident Date</th>
@@ -184,6 +211,14 @@ include '../includes/header.php';
                             <tr>
                                 <th>Location</th>
                                 <td><?= htmlspecialchars($request['IncidentLocation'] ?? '—') ?></td>
+                            </tr>
+                            <tr>
+                                <th>Witnesses</th>
+                                <td><?= htmlspecialchars($request['Witnesses'] ?? '—') ?></td>
+                            </tr>
+                            <tr>
+                                <th>Relief Sought</th>
+                                <td><?= htmlspecialchars($request['ReliefSought'] ?? '—') ?></td>
                             </tr>
                             <tr>
                                 <th>Mediation Date</th>
@@ -305,6 +340,7 @@ include '../includes/header.php';
                                     onclick="if(confirm('Cancel this request? This cannot be undone.')) document.getElementById('cancelForm').submit()">
                                     Cancel This Request
                                 </button>
+                                <a href="request_processing.php" class="btn btn-secondary">Go Back</a>
                             </div>
                         </form>
                     </div>

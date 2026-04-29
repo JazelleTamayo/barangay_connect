@@ -65,12 +65,15 @@ $requestId = $sr->create([
 if ($request_type === 'Complaint') {
     $complaint = new Complaint();
     $complaint->create([
-        'request_id'         => $requestId,
-        'respondent_name'    => trim($_POST['respondent_name']    ?? ''),
-        'respondent_contact' => trim($_POST['respondent_contact'] ?? ''),
-        'incident_date'      => trim($_POST['incident_date']      ?? ''),
-        'incident_location'  => trim($_POST['incident_location']  ?? ''),
-        'description'        => $purpose,
+        'request_id'              => $requestId,
+        'respondent_name'         => trim($_POST['respondent_name']          ?? ''),
+        'respondent_contact'      => trim($_POST['respondent_contact']       ?? ''),
+        'respondent_relationship' => trim($_POST['respondent_relationship']  ?? ''),
+        'incident_date'           => trim($_POST['incident_date']            ?? ''),
+        'incident_location'       => trim($_POST['incident_location']        ?? ''),
+        'description'             => $purpose,
+        'witnesses'               => trim($_POST['witnesses']                ?? ''),
+        'relief_sought'           => trim($_POST['relief_sought']            ?? ''),
     ]);
 }
 
@@ -135,18 +138,29 @@ if ($request_type === 'FacilityReservation') {
         }
 
         $pdo  = get_db();
+        $eventName          = trim($_POST['event_name']            ?? '');
+        $expectedAttendees  = (int) ($_POST['expected_attendees']   ?? 0);
+        $contactPerson      = trim($_POST['contact_person']         ?? '');
+        $contactPersonNo    = trim($_POST['contact_person_number']  ?? '');
+        $agreedToRules      = isset($_POST['agreed_to_rules']) ? 1 : 0;
+
         $stmt = $pdo->prepare(
             "INSERT INTO FacilityReservation
-                (RequestID, FacilityID, ReservationDate,
-                 TimeSlot, EventPurpose)
-             VALUES (?, ?, ?, ?, ?)"
+                (RequestID, FacilityID, ReservationDate, TimeSlot, EventPurpose,
+                 EventName, ExpectedAttendees, ContactPerson, ContactPersonNumber, AgreedToRules)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         $stmt->execute([
             $requestId,
             $facilityId,
             $reservationDate,
             $timeSlot,
-            $purpose
+            $purpose,
+            $eventName,
+            $expectedAttendees,
+            $contactPerson,
+            $contactPersonNo,
+            $agreedToRules
         ]);
     }
 }

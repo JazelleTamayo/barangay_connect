@@ -183,19 +183,64 @@ include '../includes/header.php';
                                         <small class="form-hint">Must be at least <?= RESERVATION_LEAD_DAYS ?> days from today.</small>
                                     </div>
                                     <div class="form-group">
-                                        <label>Time Slot</label>
-                                        <select name="time_slot" class="form-input">
+                                        <label>Time Slot <span class="req">*</span></label>
+                                        <select name="time_slot" class="form-input" required>
                                             <option value="Morning (8AM-12PM)">Morning (8AM–12PM)</option>
                                             <option value="Afternoon (1PM-5PM)">Afternoon (1PM–5PM)</option>
                                             <option value="Full Day">Full Day</option>
                                         </select>
                                     </div>
                                 </div>
+
+                                <div class="form-divider">Event Details</div>
+
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label>Event / Activity Name <span class="req">*</span></label>
+                                        <input type="text" name="event_name" class="form-input" required
+                                            placeholder="e.g. Birthday Party, Community Meeting">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Expected Number of Attendees <span class="req">*</span></label>
+                                        <input type="number" name="expected_attendees" class="form-input" required
+                                            min="1" placeholder="e.g. 50">
+                                    </div>
+                                </div>
+
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label>Contact Person Name <span class="req">*</span></label>
+                                        <input type="text" name="contact_person" class="form-input" required
+                                            placeholder="Name of person in charge during the event">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Contact Person Number <span class="req">*</span></label>
+                                        <input type="text" name="contact_person_number" class="form-input" required
+                                            placeholder="09XXXXXXXXX">
+                                    </div>
+                                </div>
+
+                                <div class="form-divider">Facility Rules & Agreement</div>
+                                <div class="rules-box">
+                                    <p class="rules-title">Please read and agree to the following rules before submitting:</p>
+                                    <ol class="rules-list">
+                                        <li>The facility must be left <strong>clean and in good condition</strong> after use.</li>
+                                        <li><strong>Vandalism or destruction</strong> of any property is strictly prohibited.</li>
+                                        <li>Noise must be kept at a <strong>reasonable level</strong> at all times.</li>
+                                        <li>The reserved <strong>time slot must be strictly followed</strong>. Overstaying is not allowed.</li>
+                                        <li>Any <strong>damages caused during the event</strong> will be the <strong>full financial responsibility</strong> of the reserver and must be settled before any future reservations.</li>
+                                        <li>Non-compliance with these rules may result in <strong>cancellation of current and future reservations</strong>.</li>
+                                    </ol>
+                                    <label class="rules-check">
+                                        <input type="checkbox" name="agreed_to_rules" value="1" required>
+                                        <span>I have read, understood, and agree to all the facility rules stated above. <span class="req">*</span></span>
+                                    </label>
+                                </div>
                             <?php endif; ?>
 
                             <!-- ===== COMPLAINT FIELDS ===== -->
                             <?php if ($type === 'Complaint'): ?>
-                                <div class="form-divider">Complaint Details</div>
+                                <div class="form-divider">Respondent Information</div>
 
                                 <div class="form-row-2">
                                     <div class="form-group">
@@ -212,6 +257,26 @@ include '../includes/header.php';
 
                                 <div class="form-row-2">
                                     <div class="form-group">
+                                        <label>Relationship to Respondent</label>
+                                        <select name="respondent_relationship" class="form-input">
+                                            <option value="">— Select —</option>
+                                            <option value="Neighbor">Neighbor</option>
+                                            <option value="Family Member">Family Member</option>
+                                            <option value="Colleague">Colleague</option>
+                                            <option value="Stranger">Stranger</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Respondent Contact</label>
+                                        <small class="form-hint" style="display:block;margin-top:28px;color:#9ca3af;">Already entered above.</small>
+                                    </div>
+                                </div>
+
+                                <div class="form-divider">Incident Details</div>
+
+                                <div class="form-row-2">
+                                    <div class="form-group">
                                         <label>Incident Date <span class="req">*</span></label>
                                         <input type="date" name="incident_date" class="form-input" required>
                                     </div>
@@ -220,6 +285,18 @@ include '../includes/header.php';
                                         <input type="text" name="incident_location" class="form-input"
                                             required placeholder="Where did it happen?">
                                     </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Witnesses <span class="form-hint">(optional — names and contact numbers)</span></label>
+                                    <textarea name="witnesses" class="form-textarea" rows="2"
+                                        placeholder="e.g. Juan dela Cruz - 09171234567, Maria Reyes - 09281234567"></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Relief Sought <span class="form-hint">(optional — what outcome do you want?)</span></label>
+                                    <textarea name="relief_sought" class="form-textarea" rows="2"
+                                        placeholder="e.g. Mediation, apology, compensation for damages..."></textarea>
                                 </div>
                             <?php endif; ?>
 
@@ -256,6 +333,46 @@ include '../includes/header.php';
 <style>
     .req {
         color: #e53e3e;
+    }
+
+    .rules-box {
+        background: #fefce8;
+        border: 1px solid #fde68a;
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin-top: 4px;
+    }
+
+    .rules-title {
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: #92400e;
+        margin-bottom: 10px;
+    }
+
+    .rules-list {
+        margin: 0 0 14px 0;
+        padding-left: 20px;
+        font-size: 0.875rem;
+        color: #374151;
+        line-height: 1.8;
+    }
+
+    .rules-check {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 0.875rem;
+        color: #374151;
+        cursor: pointer;
+    }
+
+    .rules-check input {
+        margin-top: 3px;
+        flex-shrink: 0;
+        accent-color: #2e7d32;
+        width: 16px;
+        height: 16px;
     }
 
     .form-divider {

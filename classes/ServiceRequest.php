@@ -1,6 +1,8 @@
 <?php
 // Barangay Connect – ServiceRequest Class
 // classes/ServiceRequest.php
+// FIXED: Bug #3 – initial status changed from 'ForApproval' to 'Pending'
+//         so residents can cancel requests they just submitted.
 
 require_once __DIR__ . '/../classes/Database.php';
 require_once __DIR__ . '/../config/constants.php';
@@ -98,6 +100,10 @@ class ServiceRequest
     /**
      * Create a new service request.
      * Returns new RequestID.
+     *
+     * FIXED: Initial status is now 'Pending' (not 'ForApproval').
+     * Workflow: Pending → ForApproval → Approved → Released
+     * This also unblocks Bug #3 – residents can now cancel Pending requests.
      */
     public function create(array $data): int
     {
@@ -106,7 +112,7 @@ class ServiceRequest
             "INSERT INTO ServiceRequest
                 (ReferenceNo, ResidentID, RequestType,
                  Purpose, Status, CreatedBy)
-             VALUES (?, ?, ?, ?, 'ForApproval', ?)",
+             VALUES (?, ?, ?, ?, 'Pending', ?)",
             [
                 $refNo,
                 $data['resident_id'],

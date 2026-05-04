@@ -1,6 +1,8 @@
 <?php
 // Barangay Connect – Payment Record Handler
 // handlers/payment_record_handler.php
+// FIXED Bug #7: Redirect now uses ?msg=payment_recorded instead of
+//               ?msg=released so the UI can show the correct message.
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -37,5 +39,7 @@ $audit->log(
     "RequestID: $request_id | Amount: $amount"
 );
 
-header('Location: ../secretary/document_release.php?msg=released');
+// FIXED Bug #7: use 'payment_recorded' not 'released' to distinguish
+// a payment event from a document release event in the UI.
+header('Location: ../secretary/document_release.php?msg=payment_recorded');
 exit;

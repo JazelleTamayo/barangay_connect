@@ -1,6 +1,9 @@
 <?php
 // Barangay Connect – Register Handler
 // handlers/register_handler.php
+// FIXED Bug #6: Government ID upload now validates actual MIME type
+//               (not just the file extension), matching the security
+//               approach already used in profile_update_handler.php.
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -70,20 +73,38 @@ if ($existing) {
 }
 
 // Handle government ID upload
+// FIXED Bug #6: validate actual MIME type via finfo, not just extension.
 $gov_id_path = null;
 if (
     isset($_FILES['gov_id_image']) &&
     $_FILES['gov_id_image']['error'] === UPLOAD_ERR_OK
 ) {
+    // --- MIME type check (same approach as profile_update_handler.php) ---
+    $allowed_mime = ['image/jpeg', 'image/jpg', 'image/png'];
+    $finfo        = finfo_open(FILEINFO_MIME_TYPE);
+    $actual_mime  = finfo_file($finfo, $_FILES['gov_id_image']['tmp_name']);
+    finfo_close($finfo);
+
+    if (!in_array($actual_mime, $allowed_mime)) {
+        header('Location: ../public/register.php?msg=invalid_file_type');
+        exit;
+    }
+
+    // File size limit: 5 MB
+    if ($_FILES['gov_id_image']['size'] > 5 * 1024 * 1024) {
+        header('Location: ../public/register.php?msg=file_too_large');
+        exit;
+    }
+
     $upload_dir = __DIR__ . '/../uploads/government_ids/';
     if (!is_dir($upload_dir)) {
         mkdir($upload_dir, 0755, true);
     }
-    $ext         = pathinfo(
-        $_FILES['gov_id_image']['name'],
-        PATHINFO_EXTENSION
-    );
-    $filename    = uniqid('gov_id_', true) . '.' . $ext;
+
+    // Derive extension from validated MIME type (not the untrusted filename)
+    $ext_map  = ['image/jpeg' => 'jpg', 'image/jpg' => 'jpg', 'image/png' => 'png'];
+    $ext      = $ext_map[$actual_mime];
+    $filename = uniqid('gov_id_', true) . '.' . $ext;
     $destination = $upload_dir . $filename;
 
     if (move_uploaded_file(

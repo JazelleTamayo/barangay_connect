@@ -1,5 +1,9 @@
 <?php
 // handlers/profile_update_handler.php
+// FIXED Bug #8: Passwords are no longer trimmed before verification.
+//               trim() was silently stripping intentional leading/trailing
+//               spaces from passwords set by the user, causing false
+//               'wrong password' errors.
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -25,9 +29,10 @@ if (!$resident_id) {
 }
 
 // --- Password change (if requested) ---
-$current_password = trim($_POST['current_password'] ?? '');
-$new_password     = trim($_POST['new_password'] ?? '');
-$confirm_password = trim($_POST['confirm_password'] ?? '');
+// FIXED Bug #8: Do NOT trim passwords – spaces may be intentional.
+$current_password = $_POST['current_password'] ?? '';
+$new_password     = $_POST['new_password']     ?? '';
+$confirm_password = $_POST['confirm_password'] ?? '';
 
 if (!empty($current_password) || !empty($new_password)) {
     if (empty($current_password) || empty($new_password) || empty($confirm_password)) {
@@ -36,6 +41,10 @@ if (!empty($current_password) || !empty($new_password)) {
     }
     if ($new_password !== $confirm_password) {
         header('Location: ../resident/my_profile.php?msg=password_mismatch');
+        exit;
+    }
+    if (strlen($new_password) < 8) {
+        header('Location: ../resident/my_profile.php?msg=password_short');
         exit;
     }
     // Verify current password
@@ -54,9 +63,9 @@ if (!empty($current_password) || !empty($new_password)) {
 
 // --- Collect editable fields for Resident table ---
 $contact = trim($_POST['contact'] ?? '');
-$email   = trim($_POST['email'] ?? '');
+$email   = trim($_POST['email']   ?? '');
 $address = trim($_POST['address'] ?? '');
-$purok   = trim($_POST['purok'] ?? '');
+$purok   = trim($_POST['purok']   ?? '');
 
 // Validate email format if provided
 if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -64,9 +73,8 @@ if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     exit;
 }
 
-// --- Profile picture upload (optional, only if column exists) ---
+// --- Profile picture upload (optional) ---
 $profile_picture_path = null;
-// Check if ProfilePicture column exists in Resident table
 $stmt = $pdo->query("SHOW COLUMNS FROM Resident LIKE 'ProfilePicture'");
 $has_profile_pic = $stmt->rowCount() > 0;
 
@@ -83,7 +91,6 @@ if ($has_profile_pic && isset($_FILES['profile_picture']) && $_FILES['profile_pi
         header('Location: ../resident/my_profile.php?msg=picture_too_large');
         exit;
     }
-    // Use absolute path from project root
     $project_root = dirname(__DIR__);
     $upload_dir = $project_root . '/uploads/profile_pictures/';
     if (!is_dir($upload_dir)) {
@@ -143,4 +150,3 @@ if (!empty($email)) {
 
 header('Location: ../resident/my_profile.php?msg=updated');
 exit;
-?>

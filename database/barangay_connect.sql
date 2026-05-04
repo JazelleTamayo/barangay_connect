@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 27, 2026 at 10:25 AM
+-- Generation Time: May 04, 2026 at 06:57 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -52,7 +52,11 @@ INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, 
 (7, 10, 'jazelletamayo', 'resident', 'Created service request: Clearance', 'RequestID: 5', '::1', '2026-04-27 11:56:51'),
 (8, 10, 'jazelletamayo', 'resident', 'Created service request: Clearance', 'RequestID: 8', '::1', '2026-04-27 15:32:41'),
 (9, 10, 'jazelletamayo', 'resident', 'Created service request: Indigency', 'RequestID: 11', '::1', '2026-04-27 15:42:25'),
-(10, 10, 'jazelletamayo', 'resident', 'Created service request: Indigency', 'RequestID: 12', '::1', '2026-04-27 16:06:12');
+(10, 10, 'jazelletamayo', 'resident', 'Created service request: Indigency', 'RequestID: 12', '::1', '2026-04-27 16:06:12'),
+(11, NULL, 'system', 'unknown', 'New self-registration submitted', 'ResidentID: 5 | Username: EjhiePacquiao', '::1', '2026-04-27 17:18:46'),
+(12, 2, 'secretary', 'secretary', 'Approved resident account', 'UserAccountID: 11', '::1', '2026-04-27 17:20:37'),
+(13, 11, 'EjhiePacquiao', 'resident', 'Created service request: Indigency', 'RequestID: 13', '::1', '2026-04-27 17:21:47'),
+(14, 11, 'EjhiePacquiao', 'resident', 'Created service request: Clearance', 'RequestID: 14', '::1', '2026-04-27 17:22:06');
 
 -- --------------------------------------------------------
 
@@ -88,10 +92,13 @@ CREATE TABLE `complaint` (
   `RequestID` int(11) NOT NULL,
   `RespondentName` varchar(200) DEFAULT NULL,
   `RespondentContact` varchar(50) DEFAULT NULL,
+  `RespondentRelationship` varchar(50) DEFAULT NULL,
   `RespondentResidentID` int(11) DEFAULT NULL,
   `IncidentDate` date DEFAULT NULL,
   `IncidentLocation` varchar(255) DEFAULT NULL,
   `Description` text DEFAULT NULL,
+  `Witnesses` text DEFAULT NULL,
+  `ReliefSought` text DEFAULT NULL,
   `MediationDate` date DEFAULT NULL,
   `ActionsTaken` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -134,7 +141,12 @@ CREATE TABLE `facilityreservation` (
   `FacilityID` int(11) NOT NULL,
   `ReservationDate` date NOT NULL,
   `TimeSlot` varchar(50) DEFAULT NULL,
-  `EventPurpose` text DEFAULT NULL
+  `EventPurpose` text DEFAULT NULL,
+  `EventName` varchar(150) DEFAULT NULL,
+  `ExpectedAttendees` int(11) DEFAULT NULL,
+  `ContactPerson` varchar(150) DEFAULT NULL,
+  `ContactPersonNumber` varchar(20) DEFAULT NULL,
+  `AgreedToRules` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -158,7 +170,8 @@ CREATE TABLE `indigencydetail` (
 --
 
 INSERT INTO `indigencydetail` (`IndigencyDetailID`, `RequestID`, `MonthlyIncome`, `HouseholdSize`, `EmploymentStatus`, `IncomeSource`, `AssistanceReceived`) VALUES
-(1, 12, 10000.00, 5, 'Self-employed', 'daily labor', '4ps');
+(1, 12, 10000.00, 5, 'Self-employed', 'daily labor', '4ps'),
+(2, 13, 15000.00, 3, 'Unemployed', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -181,7 +194,8 @@ CREATE TABLE `payment` (
 --
 
 INSERT INTO `payment` (`PaymentID`, `RequestID`, `ReceiptNo`, `Amount`, `PaymentMethod`, `RecordedBy`, `RecordedAt`) VALUES
-(1, 4, 'RHFG76678', 50.00, 'Cash', 3, '2026-04-27 14:58:11');
+(1, 4, 'RHFG76678', 50.00, 'Cash', 3, '2026-04-27 14:58:11'),
+(2, 14, 'REC-OOOO1', 50.00, 'Cash', 3, '2026-05-04 11:42:00');
 
 -- --------------------------------------------------------
 
@@ -217,7 +231,8 @@ INSERT INTO `resident` (`ResidentID`, `FirstName`, `MiddleName`, `LastName`, `Bi
 (1, 'Ana', 'Reyes', 'Gonzales', '1995-06-15', 'Female', '123 Sampaguita St., Barangay Connect', 'Purok 2', '09171234567', 'ana.gonzales@email.com', NULL, NULL, NULL, NULL, 'Active', '2026-04-19 15:39:22', '2026-04-19 15:39:22'),
 (2, 'Pedro', 'Santos', 'Dela Cruz', '1988-03-22', 'Male', '456 Kalayaan Ave., Barangay Connect', 'Purok 1', '09281234567', 'pedro.delacruz@email.com', NULL, NULL, NULL, NULL, 'Active', '2026-04-19 15:39:22', '2026-04-19 15:39:22'),
 (3, 'Maria', 'Lopez', 'Reyes', '2000-11-10', 'Female', '789 Mabini St., Barangay Connect', 'Purok 3', '09391234567', 'maria.reyes@email.com', NULL, NULL, NULL, NULL, 'Active', '2026-04-19 15:39:22', '2026-04-19 15:39:22'),
-(4, 'Jazelle', 'R.', 'Tamayo', '2005-02-23', 'Female', 'Salinas Dr', '2', '09205703793', 'jazellet5@gmail.com', NULL, NULL, 'uploads/government_ids/gov_id_69e49dd441d806.95207377.jpg', 'uploads/profile_pictures/profile_4_69ef1091d1189.jpg', 'Active', '2026-04-19 17:18:12', '2026-04-27 15:30:25');
+(4, 'Jazelle', 'R.', 'Tamayo', '2005-02-23', 'Female', 'Salinas Dr', '2', '09205703793', 'jazellet5@gmail.com', NULL, NULL, 'uploads/government_ids/gov_id_69e49dd441d806.95207377.jpg', 'uploads/profile_pictures/profile_4_69ef1091d1189.jpg', 'Active', '2026-04-19 17:18:12', '2026-04-27 15:30:25'),
+(5, 'Ejhie', 'Calixto', 'Pacquiao', '2004-10-08', 'Female', 'Minglanilla', 'Linao', '09198069003', 'ejhiepacquiao108@gmail.com', NULL, NULL, 'uploads/government_ids/gov_id_69ef29f6779128.14661348.jpg', 'uploads/profile_pictures/profile_5_69f8139d789fd.jpg', 'Active', '2026-04-27 17:18:46', '2026-05-04 11:33:49');
 
 -- --------------------------------------------------------
 
@@ -286,7 +301,9 @@ INSERT INTO `servicerequest` (`RequestID`, `ReferenceNo`, `ResidentID`, `Request
 (9, 'BRGY-20260427-00009', 4, 'Indigency', 'ereteqr', 'Pending', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 10, '2026-04-27 15:32:49', '2026-04-27 15:32:49', NULL, NULL, NULL),
 (10, 'BRGY-20260427-00010', 4, 'Indigency', 'ereteqr', 'Pending', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 10, '2026-04-27 15:42:01', '2026-04-27 15:42:01', NULL, NULL, NULL),
 (11, 'BRGY-20260427-00011', 4, 'Indigency', 'ereteqr', 'Pending', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 10, '2026-04-27 15:42:25', '2026-04-27 15:42:25', NULL, NULL, NULL),
-(12, 'BRGY-20260427-00012', 4, 'Indigency', 'asfdsafgdg', 'Approved', '\n[2026-04-27 10:08:46] Staff: \n[2026-04-27 10:22:50] Secretary Approved: ', 3, '2026-04-27 16:08:46', NULL, NULL, NULL, NULL, NULL, 10, '2026-04-27 16:06:12', '2026-04-27 16:22:50', NULL, NULL, NULL);
+(12, 'BRGY-20260427-00012', 4, 'Indigency', 'asfdsafgdg', 'Approved', '\n[2026-04-27 10:08:46] Staff: \n[2026-04-27 10:22:50] Secretary Approved: ', 3, '2026-04-27 16:08:46', NULL, NULL, NULL, NULL, NULL, 10, '2026-04-27 16:06:12', '2026-04-27 16:22:50', NULL, NULL, NULL),
+(13, 'BRGY-20260427-00013', 5, 'Indigency', 'for my 4ps', 'ForApproval', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 11, '2026-04-27 17:21:47', '2026-04-27 17:21:47', NULL, NULL, NULL),
+(14, 'BRGY-20260427-00014', 5, 'Clearance', 'for business', 'Released', '\n[2026-05-04 05:34:35] Secretary Approved: ', NULL, NULL, 3, '2026-05-04 11:42:00', NULL, NULL, NULL, 11, '2026-04-27 17:22:06', '2026-05-04 11:42:00', NULL, 3, '2026-05-04 11:40:55');
 
 -- --------------------------------------------------------
 
@@ -381,7 +398,8 @@ INSERT INTO `useraccount` (`UserAccountID`, `ResidentID`, `Username`, `PasswordH
 (2, NULL, 'secretary', '$2y$10$DfsLksEHmKpoBDQenKLvIOavQ0iCZRdGYHB4V1b5HqcpBB4O49jaG', 'secretary', 'Active', 'Maria Santos', 'secretary@barangay.gov.ph', NULL, NULL, NULL, '2026-04-19 15:39:22', '2026-04-19 17:07:36'),
 (3, NULL, 'staff', '$2y$10$BBGl7nQe/8AszC9OaOa.FezcWUJuYAwZ5adx7LuNsbAW/TN4HEIpO', 'staff', 'Active', 'Jose Reyes', 'staff@barangay.gov.ph', NULL, NULL, NULL, '2026-04-19 15:39:22', '2026-04-19 17:07:37'),
 (4, NULL, 'sysadmin', '$2y$10$w3M8zLZF5/t3ez/HPQie1ufgb95jZYDCHHP/.l/n4NTUkS/gQw7VO', 'sysadmin', 'Active', 'Tech Admin', 'sysadmin@barangay.gov.ph', NULL, NULL, NULL, '2026-04-19 15:39:22', '2026-04-19 17:07:37'),
-(10, 4, 'jazelletamayo', '$2y$10$pG5hIkzqaW7Xi9Vm4J1t9OSsSb07tfVquT5rS/1vbf3i4EAU4DMWi', 'resident', 'Active', 'Jazelle Tamayo', 'jazellet5@gmail.com', 2, '2026-04-19 17:19:30', NULL, '2026-04-19 17:18:12', '2026-04-19 17:19:30');
+(10, 4, 'jazelletamayo', '$2y$10$pG5hIkzqaW7Xi9Vm4J1t9OSsSb07tfVquT5rS/1vbf3i4EAU4DMWi', 'resident', 'Active', 'Jazelle Tamayo', 'jazellet5@gmail.com', 2, '2026-04-19 17:19:30', NULL, '2026-04-19 17:18:12', '2026-04-19 17:19:30'),
+(11, 5, 'EjhiePacquiao', '$2y$10$w.b94PBaNGyOLQN4q7wvKu2wsOo/AxP0sc1.Qhgv/Rp.lBCX9TFwK', 'resident', 'Active', 'Ejhie Pacquiao', 'ejhiepacquiao108@gmail.com', 2, '2026-04-27 17:20:37', NULL, '2026-04-27 17:18:46', '2026-04-27 17:20:37');
 
 --
 -- Indexes for dumped tables
@@ -502,7 +520,7 @@ ALTER TABLE `useraccount`
 -- AUTO_INCREMENT for table `auditlog`
 --
 ALTER TABLE `auditlog`
-  MODIFY `LogID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `LogID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `captainprofile`
@@ -532,19 +550,19 @@ ALTER TABLE `facilityreservation`
 -- AUTO_INCREMENT for table `indigencydetail`
 --
 ALTER TABLE `indigencydetail`
-  MODIFY `IndigencyDetailID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `IndigencyDetailID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `payment`
 --
 ALTER TABLE `payment`
-  MODIFY `PaymentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `PaymentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `resident`
 --
 ALTER TABLE `resident`
-  MODIFY `ResidentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `ResidentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `secretaryprofile`
@@ -556,7 +574,7 @@ ALTER TABLE `secretaryprofile`
 -- AUTO_INCREMENT for table `servicerequest`
 --
 ALTER TABLE `servicerequest`
-  MODIFY `RequestID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `RequestID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `staffprofile`
@@ -574,7 +592,7 @@ ALTER TABLE `systemadminprofile`
 -- AUTO_INCREMENT for table `useraccount`
 --
 ALTER TABLE `useraccount`
-  MODIFY `UserAccountID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `UserAccountID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- Constraints for dumped tables

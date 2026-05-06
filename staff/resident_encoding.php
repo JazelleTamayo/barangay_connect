@@ -5,7 +5,12 @@
 require_once '../config/session.php';
 require_once '../config/db.php';
 require_once '../config/constants.php';
-require_role('staff');
+
+// Manually check if the user is either a staff or a secretary
+if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'staff' && $_SESSION['role'] !== 'secretary')) {
+    header('Location: ../public/login.php');
+    exit;
+}
 
 $page_title = 'Encode Resident';
 include '../includes/header.php';

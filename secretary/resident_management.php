@@ -18,11 +18,14 @@ $status = trim($_GET['status'] ?? '');
 // FIXED: Only pull residents whose linked UserAccount has role='resident',
 // OR residents with no UserAccount yet (encoded by staff, pending self-registration).
 // This excludes captain, secretary, staff, and sysadmin accounts entirely.
+//Filters out Rejected accounts
 $sql    = "
-    SELECT r.*
+    SELECT r.*, ua.AccountStatus
     FROM Resident r
     LEFT JOIN UserAccount ua ON ua.ResidentID = r.ResidentID
     WHERE (ua.Role = 'resident' OR ua.UserAccountID IS NULL)
+    AND (ua.AccountStatus IS NULL OR ua.AccountStatus != 'Rejected')
+    AND (ua.Role = 'resident' OR ua.Role IS NULL)
 ";
 $params = [];
 

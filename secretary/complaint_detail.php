@@ -88,7 +88,7 @@ include '../includes/header.php';
                         <!-- Complainant -->
                         <div class="detail-item highlight-blue">
                             <label class="text-muted small fw-bold">COMPLAINANT</label>
-                            <p class="fs-5 mb-0" style="font-weight: 600; color: #333;">
+                            <p class="mb-0" style="font-weight: 600; color: #333;">
                                 <?= htmlspecialchars($complaint['ComplainantName']) ?>
                             </p>
                         </div>
@@ -96,7 +96,7 @@ include '../includes/header.php';
                         <!-- Respondent -->
                         <div class="detail-item highlight-red">
                             <label class="text-muted small fw-bold">RESPONDENT</label>
-                            <p class="fs-5 mb-0" style="font-weight: 600; color: #333;">
+                            <p class="mb-0" style="font-weight: 600; color: #333;">
                                 <?= htmlspecialchars($complaint['RespondentName']) ?>
                             </p>
                         </div>
@@ -125,9 +125,12 @@ include '../includes/header.php';
 
                     <!-- Narrative Section -->
                     <div style="margin-top:40px;">
-                        <label class="text-muted small fw-bold mb-3 d-block text-uppercase">Statement / Complaint Details</label>
-                        <div style="complaint-box">
-                            <i class="fas fa-quote-left text-light me-3" style="font-size: 1.5rem; opacity: 0.5;"></i>
+                        <label class="text-muted small fw-bold mb-3 d-block text-uppercase">
+                            Statement / Complaint Details
+                        </label>
+
+                        <div class="complaint-box">
+                            <i class="fas fa-quote-left text-light me-3" style="padding:5px; font-size: 1.5rem; opacity: 0.5;"></i>
                             <?= nl2br(htmlspecialchars($complaint['ComplaintDetails'] ?? 'No additional details provided by the complainant.')) ?>
                         </div>
                     </div>

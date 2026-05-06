@@ -3,6 +3,7 @@ Default system accounts (change passwords after first login):
 - Secretary: username `secretary`, password `secretary123`    - this is where you approve the account to be able to login your registered accounts.
 - Staff:     username `staff`,     password `staff123`
 - Sysadmin:  username `sysadmin`,  password `sysadmin123`
+- Staff2:    username `staff2`,    password `staff2123`
 
 Residents must register via the registration page; no default resident accounts.
 

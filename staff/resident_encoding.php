@@ -26,7 +26,24 @@ include '../includes/header.php';
         <div class="page-body">
 
             <?php if (isset($_GET['msg']) && $_GET['msg'] === 'saved'): ?>
-                <div class="alert alert-success">✅ Resident record saved successfully.</div>
+                <?php 
+                    // Capture the data passed from the handler
+                    $new_id = $_GET['id'] ?? '';
+                    $new_user = $_GET['user'] ?? '';
+                    $temp_pass = 'Barangay@' . $new_id;
+                ?>
+                <div class="alert alert-success" style="line-height: 1.6;">
+                    <h4 style="margin-bottom: 10px;">✅ Resident Saved Successfully!</h4>
+                    <p>A user account has been automatically created for this resident.</p>
+                    <div style="background: rgba(255,255,255,0.5); padding: 10px; border-radius: 4px; margin-top: 10px; border: 1px solid #c3e6cb;">
+                        <strong>Generated Credentials:</strong><br>
+                        Username: <code><?= htmlspecialchars($new_user) ?></code><br>
+                        Password: <code><?= htmlspecialchars($temp_pass) ?></code>
+                    </div>
+                    <p style="font-size: 0.85rem; margin-top: 10px; color: #155724;">
+                        <em>* Please provide these details to the resident for their first login.</em>
+                    </p>
+                </div>
             <?php endif; ?>
             <?php if (isset($_GET['msg']) && $_GET['msg'] === 'duplicate'): ?>
                 <div class="alert alert-error">❌ A resident with the same name, birthdate, and address already exists.</div>

@@ -2,6 +2,7 @@
 // Barangay Connect – Role-Aware Sidebar
 // includes/sidebar.php
 
+require_once __DIR__ . '/../config/settings.php';
 $role    = $_SESSION['role'] ?? '';
 $current = $_SERVER['PHP_SELF'];
 
@@ -68,7 +69,7 @@ $role_labels = [
     <div class="sidebar-brand">
         <span class="brand-icon">🏛️</span>
         <div>
-            <div class="brand-name">Barangay Connect</div>
+            <div class="brand-name"><?= htmlspecialchars(get_setting('barangay_name', 'Barangay Connect')) ?></div>
             <div class="brand-role">
                 <?= htmlspecialchars($role_labels[$role] ?? 'User') ?>
             </div>

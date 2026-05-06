@@ -1,28 +1,35 @@
 <?php
 // Barangay Connect – Sysadmin Dashboard
 // sysadmin/dashboard.php
+// FIXED: stat cards now exclude residents (admin roles only)
+// FIXED: broken HTML on empty-row (double </td> and stray 
+
 
 require_once '../config/session.php';
 require_once '../config/db.php';
 require_once '../config/constants.php';
 require_role('sysadmin');
 
-$pdo = get_db(); // Get the PDO connection
+$pdo = get_db();
 
-// ── Stat counts using correct column names ───────────────────────────────────
-$total    = $pdo->query("SELECT COUNT(*) FROM useraccount")->fetchColumn();
-$active   = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE AccountStatus = 'Active'")->fetchColumn();
-$pending  = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE AccountStatus = 'PendingVerification'")->fetchColumn();
-$disabled = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE AccountStatus = 'Inactive'")->fetchColumn();
 
-// ── Recent activity (last 10) using correct column names ────────────────────
+$stTotal = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE Role IN ('captain','secretary','staff','sysadmin')");
+$stActive = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE Role IN ('captain','secretary','staff','sysadmin') AND AccountStatus = 'Active'");
+$stPending = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE Role IN ('captain','secretary','staff','sysadmin') AND AccountStatus = 'PendingVerification'");
+$stDisabled = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE Role IN ('captain','secretary','staff','sysadmin') AND AccountStatus = 'Inactive'");
+
+$total = (int) ($stTotal ? $stTotal->fetchColumn() : 0);
+$active = (int) ($stActive ? $stActive->fetchColumn() : 0);
+$pending = (int) ($stPending ? $stPending->fetchColumn() : 0);
+$disabled = (int) ($stDisabled ? $stDisabled->fetchColumn() : 0);
+
+// ── Recent activity (last 10 audit log entries) ───────────────────────────────
 $stmt = $pdo->prepare("
-    SELECT a.LoggedAt as created_at, a.Action, a.RecordAffected,
-           u.Username, u.Role
-    FROM auditlog a
-    LEFT JOIN useraccount u ON u.UserAccountID = a.UserAccountID
-    ORDER BY a.LoggedAt DESC
-    LIMIT 10
+SELECT a.LoggedAt AS created_at, a.Action, a.RecordAffected,
+a.Username, a.Role
+FROM auditlog a
+ORDER BY a.LoggedAt DESC
+LIMIT 10
 ");
 $stmt->execute();
 $activity = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -40,33 +47,33 @@ include '../includes/header.php';
         </div>
         <div class="page-body">
 
-            <!-- Stats -->
+            <!-- Stats — admin accounts only -->
             <div class="stats-grid">
                 <div class="stat-card stat-blue">
                     <div class="stat-icon">👥</div>
                     <div class="stat-info">
-                        <span class="stat-value"><?= $total ?></span>
-                        <span class="stat-label">Total Accounts</span>
+                        <span class="stat-value"><?= (int) $total ?></span>
+                        <span class="stat-label">Total Admin Accounts</span>
                     </div>
                 </div>
                 <div class="stat-card stat-green">
                     <div class="stat-icon">✅</div>
                     <div class="stat-info">
-                        <span class="stat-value"><?= $active ?></span>
+                        <span class="stat-value"><?= (int) $active ?></span>
                         <span class="stat-label">Active Accounts</span>
                     </div>
                 </div>
                 <div class="stat-card stat-yellow">
                     <div class="stat-icon">⏳</div>
                     <div class="stat-info">
-                        <span class="stat-value"><?= $pending ?></span>
+                        <span class="stat-value"><?= (int) $pending ?></span>
                         <span class="stat-label">Pending Accounts</span>
                     </div>
                 </div>
                 <div class="stat-card stat-red">
                     <div class="stat-icon">🚫</div>
                     <div class="stat-info">
-                        <span class="stat-value"><?= $disabled ?></span>
+                        <span class="stat-value"><?= (int) $disabled ?></span>
                         <span class="stat-label">Disabled Accounts</span>
                     </div>
                 </div>
@@ -74,11 +81,13 @@ include '../includes/header.php';
 
             <!-- Quick Actions -->
             <div class="card">
-                <div class="card-header"><h3>Quick Actions</h3></div>
+                <div class="card-header">
+                    <h3>Quick Actions</h3>
+                </div>
                 <div class="quick-actions">
                     <a href="user_accounts.php" class="quick-action-btn"><span>👥</span><span>Manage Accounts</span></a>
-                    <a href="audit_log.php"      class="quick-action-btn"><span>📋</span><span>View Audit Log</span></a>
-                    <a href="backup.php"          class="quick-action-btn"><span>💾</span><span>Run Backup</span></a>
+                    <a href="audit_log.php" class="quick-action-btn"><span>📋</span><span>View Audit Log</span></a>
+                    <a href="backup.php" class="quick-action-btn"><span>💾</span><span>Run Backup</span></a>
                     <a href="system_settings.php" class="quick-action-btn"><span>⚙️</span><span>System Settings</span></a>
                 </div>
             </div>
@@ -100,19 +109,21 @@ include '../includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
-                    <?php if (empty($activity)): ?>
-                        <tr><td colspan="5" class="empty-row">No recent activity.<?= " " ?></td></td>?>
-                    <?php else: ?>
-                        <?php foreach ($activity as $row): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($row['created_at']) ?></td>
-                            <td><?= htmlspecialchars($row['Username'] ?? '—') ?></td>
-                            <td><?= htmlspecialchars($row['Role'] ?? '—') ?></td>
-                            <td><?= htmlspecialchars($row['Action']) ?></td>
-                            <td><?= htmlspecialchars($row['RecordAffected'] ?? '—') ?></td>
-                        </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                        <?php if (empty($activity)): ?>
+                            <tr>
+                                <td colspan="5" class="empty-row">No recent activity.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($activity as $row): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($row['created_at']) ?></td>
+                                    <td><?= htmlspecialchars($row['Username']       ?? '—') ?></td>
+                                    <td><?= htmlspecialchars(ucfirst($row['Role'])  ?? '—') ?></td>
+                                    <td><?= htmlspecialchars($row['Action']) ?></td>
+                                    <td><?= htmlspecialchars($row['RecordAffected'] ?? '—') ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>

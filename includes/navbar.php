@@ -2,7 +2,9 @@
 // Barangay Connect – Top Navbar
 // includes/navbar.php
 
-$role = $_SESSION['role'] ?? '';
+require_once __DIR__ . '/../config/settings.php';
+$role         = $_SESSION['role'] ?? '';
+$brgy_name    = get_setting('barangay_name', 'Barangay Connect');
 
 $role_labels = [
     'captain'   => 'Barangay Captain',
@@ -15,7 +17,7 @@ $role_labels = [
 <nav class="topnav">
     <div class="topnav-left">
         <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
-        <span class="topnav-title">Barangay Connect</span>
+        <span class="topnav-title"><?= htmlspecialchars($brgy_name) ?></span>
     </div>
     <div class="topnav-right">
         <div class="topnav-user">

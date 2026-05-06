@@ -1,11 +1,15 @@
 <?php
 // Barangay Connect – Sysadmin Audit Log
 // sysadmin/audit_log.php
+// FIXED: added $pdo = get_db()
+// FIXED: implemented working CSV export
 
 require_once '../config/session.php';
 require_once '../config/db.php';
 require_once '../config/constants.php';
 require_role('sysadmin');
+
+$pdo = get_db();
 
 // ── Filters ───────────────────────────────────────────────────────────────────
 $search    = trim($_GET['search']    ?? '');
@@ -16,15 +20,15 @@ $where  = ['1=1'];
 $params = [];
 
 if ($search !== '') {
-    $where[]  = "(a.Username LIKE :search OR a.Action LIKE :search)";
+    $where[]           = "(a.Username LIKE :search OR a.Action LIKE :search OR a.RecordAffected LIKE :search)";
     $params[':search'] = "%$search%";
 }
 if ($date_from !== '') {
-    $where[]  = "DATE(a.LoggedAt) >= :date_from";
+    $where[]              = "DATE(a.LoggedAt) >= :date_from";
     $params[':date_from'] = $date_from;
 }
 if ($date_to !== '') {
-    $where[]  = "DATE(a.LoggedAt) <= :date_to";
+    $where[]            = "DATE(a.LoggedAt) <= :date_to";
     $params[':date_to'] = $date_to;
 }
 
@@ -34,11 +38,34 @@ $sql = "SELECT a.LogID AS id, a.LoggedAt AS created_at, a.Action AS action,
         FROM   auditlog a
         WHERE  " . implode(' AND ', $where) . "
         ORDER  BY a.LoggedAt DESC
-        LIMIT  200";
+        LIMIT  500";
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// ── CSV Export ────────────────────────────────────────────────────────────────
+if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+    $filename = 'audit_log_' . date('Ymd_His') . '.csv';
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Pragma: no-cache');
+    $out = fopen('php://output', 'w');
+    fputcsv($out, ['Log ID', 'Timestamp', 'Username', 'Role', 'Action', 'Record Affected', 'IP Address']);
+    foreach ($logs as $log) {
+        fputcsv($out, [
+            $log['id'],
+            $log['created_at'],
+            $log['username']        ?? '',
+            $log['role']            ?? '',
+            $log['action'],
+            $log['record_affected'] ?? '',
+            $log['ip_address']      ?? '',
+        ]);
+    }
+    fclose($out);
+    exit;
+}
 
 $page_title = 'Audit Log';
 include '../includes/header.php';
@@ -55,12 +82,12 @@ include '../includes/header.php';
 
             <div class="card">
                 <div class="card-header">
-                    <h3>System Activity Log</h3>
+                    <h3>System Activity Log <span class="badge badge-gray"><?= count($logs) ?> entries</span></h3>
                     <div class="card-actions">
                         <form method="GET" action="audit_log.php" style="display:contents;">
                             <input type="text" name="search"
                                 class="search-input"
-                                placeholder="Search by user or action..."
+                                placeholder="Search by user, action, record..."
                                 value="<?= htmlspecialchars($search) ?>" />
                             <input type="date" name="date_from"
                                 class="date-input" title="From date"
@@ -71,7 +98,7 @@ include '../includes/header.php';
                             <button type="submit" class="btn btn-secondary btn-small">Filter</button>
                         </form>
                         <a href="audit_log.php?export=csv&search=<?= urlencode($search) ?>&date_from=<?= urlencode($date_from) ?>&date_to=<?= urlencode($date_to) ?>"
-                            class="btn btn-secondary btn-small">Export CSV</a>
+                            class="btn btn-secondary btn-small">⬇ Export CSV</a>
                     </div>
                 </div>
                 <table class="data-table">

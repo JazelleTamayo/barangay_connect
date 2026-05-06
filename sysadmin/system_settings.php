@@ -1,6 +1,7 @@
 <?php
 // Barangay Connect – System Settings
 // sysadmin/system_settings.php
+// FIXED: JS path corrected (assets/js/ not assets/css/js/)
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -93,5 +94,5 @@ include '../includes/header.php';
         </div>
     </main>
 </div>
-<script src="/barangay_connect/assets/css/js/form_validation.js"></script>
+<script src="/barangay_connect/assets/js/form_validation.js"></script>
 <?php include '../includes/footer.php'; ?>

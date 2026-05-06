@@ -1,6 +1,12 @@
 <?php
 // Barangay Connect – User Account Management
 // sysadmin/user_accounts.php
+// FIXED: added $pdo = get_db()
+// FIXED: base filter excludes residents
+// FIXED: removed 'resident' from role dropdown
+// FIXED: added missing error messages (missing_fields, password_mismatch, password_short)
+// FIXED: added View button per account
+// FIXED: JS path corrected
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -14,20 +20,21 @@ $search = trim($_GET['search'] ?? '');
 $role   = trim($_GET['role']   ?? '');
 $status = trim($_GET['status'] ?? '');
 
+// Base: admin roles only — residents are managed by Secretary
 $where  = ["u.Role IN ('captain', 'secretary', 'staff', 'sysadmin')"];
 $params = [];
 
 if ($search !== '') {
-    $where[]  = "(u.Username LIKE :search OR u.FullName LIKE :search)";
+    $where[]           = "(u.Username LIKE :search OR u.FullName LIKE :search)";
     $params[':search'] = "%$search%";
 }
 if ($role !== '') {
-    $where[]  = "u.Role = :role";
-    $params[':role'] = $role;
+    $where[]          = "u.Role = :role";
+    $params[':role']  = $role;
 }
 if ($status !== '') {
-    $where[]  = "u.AccountStatus = :status";
-    $params[':status'] = $status;
+    $where[]            = "u.AccountStatus = :status";
+    $params[':status']  = $status;
 }
 
 $sql = "SELECT u.UserAccountID AS id, u.Username AS username, u.FullName AS full_name,
@@ -56,10 +63,16 @@ include '../includes/header.php';
 
             <?php if (isset($_GET['msg'])): ?>
                 <?php $msgs = [
-                    'created'  => ['success', '✅ Account created successfully.'],
-                    'disabled' => ['warning', '⚠️ Account has been disabled.'],
-                    'enabled'  => ['success', '✅ Account has been enabled.'],
-                    'deleted'  => ['success', '✅ Account has been deleted.'],
+                    'created'           => ['success', '✅ Account created successfully.'],
+                    'disabled'          => ['warning', '⚠️ Account has been disabled.'],
+                    'enabled'           => ['success', '✅ Account has been enabled.'],
+                    'deleted'           => ['success', '✅ Account has been deleted.'],
+                    'missing_fields'    => ['error',   '❌ Please fill in all required fields.'],
+                    'password_mismatch' => ['error',   '❌ Passwords do not match.'],
+                    'password_short'    => ['error',   '❌ Password must be at least 8 characters.'],
+                    'invalid_role'      => ['error',   '❌ Invalid role selected.'],
+                    'cannot_self'       => ['error',   '❌ You cannot disable or delete your own account.'],
+                    'last_sysadmin'     => ['error',   '❌ Cannot delete the last System Administrator account.'],
                 ]; ?>
                 <?php if (isset($msgs[$_GET['msg']])): [$type, $text] = $msgs[$_GET['msg']]; ?>
                     <div class="alert alert-<?= $type ?>"><?= $text ?></div>
@@ -69,11 +82,9 @@ include '../includes/header.php';
             <!-- Account List -->
             <div class="card">
                 <div class="card-header">
-                    <h3>All User Accounts</h3>
+                    <h3>All User Accounts <span class="badge badge-gray"><?= count($accounts) ?> found</span></h3>
                     <div class="card-actions">
-                        <!-- Filter form (GET so filters stay in URL) -->
-                        <form method="GET" action="user_accounts.php"
-                            style="display:contents;">
+                        <form method="GET" action="user_accounts.php" style="display:contents;">
                             <input type="text" name="search"
                                 class="search-input"
                                 placeholder="Search by username or name..."
@@ -140,6 +151,11 @@ include '../includes/header.php';
                                     </td>
                                     <td><?= htmlspecialchars($acc['created_at']) ?></td>
                                     <td class="table-actions">
+                                        <!-- View profile -->
+                                        <a href="view_account.php?id=<?= $acc['id'] ?>"
+                                            class="btn btn-secondary btn-small">View</a>
+
+                                        <!-- Disable / Enable -->
                                         <?php if ($acc['status'] === 'Active'): ?>
                                             <a href="../handlers/user_account_handler.php?action=disable&id=<?= $acc['id'] ?>"
                                                 class="btn btn-warning btn-small"
@@ -149,9 +165,11 @@ include '../includes/header.php';
                                                 class="btn btn-success btn-small"
                                                 onclick="return confirm('Enable this account?')">Enable</a>
                                         <?php endif; ?>
+
+                                        <!-- Delete -->
                                         <a href="../handlers/user_account_handler.php?action=delete&id=<?= $acc['id'] ?>"
                                             class="btn btn-danger btn-small"
-                                            onclick="return confirm('Permanently delete this account?')">Delete</a>
+                                            onclick="return confirm('Permanently delete this account? This cannot be undone.')">Delete</a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -178,12 +196,8 @@ include '../includes/header.php';
                         <input type="text" name="full_name" class="form-input" required />
                     </div>
                     <div class="form-group">
-                        <label>Password *</label>
-                        <input type="password" name="password" class="form-input" required />
-                    </div>
-                    <div class="form-group">
-                        <label>Confirm Password *</label>
-                        <input type="password" name="confirm_password" class="form-input" required />
+                        <label>Email</label>
+                        <input type="email" name="email" class="form-input" />
                     </div>
                     <div class="form-group">
                         <label>Role *</label>
@@ -196,14 +210,19 @@ include '../includes/header.php';
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" name="email" class="form-input" />
+                        <label>Password * <small>(min. 8 characters)</small></label>
+                        <input type="password" name="password" class="form-input" required minlength="8" />
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password *</label>
+                        <input type="password" name="confirm_password" class="form-input" required />
                     </div>
                     <div class="form-group form-full">
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary">Create Account</button>
                             <button type="button" class="btn btn-secondary"
-                                onclick="document.getElementById('create-form').style.display='none'">
+                                onclick="document.getElementById('create-form').style.display='none';
+                                         document.querySelector('.btn-primary.btn-small').style.display=''">
                                 Cancel
                             </button>
                         </div>
@@ -214,5 +233,5 @@ include '../includes/header.php';
         </div>
     </main>
 </div>
-<script src="/barangay_connect/assets/css/js/form_validation.js"></script>
+<script src="/barangay_connect/assets/js/form_validation.js"></script>
 <?php include '../includes/footer.php'; ?>

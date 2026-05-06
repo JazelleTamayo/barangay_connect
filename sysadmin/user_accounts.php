@@ -7,12 +7,14 @@ require_once '../config/db.php';
 require_once '../config/constants.php';
 require_role('sysadmin');
 
+$pdo = get_db();
+
 // ── Filters ───────────────────────────────────────────────────────────────────
 $search = trim($_GET['search'] ?? '');
 $role   = trim($_GET['role']   ?? '');
 $status = trim($_GET['status'] ?? '');
 
-$where  = ['1=1'];
+$where  = ["u.Role IN ('captain', 'secretary', 'staff', 'sysadmin')"];
 $params = [];
 
 if ($search !== '') {
@@ -78,7 +80,7 @@ include '../includes/header.php';
                                 value="<?= htmlspecialchars($search) ?>" />
                             <select name="role" class="filter-select">
                                 <option value="">All Roles</option>
-                                <?php foreach (['captain', 'secretary', 'staff', 'sysadmin', 'resident'] as $r): ?>
+                                <?php foreach (['captain', 'secretary', 'staff', 'sysadmin'] as $r): ?>
                                     <option value="<?= $r ?>" <?= $role === $r ? 'selected' : '' ?>>
                                         <?= ucfirst($r) ?>
                                     </option>

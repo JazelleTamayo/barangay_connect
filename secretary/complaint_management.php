@@ -96,8 +96,7 @@ include '../includes/header.php';
                                             ? htmlspecialchars($c['MediationDate'])
                                             : '<em>Not set</em>' ?></td>
                                     <td>
-                                        <a href="complaint_detail.php?id=<?= $c['RequestID'] ?>"
-                                            class="btn btn-sm btn-outline">View</a>
+                                        <a href="complaint_detail.php?id=<?= $c['RequestID'] ?>" class="btn btn-sm btn-outline">View</a>
                                     </td>
                                 </tr>
                         <?php endforeach;

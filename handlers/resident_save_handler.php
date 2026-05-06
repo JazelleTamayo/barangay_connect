@@ -84,5 +84,5 @@ $userAccount->create([
 $audit->log("Created resident record", "ResidentID: $id");
 $audit->log("Created UserAccount for resident", "ResidentID: $id | Username: $username"); //FIXED: added audit log for new UserAccount
 
-header('Location: ../staff/resident_encoding.php?msg=saved');
+header('Location: ../staff/resident_encoding.php?msg=saved&id=' . $id . '&user=' . $username);
 exit;

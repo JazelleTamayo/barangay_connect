@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 04, 2026 at 06:57 AM
+-- Generation Time: May 07, 2026 at 10:06 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -56,7 +56,10 @@ INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, 
 (11, NULL, 'system', 'unknown', 'New self-registration submitted', 'ResidentID: 5 | Username: EjhiePacquiao', '::1', '2026-04-27 17:18:46'),
 (12, 2, 'secretary', 'secretary', 'Approved resident account', 'UserAccountID: 11', '::1', '2026-04-27 17:20:37'),
 (13, 11, 'EjhiePacquiao', 'resident', 'Created service request: Indigency', 'RequestID: 13', '::1', '2026-04-27 17:21:47'),
-(14, 11, 'EjhiePacquiao', 'resident', 'Created service request: Clearance', 'RequestID: 14', '::1', '2026-04-27 17:22:06');
+(14, 11, 'EjhiePacquiao', 'resident', 'Created service request: Clearance', 'RequestID: 14', '::1', '2026-04-27 17:22:06'),
+(15, 4, 'sysadmin', 'sysadmin', 'Created user account: Annabelle (Role: staff)', 'UserAccountID: 12', '::1', '2026-05-07 15:48:36'),
+(16, 4, 'sysadmin', 'sysadmin', 'Disabled user account', 'UserAccountID: 12', '::1', '2026-05-07 15:50:29'),
+(17, 4, 'sysadmin', 'sysadmin', 'Updated system settings', '', '::1', '2026-05-07 15:51:19');
 
 -- --------------------------------------------------------
 
@@ -365,7 +368,12 @@ CREATE TABLE `systemsettings` (
 --
 
 INSERT INTO `systemsettings` (`SettingKey`, `SettingValue`) VALUES
-('clearance_fee', '50.00');
+('barangay_name', 'Barangay Kapakulan'),
+('clearance_fee', '50.00'),
+('contact', ''),
+('email', ''),
+('maintenance_mode', '0'),
+('municipality', 'Cebu City');
 
 -- --------------------------------------------------------
 
@@ -399,7 +407,8 @@ INSERT INTO `useraccount` (`UserAccountID`, `ResidentID`, `Username`, `PasswordH
 (3, NULL, 'staff', '$2y$10$BBGl7nQe/8AszC9OaOa.FezcWUJuYAwZ5adx7LuNsbAW/TN4HEIpO', 'staff', 'Active', 'Jose Reyes', 'staff@barangay.gov.ph', NULL, NULL, NULL, '2026-04-19 15:39:22', '2026-04-19 17:07:37'),
 (4, NULL, 'sysadmin', '$2y$10$w3M8zLZF5/t3ez/HPQie1ufgb95jZYDCHHP/.l/n4NTUkS/gQw7VO', 'sysadmin', 'Active', 'Tech Admin', 'sysadmin@barangay.gov.ph', NULL, NULL, NULL, '2026-04-19 15:39:22', '2026-04-19 17:07:37'),
 (10, 4, 'jazelletamayo', '$2y$10$pG5hIkzqaW7Xi9Vm4J1t9OSsSb07tfVquT5rS/1vbf3i4EAU4DMWi', 'resident', 'Active', 'Jazelle Tamayo', 'jazellet5@gmail.com', 2, '2026-04-19 17:19:30', NULL, '2026-04-19 17:18:12', '2026-04-19 17:19:30'),
-(11, 5, 'EjhiePacquiao', '$2y$10$w.b94PBaNGyOLQN4q7wvKu2wsOo/AxP0sc1.Qhgv/Rp.lBCX9TFwK', 'resident', 'Active', 'Ejhie Pacquiao', 'ejhiepacquiao108@gmail.com', 2, '2026-04-27 17:20:37', NULL, '2026-04-27 17:18:46', '2026-04-27 17:20:37');
+(11, 5, 'EjhiePacquiao', '$2y$10$w.b94PBaNGyOLQN4q7wvKu2wsOo/AxP0sc1.Qhgv/Rp.lBCX9TFwK', 'resident', 'Active', 'Ejhie Pacquiao', 'ejhiepacquiao108@gmail.com', 2, '2026-04-27 17:20:37', NULL, '2026-04-27 17:18:46', '2026-04-27 17:20:37'),
+(12, NULL, 'Annabelle', '$2y$10$36hnP/paBkf0WAlJ4oyjIeZSy0vOkgbqOW4F4mXtQCo5SBZVAuIbG', 'staff', 'Inactive', 'Annabelle Pado', '', NULL, NULL, NULL, '2026-05-07 15:48:36', '2026-05-07 15:50:29');
 
 --
 -- Indexes for dumped tables
@@ -520,7 +529,7 @@ ALTER TABLE `useraccount`
 -- AUTO_INCREMENT for table `auditlog`
 --
 ALTER TABLE `auditlog`
-  MODIFY `LogID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `LogID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `captainprofile`
@@ -592,7 +601,7 @@ ALTER TABLE `systemadminprofile`
 -- AUTO_INCREMENT for table `useraccount`
 --
 ALTER TABLE `useraccount`
-  MODIFY `UserAccountID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `UserAccountID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- Constraints for dumped tables

@@ -1,0 +1,379 @@
+-- Barangay Connect Database Backup
+-- Generated: 2026-05-07 10:08:38
+-- Database: barangay_connect
+
+SET FOREIGN_KEY_CHECKS=0;
+SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';
+
+-- --------------------------------------------------------
+-- Table: `auditlog`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `auditlog`;
+CREATE TABLE `auditlog` (
+  `LogID` int(11) NOT NULL AUTO_INCREMENT,
+  `UserAccountID` int(11) DEFAULT NULL,
+  `Username` varchar(100) DEFAULT NULL,
+  `Role` varchar(50) DEFAULT NULL,
+  `Action` varchar(255) NOT NULL,
+  `RecordAffected` varchar(100) DEFAULT NULL,
+  `IPAddress` varchar(45) DEFAULT NULL,
+  `LoggedAt` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`LogID`),
+  KEY `UserAccountID` (`UserAccountID`),
+  CONSTRAINT `auditlog_ibfk_1` FOREIGN KEY (`UserAccountID`) REFERENCES `useraccount` (`UserAccountID`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data for table `auditlog`
+INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, `RecordAffected`, `IPAddress`, `LoggedAt`) VALUES ('1', NULL, 'system', 'unknown', 'New self-registration submitted', 'ResidentID: 4 | Username: jazelletamayo', '::1', '2026-04-19 17:18:12');
+INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, `RecordAffected`, `IPAddress`, `LoggedAt`) VALUES ('2', '2', 'secretary', 'secretary', 'Approved resident account', 'UserAccountID: 10', '::1', '2026-04-19 17:19:30');
+INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, `RecordAffected`, `IPAddress`, `LoggedAt`) VALUES ('3', '10', 'jazelletamayo', 'resident', 'Created service request: Clearance', 'RequestID: 1', '::1', '2026-04-27 10:55:33');
+INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, `RecordAffected`, `IPAddress`, `LoggedAt`) VALUES ('4', '10', 'jazelletamayo', 'resident', 'Created service request: Clearance', 'RequestID: 2', '::1', '2026-04-27 11:10:28');
+INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, `RecordAffected`, `IPAddress`, `LoggedAt`) VALUES ('5', '10', 'jazelletamayo', 'resident', 'Created service request: Clearance', 'RequestID: 3', '::1', '2026-04-27 11:15:17');
+INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, `RecordAffected`, `IPAddress`, `LoggedAt`) VALUES ('6', '10', 'jazelletamayo', 'resident', 'Created service request: Clearance', 'RequestID: 4', '::1', '2026-04-27 11:23:48');
+INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, `RecordAffected`, `IPAddress`, `LoggedAt`) VALUES ('7', '10', 'jazelletamayo', 'resident', 'Created service request: Clearance', 'RequestID: 5', '::1', '2026-04-27 11:56:51');
+INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, `RecordAffected`, `IPAddress`, `LoggedAt`) VALUES ('8', '10', 'jazelletamayo', 'resident', 'Created service request: Clearance', 'RequestID: 8', '::1', '2026-04-27 15:32:41');
+INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, `RecordAffected`, `IPAddress`, `LoggedAt`) VALUES ('9', '10', 'jazelletamayo', 'resident', 'Created service request: Indigency', 'RequestID: 11', '::1', '2026-04-27 15:42:25');
+INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, `RecordAffected`, `IPAddress`, `LoggedAt`) VALUES ('10', '10', 'jazelletamayo', 'resident', 'Created service request: Indigency', 'RequestID: 12', '::1', '2026-04-27 16:06:12');
+INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, `RecordAffected`, `IPAddress`, `LoggedAt`) VALUES ('11', NULL, 'system', 'unknown', 'New self-registration submitted', 'ResidentID: 5 | Username: EjhiePacquiao', '::1', '2026-04-27 17:18:46');
+INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, `RecordAffected`, `IPAddress`, `LoggedAt`) VALUES ('12', '2', 'secretary', 'secretary', 'Approved resident account', 'UserAccountID: 11', '::1', '2026-04-27 17:20:37');
+INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, `RecordAffected`, `IPAddress`, `LoggedAt`) VALUES ('13', '11', 'EjhiePacquiao', 'resident', 'Created service request: Indigency', 'RequestID: 13', '::1', '2026-04-27 17:21:47');
+INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, `RecordAffected`, `IPAddress`, `LoggedAt`) VALUES ('14', '11', 'EjhiePacquiao', 'resident', 'Created service request: Clearance', 'RequestID: 14', '::1', '2026-04-27 17:22:06');
+INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, `RecordAffected`, `IPAddress`, `LoggedAt`) VALUES ('15', '4', 'sysadmin', 'sysadmin', 'Created user account: Annabelle (Role: staff)', 'UserAccountID: 12', '::1', '2026-05-07 15:48:36');
+INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, `RecordAffected`, `IPAddress`, `LoggedAt`) VALUES ('16', '4', 'sysadmin', 'sysadmin', 'Disabled user account', 'UserAccountID: 12', '::1', '2026-05-07 15:50:29');
+INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, `RecordAffected`, `IPAddress`, `LoggedAt`) VALUES ('17', '4', 'sysadmin', 'sysadmin', 'Updated system settings', '', '::1', '2026-05-07 15:51:19');
+
+-- --------------------------------------------------------
+-- Table: `captainprofile`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `captainprofile`;
+CREATE TABLE `captainprofile` (
+  `CaptainID` int(11) NOT NULL AUTO_INCREMENT,
+  `UserID` int(11) NOT NULL,
+  `FirstName` varchar(100) NOT NULL,
+  `LastName` varchar(100) NOT NULL,
+  `ContactNumber` varchar(20) DEFAULT NULL,
+  `TermStart` date DEFAULT NULL,
+  `TermEnd` date DEFAULT NULL,
+  PRIMARY KEY (`CaptainID`),
+  KEY `UserID` (`UserID`),
+  CONSTRAINT `captainprofile_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `useraccount` (`UserAccountID`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data for table `captainprofile`
+INSERT INTO `captainprofile` (`CaptainID`, `UserID`, `FirstName`, `LastName`, `ContactNumber`, `TermStart`, `TermEnd`) VALUES ('1', '1', 'Hon. Juan', 'dela Cruz', '09123456789', '2024-01-01', '2027-12-31');
+
+-- --------------------------------------------------------
+-- Table: `complaint`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `complaint`;
+CREATE TABLE `complaint` (
+  `ComplaintID` int(11) NOT NULL AUTO_INCREMENT,
+  `RequestID` int(11) NOT NULL,
+  `RespondentName` varchar(200) DEFAULT NULL,
+  `RespondentContact` varchar(50) DEFAULT NULL,
+  `RespondentRelationship` varchar(50) DEFAULT NULL,
+  `RespondentResidentID` int(11) DEFAULT NULL,
+  `IncidentDate` date DEFAULT NULL,
+  `IncidentLocation` varchar(255) DEFAULT NULL,
+  `Description` text DEFAULT NULL,
+  `Witnesses` text DEFAULT NULL,
+  `ReliefSought` text DEFAULT NULL,
+  `MediationDate` date DEFAULT NULL,
+  `ActionsTaken` text DEFAULT NULL,
+  PRIMARY KEY (`ComplaintID`),
+  UNIQUE KEY `RequestID` (`RequestID`),
+  KEY `RespondentResidentID` (`RespondentResidentID`),
+  CONSTRAINT `complaint_ibfk_1` FOREIGN KEY (`RequestID`) REFERENCES `servicerequest` (`RequestID`) ON DELETE CASCADE,
+  CONSTRAINT `complaint_ibfk_2` FOREIGN KEY (`RespondentResidentID`) REFERENCES `resident` (`ResidentID`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+-- Table: `facility`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `facility`;
+CREATE TABLE `facility` (
+  `FacilityID` int(11) NOT NULL AUTO_INCREMENT,
+  `FacilityName` varchar(150) NOT NULL,
+  `Capacity` int(11) DEFAULT NULL,
+  `ReservationFee` decimal(10,2) DEFAULT 0.00,
+  `Description` text DEFAULT NULL,
+  `Status` enum('Active','Inactive') DEFAULT 'Active',
+  `CreatedAt` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`FacilityID`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data for table `facility`
+INSERT INTO `facility` (`FacilityID`, `FacilityName`, `Capacity`, `ReservationFee`, `Description`, `Status`, `CreatedAt`) VALUES ('1', 'Barangay Hall', '100', '500.00', 'Main barangay hall for official events and community gatherings.', 'Active', '2026-04-19 15:39:22');
+INSERT INTO `facility` (`FacilityID`, `FacilityName`, `Capacity`, `ReservationFee`, `Description`, `Status`, `CreatedAt`) VALUES ('2', 'Basketball Court', '200', '300.00', 'Outdoor basketball court for sports events and community activities.', 'Active', '2026-04-19 15:39:22');
+INSERT INTO `facility` (`FacilityID`, `FacilityName`, `Capacity`, `ReservationFee`, `Description`, `Status`, `CreatedAt`) VALUES ('3', 'Multi-Purpose Hall', '150', '800.00', 'Indoor hall for seminars, meetings, and private events.', 'Active', '2026-04-19 15:39:22');
+INSERT INTO `facility` (`FacilityID`, `FacilityName`, `Capacity`, `ReservationFee`, `Description`, `Status`, `CreatedAt`) VALUES ('4', 'Covered Court', '250', '600.00', 'Large covered court for big community events.', 'Active', '2026-04-19 15:39:22');
+
+-- --------------------------------------------------------
+-- Table: `facilityreservation`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `facilityreservation`;
+CREATE TABLE `facilityreservation` (
+  `ReservationID` int(11) NOT NULL AUTO_INCREMENT,
+  `RequestID` int(11) NOT NULL,
+  `FacilityID` int(11) NOT NULL,
+  `ReservationDate` date NOT NULL,
+  `TimeSlot` varchar(50) DEFAULT NULL,
+  `EventPurpose` text DEFAULT NULL,
+  `EventName` varchar(150) DEFAULT NULL,
+  `ExpectedAttendees` int(11) DEFAULT NULL,
+  `ContactPerson` varchar(150) DEFAULT NULL,
+  `ContactPersonNumber` varchar(20) DEFAULT NULL,
+  `AgreedToRules` tinyint(1) DEFAULT 0,
+  PRIMARY KEY (`ReservationID`),
+  UNIQUE KEY `RequestID` (`RequestID`),
+  KEY `FacilityID` (`FacilityID`),
+  CONSTRAINT `facilityreservation_ibfk_1` FOREIGN KEY (`RequestID`) REFERENCES `servicerequest` (`RequestID`) ON DELETE CASCADE,
+  CONSTRAINT `facilityreservation_ibfk_2` FOREIGN KEY (`FacilityID`) REFERENCES `facility` (`FacilityID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+-- Table: `indigencydetail`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `indigencydetail`;
+CREATE TABLE `indigencydetail` (
+  `IndigencyDetailID` int(11) NOT NULL AUTO_INCREMENT,
+  `RequestID` int(11) NOT NULL,
+  `MonthlyIncome` decimal(10,2) DEFAULT NULL,
+  `HouseholdSize` int(11) DEFAULT NULL,
+  `EmploymentStatus` varchar(50) DEFAULT NULL,
+  `IncomeSource` text DEFAULT NULL,
+  `AssistanceReceived` text DEFAULT NULL,
+  PRIMARY KEY (`IndigencyDetailID`),
+  KEY `RequestID` (`RequestID`),
+  CONSTRAINT `indigencydetail_ibfk_1` FOREIGN KEY (`RequestID`) REFERENCES `servicerequest` (`RequestID`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data for table `indigencydetail`
+INSERT INTO `indigencydetail` (`IndigencyDetailID`, `RequestID`, `MonthlyIncome`, `HouseholdSize`, `EmploymentStatus`, `IncomeSource`, `AssistanceReceived`) VALUES ('1', '12', '10000.00', '5', 'Self-employed', 'daily labor', '4ps');
+INSERT INTO `indigencydetail` (`IndigencyDetailID`, `RequestID`, `MonthlyIncome`, `HouseholdSize`, `EmploymentStatus`, `IncomeSource`, `AssistanceReceived`) VALUES ('2', '13', '15000.00', '3', 'Unemployed', NULL, NULL);
+
+-- --------------------------------------------------------
+-- Table: `payment`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `payment`;
+CREATE TABLE `payment` (
+  `PaymentID` int(11) NOT NULL AUTO_INCREMENT,
+  `RequestID` int(11) NOT NULL,
+  `ReceiptNo` varchar(50) NOT NULL,
+  `Amount` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `PaymentMethod` enum('Cash','GCash','None') DEFAULT 'Cash',
+  `RecordedBy` int(11) DEFAULT NULL,
+  `RecordedAt` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`PaymentID`),
+  UNIQUE KEY `ReceiptNo` (`ReceiptNo`),
+  KEY `RequestID` (`RequestID`),
+  KEY `RecordedBy` (`RecordedBy`),
+  CONSTRAINT `payment_ibfk_1` FOREIGN KEY (`RequestID`) REFERENCES `servicerequest` (`RequestID`),
+  CONSTRAINT `payment_ibfk_2` FOREIGN KEY (`RecordedBy`) REFERENCES `useraccount` (`UserAccountID`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data for table `payment`
+INSERT INTO `payment` (`PaymentID`, `RequestID`, `ReceiptNo`, `Amount`, `PaymentMethod`, `RecordedBy`, `RecordedAt`) VALUES ('1', '4', 'RHFG76678', '50.00', 'Cash', '3', '2026-04-27 14:58:11');
+INSERT INTO `payment` (`PaymentID`, `RequestID`, `ReceiptNo`, `Amount`, `PaymentMethod`, `RecordedBy`, `RecordedAt`) VALUES ('2', '14', 'REC-OOOO1', '50.00', 'Cash', '3', '2026-05-04 11:42:00');
+
+-- --------------------------------------------------------
+-- Table: `resident`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `resident`;
+CREATE TABLE `resident` (
+  `ResidentID` int(11) NOT NULL AUTO_INCREMENT,
+  `FirstName` varchar(100) NOT NULL,
+  `MiddleName` varchar(100) DEFAULT NULL,
+  `LastName` varchar(100) NOT NULL,
+  `Birthdate` date NOT NULL,
+  `Sex` enum('Male','Female') NOT NULL,
+  `Address` varchar(255) NOT NULL,
+  `Purok` varchar(100) DEFAULT NULL,
+  `ContactNumber` varchar(20) DEFAULT NULL,
+  `Email` varchar(150) DEFAULT NULL,
+  `GovIDType` varchar(50) DEFAULT NULL,
+  `GovIDNumber` varchar(100) DEFAULT NULL,
+  `GovIDImagePath` varchar(255) DEFAULT NULL,
+  `ProfilePicture` varchar(255) DEFAULT NULL,
+  `Status` enum('Active','Inactive') DEFAULT 'Active',
+  `CreatedAt` datetime DEFAULT current_timestamp(),
+  `UpdatedAt` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`ResidentID`),
+  UNIQUE KEY `uq_resident` (`FirstName`,`LastName`,`Birthdate`,`Address`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data for table `resident`
+INSERT INTO `resident` (`ResidentID`, `FirstName`, `MiddleName`, `LastName`, `Birthdate`, `Sex`, `Address`, `Purok`, `ContactNumber`, `Email`, `GovIDType`, `GovIDNumber`, `GovIDImagePath`, `ProfilePicture`, `Status`, `CreatedAt`, `UpdatedAt`) VALUES ('1', 'Ana', 'Reyes', 'Gonzales', '1995-06-15', 'Female', '123 Sampaguita St., Barangay Connect', 'Purok 2', '09171234567', 'ana.gonzales@email.com', NULL, NULL, NULL, NULL, 'Active', '2026-04-19 15:39:22', '2026-04-19 15:39:22');
+INSERT INTO `resident` (`ResidentID`, `FirstName`, `MiddleName`, `LastName`, `Birthdate`, `Sex`, `Address`, `Purok`, `ContactNumber`, `Email`, `GovIDType`, `GovIDNumber`, `GovIDImagePath`, `ProfilePicture`, `Status`, `CreatedAt`, `UpdatedAt`) VALUES ('2', 'Pedro', 'Santos', 'Dela Cruz', '1988-03-22', 'Male', '456 Kalayaan Ave., Barangay Connect', 'Purok 1', '09281234567', 'pedro.delacruz@email.com', NULL, NULL, NULL, NULL, 'Active', '2026-04-19 15:39:22', '2026-04-19 15:39:22');
+INSERT INTO `resident` (`ResidentID`, `FirstName`, `MiddleName`, `LastName`, `Birthdate`, `Sex`, `Address`, `Purok`, `ContactNumber`, `Email`, `GovIDType`, `GovIDNumber`, `GovIDImagePath`, `ProfilePicture`, `Status`, `CreatedAt`, `UpdatedAt`) VALUES ('3', 'Maria', 'Lopez', 'Reyes', '2000-11-10', 'Female', '789 Mabini St., Barangay Connect', 'Purok 3', '09391234567', 'maria.reyes@email.com', NULL, NULL, NULL, NULL, 'Active', '2026-04-19 15:39:22', '2026-04-19 15:39:22');
+INSERT INTO `resident` (`ResidentID`, `FirstName`, `MiddleName`, `LastName`, `Birthdate`, `Sex`, `Address`, `Purok`, `ContactNumber`, `Email`, `GovIDType`, `GovIDNumber`, `GovIDImagePath`, `ProfilePicture`, `Status`, `CreatedAt`, `UpdatedAt`) VALUES ('4', 'Jazelle', 'R.', 'Tamayo', '2005-02-23', 'Female', 'Salinas Dr', '2', '09205703793', 'jazellet5@gmail.com', NULL, NULL, 'uploads/government_ids/gov_id_69e49dd441d806.95207377.jpg', 'uploads/profile_pictures/profile_4_69ef1091d1189.jpg', 'Active', '2026-04-19 17:18:12', '2026-04-27 15:30:25');
+INSERT INTO `resident` (`ResidentID`, `FirstName`, `MiddleName`, `LastName`, `Birthdate`, `Sex`, `Address`, `Purok`, `ContactNumber`, `Email`, `GovIDType`, `GovIDNumber`, `GovIDImagePath`, `ProfilePicture`, `Status`, `CreatedAt`, `UpdatedAt`) VALUES ('5', 'Ejhie', 'Calixto', 'Pacquiao', '2004-10-08', 'Female', 'Minglanilla', 'Linao', '09198069003', 'ejhiepacquiao108@gmail.com', NULL, NULL, 'uploads/government_ids/gov_id_69ef29f6779128.14661348.jpg', 'uploads/profile_pictures/profile_5_69f8139d789fd.jpg', 'Active', '2026-04-27 17:18:46', '2026-05-04 11:33:49');
+
+-- --------------------------------------------------------
+-- Table: `secretaryprofile`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `secretaryprofile`;
+CREATE TABLE `secretaryprofile` (
+  `SecretaryID` int(11) NOT NULL AUTO_INCREMENT,
+  `UserID` int(11) NOT NULL,
+  `FirstName` varchar(100) NOT NULL,
+  `LastName` varchar(100) NOT NULL,
+  `ContactNumber` varchar(20) DEFAULT NULL,
+  `DateAssigned` datetime DEFAULT NULL,
+  PRIMARY KEY (`SecretaryID`),
+  KEY `UserID` (`UserID`),
+  CONSTRAINT `secretaryprofile_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `useraccount` (`UserAccountID`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data for table `secretaryprofile`
+INSERT INTO `secretaryprofile` (`SecretaryID`, `UserID`, `FirstName`, `LastName`, `ContactNumber`, `DateAssigned`) VALUES ('1', '2', 'Maria', 'Santos', '09123456780', '2026-04-19 16:52:06');
+
+-- --------------------------------------------------------
+-- Table: `servicerequest`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `servicerequest`;
+CREATE TABLE `servicerequest` (
+  `RequestID` int(11) NOT NULL AUTO_INCREMENT,
+  `ReferenceNo` varchar(30) NOT NULL,
+  `ResidentID` int(11) NOT NULL,
+  `RequestType` enum('Clearance','Indigency','FacilityReservation','Complaint') NOT NULL,
+  `Purpose` text DEFAULT NULL,
+  `Status` enum('Pending','ForApproval','Approved','Prepared','Released','Rejected','Cancelled') DEFAULT 'Pending',
+  `Remarks` text DEFAULT NULL,
+  `ProcessedBy` int(11) DEFAULT NULL,
+  `ProcessedAt` datetime DEFAULT NULL,
+  `ReleasedBy` int(11) DEFAULT NULL,
+  `ReleasedAt` datetime DEFAULT NULL,
+  `CancelledBy` int(11) DEFAULT NULL,
+  `CancelledAt` datetime DEFAULT NULL,
+  `CancellationReason` text DEFAULT NULL,
+  `CreatedBy` int(11) DEFAULT NULL,
+  `CreatedAt` datetime DEFAULT current_timestamp(),
+  `UpdatedAt` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `SecretaryNote` text DEFAULT NULL,
+  `PreparedBy` int(11) DEFAULT NULL,
+  `PreparedAt` datetime DEFAULT NULL,
+  PRIMARY KEY (`RequestID`),
+  UNIQUE KEY `ReferenceNo` (`ReferenceNo`),
+  KEY `ResidentID` (`ResidentID`),
+  KEY `ProcessedBy` (`ProcessedBy`),
+  KEY `ReleasedBy` (`ReleasedBy`),
+  KEY `CancelledBy` (`CancelledBy`),
+  KEY `CreatedBy` (`CreatedBy`),
+  CONSTRAINT `servicerequest_ibfk_1` FOREIGN KEY (`ResidentID`) REFERENCES `resident` (`ResidentID`),
+  CONSTRAINT `servicerequest_ibfk_2` FOREIGN KEY (`ProcessedBy`) REFERENCES `useraccount` (`UserAccountID`) ON DELETE SET NULL,
+  CONSTRAINT `servicerequest_ibfk_3` FOREIGN KEY (`ReleasedBy`) REFERENCES `useraccount` (`UserAccountID`) ON DELETE SET NULL,
+  CONSTRAINT `servicerequest_ibfk_4` FOREIGN KEY (`CancelledBy`) REFERENCES `useraccount` (`UserAccountID`) ON DELETE SET NULL,
+  CONSTRAINT `servicerequest_ibfk_5` FOREIGN KEY (`CreatedBy`) REFERENCES `useraccount` (`UserAccountID`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data for table `servicerequest`
+INSERT INTO `servicerequest` (`RequestID`, `ReferenceNo`, `ResidentID`, `RequestType`, `Purpose`, `Status`, `Remarks`, `ProcessedBy`, `ProcessedAt`, `ReleasedBy`, `ReleasedAt`, `CancelledBy`, `CancelledAt`, `CancellationReason`, `CreatedBy`, `CreatedAt`, `UpdatedAt`, `SecretaryNote`, `PreparedBy`, `PreparedAt`) VALUES ('1', 'BRGY-20260427-00001', '4', 'Clearance', 'I want it for my job application.', 'Approved', '\n[2026-04-27 05:01:31] Staff: I review this request and it is valid for approval.\n[2026-04-27 05:09:01] Secretary Approved: No, I cannot approve this.\n[2026-04-27 05:57:24] Staff: Valid\n[2026-04-27 06:00:44] Secretary Approved: ', '3', '2026-04-27 11:57:24', NULL, NULL, NULL, NULL, NULL, '10', '2026-04-27 10:55:33', '2026-04-27 12:00:44', NULL, '3', '2026-04-27 11:34:55');
+INSERT INTO `servicerequest` (`RequestID`, `ReferenceNo`, `ResidentID`, `RequestType`, `Purpose`, `Status`, `Remarks`, `ProcessedBy`, `ProcessedAt`, `ReleasedBy`, `ReleasedAt`, `CancelledBy`, `CancelledAt`, `CancellationReason`, `CreatedBy`, `CreatedAt`, `UpdatedAt`, `SecretaryNote`, `PreparedBy`, `PreparedAt`) VALUES ('2', 'BRGY-20260427-00002', '4', 'Clearance', 'nothing', 'Rejected', '\n[2026-04-27 05:10:46] Staff: \n[2026-04-27 05:14:50] Secretary Rejected: ', '3', '2026-04-27 11:10:46', NULL, NULL, NULL, NULL, NULL, '10', '2026-04-27 11:10:28', '2026-04-27 11:14:50', NULL, NULL, NULL);
+INSERT INTO `servicerequest` (`RequestID`, `ReferenceNo`, `ResidentID`, `RequestType`, `Purpose`, `Status`, `Remarks`, `ProcessedBy`, `ProcessedAt`, `ReleasedBy`, `ReleasedAt`, `CancelledBy`, `CancelledAt`, `CancellationReason`, `CreatedBy`, `CreatedAt`, `UpdatedAt`, `SecretaryNote`, `PreparedBy`, `PreparedAt`) VALUES ('3', 'BRGY-20260427-00003', '4', 'Clearance', 'kladhkhIURYIUWYRE', 'Pending', '\n[2026-04-27 05:15:47] Staff: This is valid!\n[2026-04-27 05:23:22] Secretary Rejected: ', '3', '2026-04-27 11:15:47', NULL, NULL, NULL, NULL, NULL, '10', '2026-04-27 11:15:17', '2026-04-27 11:55:33', NULL, '3', '2026-04-27 11:51:52');
+INSERT INTO `servicerequest` (`RequestID`, `ReferenceNo`, `ResidentID`, `RequestType`, `Purpose`, `Status`, `Remarks`, `ProcessedBy`, `ProcessedAt`, `ReleasedBy`, `ReleasedAt`, `CancelledBy`, `CancelledAt`, `CancellationReason`, `CreatedBy`, `CreatedAt`, `UpdatedAt`, `SecretaryNote`, `PreparedBy`, `PreparedAt`) VALUES ('4', 'BRGY-20260427-00004', '4', 'Clearance', 'wejodauifiowyfa', 'Released', '\n[2026-04-27 05:24:19] Staff: Yes\n[2026-04-27 05:28:36] Secretary Approved: ', '3', '2026-04-27 11:24:19', '3', '2026-04-27 14:58:11', NULL, NULL, NULL, '10', '2026-04-27 11:23:48', '2026-04-27 14:58:11', NULL, '3', '2026-04-27 12:04:28');
+INSERT INTO `servicerequest` (`RequestID`, `ReferenceNo`, `ResidentID`, `RequestType`, `Purpose`, `Status`, `Remarks`, `ProcessedBy`, `ProcessedAt`, `ReleasedBy`, `ReleasedAt`, `CancelledBy`, `CancelledAt`, `CancellationReason`, `CreatedBy`, `CreatedAt`, `UpdatedAt`, `SecretaryNote`, `PreparedBy`, `PreparedAt`) VALUES ('5', 'BRGY-20260427-00005', '4', 'Clearance', 'Nothing', 'Pending', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '10', '2026-04-27 11:56:51', '2026-04-27 11:56:51', NULL, NULL, NULL);
+INSERT INTO `servicerequest` (`RequestID`, `ReferenceNo`, `ResidentID`, `RequestType`, `Purpose`, `Status`, `Remarks`, `ProcessedBy`, `ProcessedAt`, `ReleasedBy`, `ReleasedAt`, `CancelledBy`, `CancelledAt`, `CancellationReason`, `CreatedBy`, `CreatedAt`, `UpdatedAt`, `SecretaryNote`, `PreparedBy`, `PreparedAt`) VALUES ('6', 'BRGY-20260427-00006', '4', 'Indigency', 'I need this!', 'Pending', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '10', '2026-04-27 15:31:00', '2026-04-27 15:31:00', NULL, NULL, NULL);
+INSERT INTO `servicerequest` (`RequestID`, `ReferenceNo`, `ResidentID`, `RequestType`, `Purpose`, `Status`, `Remarks`, `ProcessedBy`, `ProcessedAt`, `ReleasedBy`, `ReleasedAt`, `CancelledBy`, `CancelledAt`, `CancellationReason`, `CreatedBy`, `CreatedAt`, `UpdatedAt`, `SecretaryNote`, `PreparedBy`, `PreparedAt`) VALUES ('7', 'BRGY-20260427-00007', '4', 'Indigency', 'I need this!', 'Pending', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '10', '2026-04-27 15:32:14', '2026-04-27 15:32:14', NULL, NULL, NULL);
+INSERT INTO `servicerequest` (`RequestID`, `ReferenceNo`, `ResidentID`, `RequestType`, `Purpose`, `Status`, `Remarks`, `ProcessedBy`, `ProcessedAt`, `ReleasedBy`, `ReleasedAt`, `CancelledBy`, `CancelledAt`, `CancellationReason`, `CreatedBy`, `CreatedAt`, `UpdatedAt`, `SecretaryNote`, `PreparedBy`, `PreparedAt`) VALUES ('8', 'BRGY-20260427-00008', '4', 'Clearance', 'sdfwef', 'Pending', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '10', '2026-04-27 15:32:41', '2026-04-27 15:32:41', NULL, NULL, NULL);
+INSERT INTO `servicerequest` (`RequestID`, `ReferenceNo`, `ResidentID`, `RequestType`, `Purpose`, `Status`, `Remarks`, `ProcessedBy`, `ProcessedAt`, `ReleasedBy`, `ReleasedAt`, `CancelledBy`, `CancelledAt`, `CancellationReason`, `CreatedBy`, `CreatedAt`, `UpdatedAt`, `SecretaryNote`, `PreparedBy`, `PreparedAt`) VALUES ('9', 'BRGY-20260427-00009', '4', 'Indigency', 'ereteqr', 'Pending', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '10', '2026-04-27 15:32:49', '2026-04-27 15:32:49', NULL, NULL, NULL);
+INSERT INTO `servicerequest` (`RequestID`, `ReferenceNo`, `ResidentID`, `RequestType`, `Purpose`, `Status`, `Remarks`, `ProcessedBy`, `ProcessedAt`, `ReleasedBy`, `ReleasedAt`, `CancelledBy`, `CancelledAt`, `CancellationReason`, `CreatedBy`, `CreatedAt`, `UpdatedAt`, `SecretaryNote`, `PreparedBy`, `PreparedAt`) VALUES ('10', 'BRGY-20260427-00010', '4', 'Indigency', 'ereteqr', 'Pending', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '10', '2026-04-27 15:42:01', '2026-04-27 15:42:01', NULL, NULL, NULL);
+INSERT INTO `servicerequest` (`RequestID`, `ReferenceNo`, `ResidentID`, `RequestType`, `Purpose`, `Status`, `Remarks`, `ProcessedBy`, `ProcessedAt`, `ReleasedBy`, `ReleasedAt`, `CancelledBy`, `CancelledAt`, `CancellationReason`, `CreatedBy`, `CreatedAt`, `UpdatedAt`, `SecretaryNote`, `PreparedBy`, `PreparedAt`) VALUES ('11', 'BRGY-20260427-00011', '4', 'Indigency', 'ereteqr', 'Pending', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '10', '2026-04-27 15:42:25', '2026-04-27 15:42:25', NULL, NULL, NULL);
+INSERT INTO `servicerequest` (`RequestID`, `ReferenceNo`, `ResidentID`, `RequestType`, `Purpose`, `Status`, `Remarks`, `ProcessedBy`, `ProcessedAt`, `ReleasedBy`, `ReleasedAt`, `CancelledBy`, `CancelledAt`, `CancellationReason`, `CreatedBy`, `CreatedAt`, `UpdatedAt`, `SecretaryNote`, `PreparedBy`, `PreparedAt`) VALUES ('12', 'BRGY-20260427-00012', '4', 'Indigency', 'asfdsafgdg', 'Approved', '\n[2026-04-27 10:08:46] Staff: \n[2026-04-27 10:22:50] Secretary Approved: ', '3', '2026-04-27 16:08:46', NULL, NULL, NULL, NULL, NULL, '10', '2026-04-27 16:06:12', '2026-04-27 16:22:50', NULL, NULL, NULL);
+INSERT INTO `servicerequest` (`RequestID`, `ReferenceNo`, `ResidentID`, `RequestType`, `Purpose`, `Status`, `Remarks`, `ProcessedBy`, `ProcessedAt`, `ReleasedBy`, `ReleasedAt`, `CancelledBy`, `CancelledAt`, `CancellationReason`, `CreatedBy`, `CreatedAt`, `UpdatedAt`, `SecretaryNote`, `PreparedBy`, `PreparedAt`) VALUES ('13', 'BRGY-20260427-00013', '5', 'Indigency', 'for my 4ps', 'ForApproval', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '11', '2026-04-27 17:21:47', '2026-04-27 17:21:47', NULL, NULL, NULL);
+INSERT INTO `servicerequest` (`RequestID`, `ReferenceNo`, `ResidentID`, `RequestType`, `Purpose`, `Status`, `Remarks`, `ProcessedBy`, `ProcessedAt`, `ReleasedBy`, `ReleasedAt`, `CancelledBy`, `CancelledAt`, `CancellationReason`, `CreatedBy`, `CreatedAt`, `UpdatedAt`, `SecretaryNote`, `PreparedBy`, `PreparedAt`) VALUES ('14', 'BRGY-20260427-00014', '5', 'Clearance', 'for business', 'Released', '\n[2026-05-04 05:34:35] Secretary Approved: ', NULL, NULL, '3', '2026-05-04 11:42:00', NULL, NULL, NULL, '11', '2026-04-27 17:22:06', '2026-05-04 11:42:00', NULL, '3', '2026-05-04 11:40:55');
+
+-- --------------------------------------------------------
+-- Table: `staffprofile`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `staffprofile`;
+CREATE TABLE `staffprofile` (
+  `StaffID` int(11) NOT NULL AUTO_INCREMENT,
+  `UserID` int(11) NOT NULL,
+  `FirstName` varchar(100) NOT NULL,
+  `LastName` varchar(100) NOT NULL,
+  `ContactNumber` varchar(20) DEFAULT NULL,
+  `DateAssigned` datetime DEFAULT NULL,
+  PRIMARY KEY (`StaffID`),
+  KEY `UserID` (`UserID`),
+  CONSTRAINT `staffprofile_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `useraccount` (`UserAccountID`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data for table `staffprofile`
+INSERT INTO `staffprofile` (`StaffID`, `UserID`, `FirstName`, `LastName`, `ContactNumber`, `DateAssigned`) VALUES ('1', '3', 'Jose', 'Reyes', '09123456781', '2026-04-19 16:52:06');
+
+-- --------------------------------------------------------
+-- Table: `systemadminprofile`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `systemadminprofile`;
+CREATE TABLE `systemadminprofile` (
+  `AdminID` int(11) NOT NULL AUTO_INCREMENT,
+  `UserID` int(11) NOT NULL,
+  `FirstName` varchar(100) NOT NULL,
+  `LastName` varchar(100) NOT NULL,
+  `ContactNumber` varchar(20) DEFAULT NULL,
+  `DateAssigned` datetime DEFAULT NULL,
+  PRIMARY KEY (`AdminID`),
+  KEY `UserID` (`UserID`),
+  CONSTRAINT `systemadminprofile_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `useraccount` (`UserAccountID`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data for table `systemadminprofile`
+INSERT INTO `systemadminprofile` (`AdminID`, `UserID`, `FirstName`, `LastName`, `ContactNumber`, `DateAssigned`) VALUES ('1', '4', 'Tech', 'Admin', '09123456782', '2026-04-19 16:52:06');
+
+-- --------------------------------------------------------
+-- Table: `systemsettings`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `systemsettings`;
+CREATE TABLE `systemsettings` (
+  `SettingKey` varchar(100) NOT NULL,
+  `SettingValue` text NOT NULL,
+  PRIMARY KEY (`SettingKey`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data for table `systemsettings`
+INSERT INTO `systemsettings` (`SettingKey`, `SettingValue`) VALUES ('barangay_name', 'Barangay Kapakulan');
+INSERT INTO `systemsettings` (`SettingKey`, `SettingValue`) VALUES ('clearance_fee', '50.00');
+INSERT INTO `systemsettings` (`SettingKey`, `SettingValue`) VALUES ('contact', '');
+INSERT INTO `systemsettings` (`SettingKey`, `SettingValue`) VALUES ('email', '');
+INSERT INTO `systemsettings` (`SettingKey`, `SettingValue`) VALUES ('maintenance_mode', '0');
+INSERT INTO `systemsettings` (`SettingKey`, `SettingValue`) VALUES ('municipality', 'Cebu City');
+
+-- --------------------------------------------------------
+-- Table: `useraccount`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `useraccount`;
+CREATE TABLE `useraccount` (
+  `UserAccountID` int(11) NOT NULL AUTO_INCREMENT,
+  `ResidentID` int(11) DEFAULT NULL,
+  `Username` varchar(100) NOT NULL,
+  `PasswordHash` varchar(255) NOT NULL,
+  `Role` enum('captain','secretary','staff','sysadmin','resident') NOT NULL,
+  `AccountStatus` enum('Active','Inactive','PendingVerification','Rejected') DEFAULT 'PendingVerification',
+  `FullName` varchar(255) DEFAULT NULL,
+  `Email` varchar(150) DEFAULT NULL,
+  `VerifiedBy` int(11) DEFAULT NULL,
+  `VerifiedAt` datetime DEFAULT NULL,
+  `RejectionReason` text DEFAULT NULL,
+  `CreatedAt` datetime DEFAULT current_timestamp(),
+  `UpdatedAt` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`UserAccountID`),
+  UNIQUE KEY `Username` (`Username`),
+  KEY `ResidentID` (`ResidentID`),
+  KEY `VerifiedBy` (`VerifiedBy`),
+  CONSTRAINT `useraccount_ibfk_1` FOREIGN KEY (`ResidentID`) REFERENCES `resident` (`ResidentID`) ON DELETE SET NULL,
+  CONSTRAINT `useraccount_ibfk_2` FOREIGN KEY (`VerifiedBy`) REFERENCES `useraccount` (`UserAccountID`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data for table `useraccount`
+INSERT INTO `useraccount` (`UserAccountID`, `ResidentID`, `Username`, `PasswordHash`, `Role`, `AccountStatus`, `FullName`, `Email`, `VerifiedBy`, `VerifiedAt`, `RejectionReason`, `CreatedAt`, `UpdatedAt`) VALUES ('1', NULL, 'captain', '$2y$10$xhAABu0ditVM7.IsONBstuXxtpkCOzv9CMEJQ0JRib4ZSHJtw/KoW', 'captain', 'Active', 'Hon. Juan dela Cruz', 'captain@barangay.gov.ph', NULL, NULL, NULL, '2026-04-19 15:39:22', '2026-04-19 17:07:36');
+INSERT INTO `useraccount` (`UserAccountID`, `ResidentID`, `Username`, `PasswordHash`, `Role`, `AccountStatus`, `FullName`, `Email`, `VerifiedBy`, `VerifiedAt`, `RejectionReason`, `CreatedAt`, `UpdatedAt`) VALUES ('2', NULL, 'secretary', '$2y$10$DfsLksEHmKpoBDQenKLvIOavQ0iCZRdGYHB4V1b5HqcpBB4O49jaG', 'secretary', 'Active', 'Maria Santos', 'secretary@barangay.gov.ph', NULL, NULL, NULL, '2026-04-19 15:39:22', '2026-04-19 17:07:36');
+INSERT INTO `useraccount` (`UserAccountID`, `ResidentID`, `Username`, `PasswordHash`, `Role`, `AccountStatus`, `FullName`, `Email`, `VerifiedBy`, `VerifiedAt`, `RejectionReason`, `CreatedAt`, `UpdatedAt`) VALUES ('3', NULL, 'staff', '$2y$10$BBGl7nQe/8AszC9OaOa.FezcWUJuYAwZ5adx7LuNsbAW/TN4HEIpO', 'staff', 'Active', 'Jose Reyes', 'staff@barangay.gov.ph', NULL, NULL, NULL, '2026-04-19 15:39:22', '2026-04-19 17:07:37');
+INSERT INTO `useraccount` (`UserAccountID`, `ResidentID`, `Username`, `PasswordHash`, `Role`, `AccountStatus`, `FullName`, `Email`, `VerifiedBy`, `VerifiedAt`, `RejectionReason`, `CreatedAt`, `UpdatedAt`) VALUES ('4', NULL, 'sysadmin', '$2y$10$w3M8zLZF5/t3ez/HPQie1ufgb95jZYDCHHP/.l/n4NTUkS/gQw7VO', 'sysadmin', 'Active', 'Tech Admin', 'sysadmin@barangay.gov.ph', NULL, NULL, NULL, '2026-04-19 15:39:22', '2026-04-19 17:07:37');
+INSERT INTO `useraccount` (`UserAccountID`, `ResidentID`, `Username`, `PasswordHash`, `Role`, `AccountStatus`, `FullName`, `Email`, `VerifiedBy`, `VerifiedAt`, `RejectionReason`, `CreatedAt`, `UpdatedAt`) VALUES ('10', '4', 'jazelletamayo', '$2y$10$pG5hIkzqaW7Xi9Vm4J1t9OSsSb07tfVquT5rS/1vbf3i4EAU4DMWi', 'resident', 'Active', 'Jazelle Tamayo', 'jazellet5@gmail.com', '2', '2026-04-19 17:19:30', NULL, '2026-04-19 17:18:12', '2026-04-19 17:19:30');
+INSERT INTO `useraccount` (`UserAccountID`, `ResidentID`, `Username`, `PasswordHash`, `Role`, `AccountStatus`, `FullName`, `Email`, `VerifiedBy`, `VerifiedAt`, `RejectionReason`, `CreatedAt`, `UpdatedAt`) VALUES ('11', '5', 'EjhiePacquiao', '$2y$10$w.b94PBaNGyOLQN4q7wvKu2wsOo/AxP0sc1.Qhgv/Rp.lBCX9TFwK', 'resident', 'Active', 'Ejhie Pacquiao', 'ejhiepacquiao108@gmail.com', '2', '2026-04-27 17:20:37', NULL, '2026-04-27 17:18:46', '2026-04-27 17:20:37');
+INSERT INTO `useraccount` (`UserAccountID`, `ResidentID`, `Username`, `PasswordHash`, `Role`, `AccountStatus`, `FullName`, `Email`, `VerifiedBy`, `VerifiedAt`, `RejectionReason`, `CreatedAt`, `UpdatedAt`) VALUES ('12', NULL, 'Annabelle', '$2y$10$36hnP/paBkf0WAlJ4oyjIeZSy0vOkgbqOW4F4mXtQCo5SBZVAuIbG', 'staff', 'Inactive', 'Annabelle Pado', '', NULL, NULL, NULL, '2026-05-07 15:48:36', '2026-05-07 15:50:29');
+
+SET FOREIGN_KEY_CHECKS=1;
+
+-- End of backup

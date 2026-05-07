@@ -1,5 +1,5 @@
 <?php
-// Barangay Connect – Complaint Details
+// Barangay Connect – Complaint Detail (Secretary)
 // secretary/complaint_detail.php
 
 require_once '../config/session.php';
@@ -7,146 +7,241 @@ require_once '../config/db.php';
 require_once '../config/constants.php';
 require_role('secretary');
 
-$pdo = get_db();
-$id  = (int) ($_GET['id'] ?? 0);
+$pdo     = get_db();
+$user_id = $_SESSION['user_id'];
 
-// Fetch complaint details
+$request_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+if (!$request_id) {
+    header('Location: complaint_management.php');
+    exit;
+}
+
 $stmt = $pdo->prepare("
-    SELECT 
-        c.*, 
-        sr.ReferenceNo, 
-        sr.Status, 
-        CONCAT(r.FirstName, ' ', r.LastName) AS ComplainantName
-    FROM Complaint c
-    JOIN ServiceRequest sr ON c.RequestID = sr.RequestID
-    JOIN Resident r ON sr.ResidentID = r.ResidentID
-    WHERE c.RequestID = ?
+    SELECT sr.*,
+           CONCAT(r.FirstName,' ',r.LastName) AS ResidentName,
+           r.Address, r.ContactNumber, r.Email AS ResidentEmail,
+           c.RespondentName, c.RespondentContact, c.RespondentRelationship,
+           c.IncidentDate, c.IncidentLocation, c.MediationDate,
+           c.Witnesses, c.ReliefSought, c.Description
+    FROM ServiceRequest sr
+    JOIN Resident r       ON sr.ResidentID = r.ResidentID
+    LEFT JOIN Complaint c ON sr.RequestID  = c.RequestID
+    WHERE sr.RequestID = ?
+      AND sr.RequestType = 'Complaint'
 ");
-$stmt->execute([$id]);
-$complaint = $stmt->fetch();
+$stmt->execute([$request_id]);
+$complaint = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// If complaint doesn't exist, go back
 if (!$complaint) {
     header('Location: complaint_management.php?msg=not_found');
     exit;
 }
 
-$page_title = 'Complaint Details';
+// Handle POST actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action  = $_POST['action'] ?? '';
+    $remarks = trim($_POST['remarks'] ?? '');
+
+    if ($action === 'approve') {
+        $log = "\n[" . date('Y-m-d H:i:s') . "] Secretary Approved: " . $remarks;
+        $pdo->prepare("
+            UPDATE ServiceRequest
+            SET Status  = 'Approved',
+                Remarks = CONCAT(IFNULL(Remarks,''), ?)
+            WHERE RequestID = ?
+        ")->execute([$log, $request_id]);
+        header("Location: complaint_management.php?msg=updated");
+        exit;
+
+    } elseif ($action === 'reject') {
+        $reason = $remarks ?: 'No reason provided.';
+        $log    = "\n[" . date('Y-m-d H:i:s') . "] Secretary Rejected: " . $remarks;
+        $pdo->prepare("
+            UPDATE ServiceRequest
+            SET Status          = 'Rejected',
+                RejectionReason = ?,
+                Remarks         = CONCAT(IFNULL(Remarks,''), ?)
+            WHERE RequestID = ?
+        ")->execute([$reason, $log, $request_id]);
+        header("Location: complaint_management.php?msg=updated");
+        exit;
+
+    } elseif ($action === 'cancel') {
+        $reason = trim($_POST['cancel_reason'] ?? '') ?: 'Cancelled by Secretary.';
+        $pdo->prepare("
+            UPDATE ServiceRequest
+            SET Status             = 'Cancelled',
+                CancelledBy        = ?,
+                CancelledAt        = NOW(),
+                CancellationReason = ?
+            WHERE RequestID = ?
+        ")->execute([$user_id, $reason, $request_id]);
+        header("Location: complaint_management.php?msg=updated");
+        exit;
+    }
+}
+
+$page_title = 'Complaint Detail';
 include '../includes/header.php';
 ?>
-<link rel="stylesheet" href="../assets/css/complaints.css">
-
 <div class="app-layout">
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        
-        <div class="page-header">
-            <div class="header-with-back">
-                <a href="complaint_management.php" class="btn-back">← Back</a>
-                <h1>Complaint Details</h1>
+
+        <div class="page-header" style="display:flex; align-items:center; gap:16px; justify-content:flex-start;">
+            <a href="complaint_management.php" class="btn-back" title="Back">&#8592;</a>
+            <div>
+                <h1 style="margin:0;">Complaint Detail</h1>
+                <span class="page-subtitle"><?= htmlspecialchars($complaint['ReferenceNo'] ?? '') ?></span>
             </div>
-            <span class="badge badge-<?= strtolower($complaint['Status']) ?>">
-                <?= htmlspecialchars($complaint['Status']) ?>
-            </span>
         </div>
 
         <div class="page-body">
 
-            <!-- Summary Card -->
-            <div class="card mb-4 border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 1px;">Reference Number</span>
-                            <h2 class="text-primary mt-1 mb-0" style="font-weight: 700;">
-                                <?= htmlspecialchars($complaint['ReferenceNo']) ?>
-                            </h2>
-                        </div>
-                        <div style="text-align:right;">
-                             <span class="text-muted small fw-bold text-uppercase d-block mb-2">Current Status</span>
-                             <span class="badge badge-<?= strtolower($complaint['Status']) ?>" style="padding: 10px 20px; font-size: 0.9rem; border-radius: 50px;">
-                                <?= htmlspecialchars($complaint['Status']) ?>
+            <!-- Complaint Info -->
+            <div class="card">
+                <div class="card-header"><h3>Complaint Information</h3></div>
+                <table class="info-table">
+                    <tr><th>Reference No.</th>     <td><?= htmlspecialchars($complaint['ReferenceNo'] ?? '—') ?></td></tr>
+                    <tr><th>Complainant</th>        <td><?= htmlspecialchars($complaint['ResidentName'] ?? '—') ?></td></tr>
+                    <tr><th>Address</th>            <td><?= nl2br(htmlspecialchars($complaint['Address'] ?? '—')) ?></td></tr>
+                    <tr><th>Contact</th>            <td><?= htmlspecialchars($complaint['ContactNumber'] ?? '—') ?></td></tr>
+                    <tr><th>Email</th>              <td><?= htmlspecialchars($complaint['ResidentEmail'] ?? '—') ?></td></tr>
+                    <tr><th>Status</th>
+                        <td>
+                            <span class="badge badge-<?= strtolower($complaint['Status'] ?? '') ?>">
+                                <?= htmlspecialchars($complaint['Status'] ?? '—') ?>
                             </span>
-                        </div>
-                    </div>
+                        </td>
+                    </tr>
+                    <tr><th>Submitted</th>          <td><?= isset($complaint['CreatedAt']) ? date('M d, Y h:i A', strtotime($complaint['CreatedAt'])) : '—' ?></td></tr>
+                    <tr><th>Respondent</th>         <td><?= htmlspecialchars($complaint['RespondentName'] ?? '—') ?></td></tr>
+                    <tr><th>Respondent Contact</th> <td><?= htmlspecialchars($complaint['RespondentContact'] ?? '—') ?></td></tr>
+                    <tr><th>Relationship</th>       <td><?= htmlspecialchars($complaint['RespondentRelationship'] ?? '—') ?></td></tr>
+                    <tr><th>Incident Date</th>      <td><?= htmlspecialchars($complaint['IncidentDate'] ?? '—') ?></td></tr>
+                    <tr><th>Incident Location</th>  <td><?= htmlspecialchars($complaint['IncidentLocation'] ?? '—') ?></td></tr>
+                    <tr><th>Witnesses</th>          <td><?= nl2br(htmlspecialchars($complaint['Witnesses'] ?? '—')) ?></td></tr>
+                    <tr><th>Relief Sought</th>      <td><?= nl2br(htmlspecialchars($complaint['ReliefSought'] ?? '—')) ?></td></tr>
+                    <tr><th>Mediation Date</th>     <td><?= htmlspecialchars($complaint['MediationDate'] ?? 'Not yet scheduled') ?></td></tr>
+                    <tr><th>Complaint Details</th>  <td><?= nl2br(htmlspecialchars($complaint['Description'] ?? '—')) ?></td></tr>
+                    <tr><th>Purpose</th>            <td><?= nl2br(htmlspecialchars($complaint['Purpose'] ?? '—')) ?></td></tr>
+                </table>
+            </div>
+
+            <!-- Staff Remarks -->
+            <div class="card mt-4">
+                <div class="card-header"><h3>Staff Remarks</h3></div>
+                <div class="remarks-box">
+                    <?php
+                    $raw   = trim($complaint['Remarks'] ?? '');
+                    $lines = array_filter(explode("\n", $raw), function($l) {
+                        $t = trim($l);
+                        return $t !== '' && !preg_match('/Secretary\s+(Approved|Rejected)/i', $t);
+                    });
+                    $clean = trim(implode("\n", array_map(fn($l) =>
+                        preg_replace('/^\[?\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\]?\s*Staff:\s*/i', '', trim($l)), $lines)));
+                    ?>
+                    <?php if (empty($clean)): ?>
+                        <p class="remarks-empty">No remarks from staff.</p>
+                    <?php else: ?>
+                        <p class="remarks-text"><?= nl2br(htmlspecialchars($clean)) ?></p>
+                    <?php endif; ?>
+                    <small class="remarks-hint">📝 Remarks added by staff when they forwarded this complaint.</small>
                 </div>
             </div>
 
-            <!-- Case Details Card -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom p-4">
-                    <h4 class="mb-0" style="color: var(--dark-green); font-weight: 600;">
-                        <i class="fas fa-info-circle me-2"></i> Case Information
-                    </h4>
-                </div>
-
-                <div class="card-body p-4">
-                    <!-- Information Grid -->
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:30px;">
-
-                        <!-- Complainant -->
-                        <div class="detail-item highlight-blue">
-                            <label class="text-muted small fw-bold">COMPLAINANT</label>
-                            <p class="mb-0" style="font-weight: 600; color: #333;">
-                                <?= htmlspecialchars($complaint['ComplainantName']) ?>
-                            </p>
-                        </div>
-
-                        <!-- Respondent -->
-                        <div class="detail-item highlight-red">
-                            <label class="text-muted small fw-bold">RESPONDENT</label>
-                            <p class="mb-0" style="font-weight: 600; color: #333;">
-                                <?= htmlspecialchars($complaint['RespondentName']) ?>
-                            </p>
-                        </div>
-
-                        <!-- Incident Date -->
-                        <div class="detail-item">
-                            <label class="text-muted small fw-bold">INCIDENT DATE</label>
-                            <p class="mb-0 pt-1">
-                                <i class="far fa-calendar-alt me-2 text-muted"></i>
-                                <?= date('F d, Y', strtotime($complaint['IncidentDate'])) ?>
-                            </p>
-                        </div>
-
-                        <!-- Mediation Schedule -->
-                        <div class="detail-item">
-                            <label class="text-muted small fw-bold">MEDIATION SCHEDULE</label>
-                            <p class="mb-0 pt-1">
-                                <i class="far fa-clock me-2 text-muted"></i>
-                                <?= $complaint['MediationDate']
-                                    ? '<span class="text-success fw-bold">' . date('F d, Y', strtotime($complaint['MediationDate'])) . '</span>'
-                                    : '<em class="text-muted">Not yet scheduled</em>' ?>
-                            </p>
-                        </div>
-
-                    </div>
-
-                    <!-- Narrative Section -->
-                    <div style="margin-top:40px;">
-                        <label class="text-muted small fw-bold mb-3 d-block text-uppercase">
-                            Statement / Complaint Details
-                        </label>
-
-                        <div class="complaint-box">
-                            <i class="fas fa-quote-left text-light me-3" style="padding:5px; font-size: 1.5rem; opacity: 0.5;"></i>
-                            <?= nl2br(htmlspecialchars($complaint['ComplaintDetails'] ?? 'No additional details provided by the complainant.')) ?>
-                        </div>
+            <!-- Action Form -->
+           <?php if (in_array($complaint['Status'] ?? '', ['ForApproval', 'Pending'])): ?>
+                <div class="card mt-4">
+                    <div class="card-header"><h3>Take Action</h3></div>
+                    <div class="action-box">
+                        <form method="POST" id="actionForm">
+                            <input type="hidden" name="action" id="actionInput" value="">
+                            <div class="form-group">
+                                <label class="form-label">Remarks <span style="color:#6b7280;font-weight:400;">(optional)</span></label>
+                                <textarea name="remarks" class="form-textarea" rows="3"
+                                    placeholder="Add a reason for rejection, or a note for approval..."></textarea>
+                                <small class="form-hint">
+                                    For rejection: this reason will be visible to the resident.<br>
+                                    For approval: this is an internal note only.
+                                </small>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-success" onclick="submitAction('approve')">Approve</button>
+                                <button type="button" class="btn btn-danger"  onclick="submitAction('reject')">Reject</button>
+                                <a href="complaint_management.php" class="btn btn-secondary">Cancel</a>
+                            </div>
+                        </form>
                     </div>
                 </div>
-                
-                <!-- Action Footer -->
-                <div class="card-footer bg-white p-4 border-top text-end">
-                    <button onclick="window.print()" class="btn btn-outline-secondary px-4">
-                        <i class="fas fa-print me-2"></i> Print Record
-                    </button>
+
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h3>Cancel Complaint</h3>
+                        <span class="card-subtitle">Use only if the complaint is invalid or filed in error.</span>
+                    </div>
+                    <div class="action-box">
+                        <form method="POST" id="cancelForm">
+                            <input type="hidden" name="action" value="cancel">
+                            <div class="form-group">
+                                <label class="form-label">Cancellation Reason <span style="color:#dc2626;">*</span></label>
+                                <textarea name="cancel_reason" class="form-textarea" rows="3" required
+                                    placeholder="Why is this complaint being cancelled?"></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-danger"
+                                    onclick="if(confirm('Cancel this complaint? This cannot be undone.')) document.getElementById('cancelForm').submit()">
+                                    Cancel This Complaint
+                                </button>
+                                <a href="complaint_management.php" class="btn btn-secondary">Go Back</a>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
+
+            <?php else: ?>
+                <div class="alert alert-info" style="margin-top:1rem;">
+                    This complaint is <strong><?= htmlspecialchars($complaint['Status'] ?? 'Unknown') ?></strong> and cannot be modified.
+                    <a href="complaint_management.php" style="margin-left:8px;">← Back to list</a>
+                </div>
+            <?php endif; ?>
 
         </div>
-
     </main>
 </div>
+
+<script>
+function submitAction(action) {
+    var msg = action === 'reject' ? 'REJECT this complaint?' : 'APPROVE this complaint?';
+    if (!confirm('Are you sure you want to ' + msg)) return;
+    document.getElementById('actionInput').value = action;
+    document.getElementById('actionForm').submit();
+}
+</script>
+
+<style>
+.info-table { width:100%; border-collapse:collapse; }
+.info-table th, .info-table td { padding:10px 14px; border-bottom:1px solid #e2e8f0; text-align:left; vertical-align:top; }
+.info-table th { width:180px; background:#f8fafc; color:#374151; font-weight:600; }
+.info-table tr:last-child th, .info-table tr:last-child td { border-bottom:none; }
+.remarks-box { padding:16px 20px; }
+.remarks-text { margin:0 0 10px; padding:14px 16px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; color:#1f2937; font-size:.95rem; line-height:1.7; white-space:pre-wrap; }
+.remarks-empty { margin:0 0 10px; color:#9ca3af; font-style:italic; }
+.remarks-hint { color:#6b7280; font-size:.8rem; }
+.action-box { padding:20px; }
+.form-label { display:block; font-weight:600; margin-bottom:6px; color:#374151; }
+.form-textarea { width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:6px; font-size:.95rem; line-height:1.5; resize:vertical; box-sizing:border-box; font-family:inherit; color:#1f2937; }
+.form-textarea:focus { outline:none; border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.1); }
+.form-hint { color:#6b7280; font-size:.8rem; display:block; margin-top:6px; line-height:1.5; }
+.form-actions { display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; align-items:center; }
+.btn { padding:9px 18px; border-radius:6px; border:none; cursor:pointer; font-size:.9rem; font-weight:500; text-decoration:none; display:inline-block; }
+.btn-success { background:#2e7d32; color:white; } .btn-success:hover { background:#1b5e20; }
+.btn-danger  { background:#c62828; color:white; } .btn-danger:hover  { background:#7f0000; }
+.btn-secondary { background:#6b7280; color:white; } .btn-secondary:hover { background:#4b5563; }
+.btn-back { display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:50%; background:#f1f5f9; color:#374151; font-size:1.2rem; text-decoration:none; border:1px solid #e2e8f0; flex-shrink:0; transition:background .15s; }
+.btn-back:hover { background:#e2e8f0; }
+.mt-4 { margin-top:1rem; }
+</style>
 
 <?php include '../includes/footer.php'; ?>

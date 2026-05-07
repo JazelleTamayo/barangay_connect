@@ -16,7 +16,6 @@ $role_labels = [
 ?>
 <nav class="topnav">
     <div class="topnav-left">
-        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
         <span class="topnav-title"><?= htmlspecialchars($brgy_name) ?></span>
     </div>
     <div class="topnav-right">

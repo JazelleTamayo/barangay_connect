@@ -138,7 +138,7 @@ include '../includes/header.php';
                                     <td><?= htmlspecialchars($req['RequestType']) ?></td>
                                     <td><?= date('M d, Y h:i A', strtotime($req['CreatedAt'])) ?></td>
                                     <td><span class="badge badge-<?= strtolower($req['Status']) ?>"><?= $req['Status'] ?></span></td>
-                                    <td><a href="request_processing.php?id=<?= $req['RequestID'] ?>" class="btn btn-small btn-primary">Process</a></td>
+                                    <td><a href="request_detail.php?id=<?= $req['RequestID'] ?>" class="btn btn-small btn-primary">Process</a></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>

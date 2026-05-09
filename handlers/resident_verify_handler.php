@@ -24,6 +24,16 @@ if (!$account_id || !in_array($action, ['approve', 'reject'])) {
 
 $ua    = new UserAccount();
 $audit = new AuditLog();
+$account = $ua->findById($account_id);
+
+if (
+    !$account ||
+    ($account['Role'] ?? '') !== 'resident' ||
+    ($account['AccountStatus'] ?? '') !== 'PendingVerification'
+) {
+    header('Location: ../secretary/resident_verification.php?msg=invalid');
+    exit;
+}
 
 if ($action === 'approve') {
     $ua->approve($account_id, (int) $_SESSION['user_id']);

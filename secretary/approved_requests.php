@@ -80,14 +80,23 @@ include '../includes/header.php';
                     </thead>
                     <tbody>
                         <?php if (empty($approvedRequests)): ?>
-                            <tr><td colspan="6" class="empty-row">No approved requests found.<?php else: ?>
+                            <tr>
+                                <td colspan="6" class="empty-row">No approved requests found.</td>
+                            </tr>
+                        <?php else: ?>
                             <?php foreach ($approvedRequests as $req): ?>
+                                <?php
+                                    $purpose = trim($req['Purpose'] ?? '');
+                                    $purpose_display = $purpose === ''
+                                        ? '—'
+                                        : (strlen($purpose) > 60 ? substr($purpose, 0, 60) . '...' : $purpose);
+                                ?>
                                 <tr>
                                     <td><?= htmlspecialchars($req['ReferenceNo']) ?></td>
                                     <td><?= htmlspecialchars($req['ResidentName']) ?></td>
                                     <td><?= htmlspecialchars($req['RequestType']) ?></td>
                                     <td><?= date('M d, Y h:i A', strtotime($req['ProcessedAt'] ?? $req['CreatedAt'])) ?></td>
-                                    <td><?= htmlspecialchars(substr($req['Purpose'] ?? '', 0, 60)) ?>...</td>
+                                    <td><?= htmlspecialchars($purpose_display) ?></td>
                                     <td><a href="request_detail.php?id=<?= $req['RequestID'] ?>" class="btn btn-small btn-secondary">View</a></td>
                                 </tr>
                             <?php endforeach; ?>

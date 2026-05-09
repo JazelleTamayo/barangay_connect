@@ -34,10 +34,25 @@ if (!$resident_id) {
     exit;
 }
 
+$allowed_sex = ['Male', 'Female'];
+$allowed_status = ['Active', 'Inactive'];
+
 // Required field check
 if (
     empty($first_name) || empty($last_name) ||
     empty($birthdate)  || empty($sex)        || empty($address)
+) {
+    header("Location: $back&msg=missing_fields");
+    exit;
+}
+
+$birthdate_obj = DateTime::createFromFormat('Y-m-d', $birthdate);
+if (
+    !$birthdate_obj ||
+    $birthdate_obj->format('Y-m-d') !== $birthdate ||
+    $birthdate_obj > new DateTime('today') ||
+    !in_array($sex, $allowed_sex, true) ||
+    !in_array($status, $allowed_status, true)
 ) {
     header("Location: $back&msg=missing_fields");
     exit;
@@ -51,6 +66,20 @@ if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
 $residentClass = new Resident();
 $audit         = new AuditLog();
+$pdo           = get_db();
+
+$stmt = $pdo->prepare("
+    SELECT r.ResidentID
+    FROM Resident r
+    LEFT JOIN UserAccount ua ON ua.ResidentID = r.ResidentID AND ua.Role <> 'resident'
+    WHERE r.ResidentID = ?
+      AND ua.UserAccountID IS NULL
+");
+$stmt->execute([$resident_id]);
+if (!$stmt->fetchColumn()) {
+    header('Location: ../secretary/resident_management.php?msg=not_allowed');
+    exit;
+}
 
 // Duplicate check (exclude current resident)
 if ($residentClass->isDuplicate($first_name, $last_name, $birthdate, $address, $resident_id)) {
@@ -74,7 +103,7 @@ $updated = $residentClass->update($resident_id, [
 ]);
 
 if (!$updated) {
-    header("Location: $back&msg=error");
+    header("Location: $back&msg=updated");
     exit;
 }
 

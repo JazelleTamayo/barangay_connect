@@ -24,6 +24,20 @@ if (!$resident) {
     exit;
 }
 
+$pdo = get_db();
+$stmt = $pdo->prepare("
+    SELECT Role
+    FROM UserAccount
+    WHERE ResidentID = ?
+      AND Role <> 'resident'
+    LIMIT 1
+");
+$stmt->execute([$id]);
+if ($stmt->fetchColumn()) {
+    header('Location: resident_management.php?msg=not_allowed');
+    exit;
+}
+
 $page_title = 'Edit Resident';
 include '../includes/header.php';
 ?>

@@ -70,6 +70,9 @@ include '../includes/header.php';
             <?php if (isset($_GET['msg']) && $_GET['msg'] === 'updated'): ?>
                 <div class="alert alert-success">✅ Resident record updated successfully.</div>
             <?php endif; ?>
+            <?php if (isset($_GET['msg']) && $_GET['msg'] === 'not_allowed'): ?>
+                <div class="alert alert-danger">This resident record cannot be edited from the Secretary module.</div>
+            <?php endif; ?>
 
             <div class="card">
                 <div class="card-header">

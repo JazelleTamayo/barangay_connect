@@ -54,6 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     $remarks = trim($_POST['remarks'] ?? '');
 
+    if (($request['Status'] ?? '') !== 'ForApproval') {
+        header("Location: request_detail.php?id=$request_id&msg=not_actionable");
+        exit;
+    }
+
     if ($action === 'approve') {
         $new_status = 'Approved';
         $log = "\n[" . date('Y-m-d H:i:s') . "] Secretary Approved: " . $remarks;
@@ -61,34 +66,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             UPDATE ServiceRequest 
             SET Status = ?, 
                 Remarks = CONCAT(IFNULL(Remarks, ''), ?)
-            WHERE RequestID = ?
+            WHERE RequestID = ? AND Status = 'ForApproval'
         ");
         $update->execute([$new_status, $log, $request_id]);
+        if ($update->rowCount() === 0) {
+            header("Location: request_detail.php?id=$request_id&msg=not_actionable");
+            exit;
+        }
         $msg = 'approved';
     } elseif ($action === 'reject') {
+        if ($remarks === '') {
+            header("Location: request_detail.php?id=$request_id&msg=reason_required");
+            exit;
+        }
         $new_status = 'Rejected';
-        $rejection_reason = $remarks ?: 'No reason provided.';
+        $rejection_reason = $remarks;
         $log = !empty($remarks) ? "\n[" . date('Y-m-d H:i:s') . "] Secretary Rejected: " . $remarks : "";
         $update = $pdo->prepare("
             UPDATE ServiceRequest 
             SET Status = ?,
                 RejectionReason = ?,
                 Remarks = CONCAT(IFNULL(Remarks, ''), ?)
-            WHERE RequestID = ?
+            WHERE RequestID = ? AND Status = 'ForApproval'
         ");
         $update->execute([$new_status, $rejection_reason, $log, $request_id]);
+        if ($update->rowCount() === 0) {
+            header("Location: request_detail.php?id=$request_id&msg=not_actionable");
+            exit;
+        }
         $msg = 'rejected';
     } elseif ($action === 'cancel') {
-        $cancel_reason = trim($_POST['cancel_reason'] ?? '') ?: 'Cancelled by Secretary.';
+        $cancel_reason = trim($_POST['cancel_reason'] ?? '');
+        if ($cancel_reason === '') {
+            header("Location: request_detail.php?id=$request_id&msg=reason_required");
+            exit;
+        }
         $update = $pdo->prepare("
             UPDATE ServiceRequest
             SET Status             = 'Cancelled',
                 CancelledBy        = ?,
                 CancelledAt        = NOW(),
                 CancellationReason = ?
-            WHERE RequestID = ?
+            WHERE RequestID = ? AND Status = 'ForApproval'
         ");
         $update->execute([$user_id, $cancel_reason, $request_id]);
+        if ($update->rowCount() === 0) {
+            header("Location: request_detail.php?id=$request_id&msg=not_actionable");
+            exit;
+        }
         $msg = 'cancelled';
     } else {
         header("Location: request_detail.php?id=$request_id&msg=error");

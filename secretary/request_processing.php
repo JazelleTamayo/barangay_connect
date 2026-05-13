@@ -12,6 +12,16 @@ $pdo = get_db();
 $filterType   = trim($_GET['type']   ?? '');
 $filterStatus = trim($_GET['status'] ?? '');
 
+$validTypes = ['Clearance', 'Indigency', 'FacilityReservation', 'Complaint'];
+$validStatuses = ['all', 'Pending', 'ForApproval', 'Approved', 'Prepared', 'Released', 'Rejected', 'Cancelled'];
+
+if ($filterType !== '' && !in_array($filterType, $validTypes, true)) {
+    $filterType = '';
+}
+if ($filterStatus !== '' && !in_array($filterStatus, $validStatuses, true)) {
+    $filterStatus = '';
+}
+
 // Default to 'ForApproval' if no explicit status filter is set
 if ($filterStatus === '' && !isset($_GET['status'])) {
     $filterStatus = 'ForApproval';
@@ -70,25 +80,26 @@ include '../includes/header.php';
             <div class="card">
                 <div class="card-header">
                     <h3>All Service Requests</h3>
-                    <div class="card-actions">
-                        <input type="text" id="searchInput" class="search-input" placeholder="Search by reference no. or name..." />
-                        <select id="typeFilter" class="filter-select">
-                            <option value="">All Types</option>
-                            <option value="Clearance">Clearance</option>
-                            <option value="Indigency">Indigency</option>
-                            <option value="FacilityReservation">Facility Reservation</option>
-                            <option value="Complaint">Complaint</option>
+                    <form method="GET" class="card-actions" id="requestFilterForm">
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search loaded results..." />
+                        <select id="typeFilter" name="type" class="filter-select" onchange="document.getElementById('requestFilterForm').submit()">
+                            <option value="" <?= $filterType === '' ? 'selected' : '' ?>>All Types</option>
+                            <option value="Clearance" <?= $filterType === 'Clearance' ? 'selected' : '' ?>>Clearance</option>
+                            <option value="Indigency" <?= $filterType === 'Indigency' ? 'selected' : '' ?>>Indigency</option>
+                            <option value="FacilityReservation" <?= $filterType === 'FacilityReservation' ? 'selected' : '' ?>>Facility Reservation</option>
+                            <option value="Complaint" <?= $filterType === 'Complaint' ? 'selected' : '' ?>>Complaint</option>
                         </select>
-                        <select id="statusFilter" class="filter-select">
+                        <select id="statusFilter" name="status" class="filter-select" onchange="document.getElementById('requestFilterForm').submit()">
                             <option value="all" <?= $filterStatus === 'all' ? 'selected' : '' ?>>All Status</option>
 
                             <option value="ForApproval" <?= $filterStatus === 'ForApproval' ? 'selected' : '' ?>>For Approval</option>
+                            <option value="Prepared" <?= $filterStatus === 'Prepared' ? 'selected' : '' ?>>Prepared</option>
                             <option value="Approved" <?= $filterStatus === 'Approved' ? 'selected' : '' ?>>Approved</option>
                             <option value="Rejected" <?= $filterStatus === 'Rejected' ? 'selected' : '' ?>>Rejected</option>
                             <option value="Released" <?= $filterStatus === 'Released' ? 'selected' : '' ?>>Released</option>
                             <option value="Cancelled" <?= $filterStatus === 'Cancelled' ? 'selected' : '' ?>>Cancelled</option>
                         </select>
-                    </div>
+                    </form>
                 </div>
                 <table class="data-table" id="requestsTable">
                     <thead>

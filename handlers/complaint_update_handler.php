@@ -19,8 +19,21 @@ $mediation_date = trim($_POST['mediation_date'] ?? '');
 $actions_taken  = trim($_POST['actions_taken']  ?? '');
 $new_status     = trim($_POST['status']         ?? '');
 
-if (empty($reference_no)) {
+$allowed_statuses = ['ForApproval', 'Approved', 'Rejected'];
+
+if (empty($reference_no) || empty($mediation_date)) {
     header('Location: ../secretary/complaint_management.php?msg=missing_fields');
+    exit;
+}
+
+$date = DateTime::createFromFormat('Y-m-d', $mediation_date);
+if (!$date || $date->format('Y-m-d') !== $mediation_date) {
+    header('Location: ../secretary/complaint_management.php?msg=invalid');
+    exit;
+}
+
+if ($new_status !== '' && !in_array($new_status, $allowed_statuses, true)) {
+    header('Location: ../secretary/complaint_management.php?msg=invalid');
     exit;
 }
 
@@ -32,6 +45,11 @@ $request = $sr->getByReferenceNo($reference_no);
 
 if (!$request) {
     header('Location: ../secretary/complaint_management.php?msg=not_found');
+    exit;
+}
+
+if (($request['RequestType'] ?? '') !== 'Complaint') {
+    header('Location: ../secretary/complaint_management.php?msg=invalid');
     exit;
 }
 

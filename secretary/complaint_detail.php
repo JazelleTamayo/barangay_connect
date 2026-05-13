@@ -42,40 +42,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action  = $_POST['action'] ?? '';
     $remarks = trim($_POST['remarks'] ?? '');
 
+    if (($complaint['Status'] ?? '') !== 'ForApproval') {
+        header("Location: complaint_detail.php?id=$request_id&msg=not_actionable");
+        exit;
+    }
+
     if ($action === 'approve') {
         $log = "\n[" . date('Y-m-d H:i:s') . "] Secretary Approved: " . $remarks;
-        $pdo->prepare("
+        $stmt = $pdo->prepare("
             UPDATE ServiceRequest
             SET Status  = 'Approved',
                 Remarks = CONCAT(IFNULL(Remarks,''), ?)
-            WHERE RequestID = ?
-        ")->execute([$log, $request_id]);
+            WHERE RequestID = ? AND Status = 'ForApproval'
+        ");
+        $stmt->execute([$log, $request_id]);
+        if ($stmt->rowCount() === 0) {
+            header("Location: complaint_detail.php?id=$request_id&msg=not_actionable");
+            exit;
+        }
         header("Location: complaint_management.php?msg=updated");
         exit;
 
     } elseif ($action === 'reject') {
-        $reason = $remarks ?: 'No reason provided.';
+        if ($remarks === '') {
+            header("Location: complaint_detail.php?id=$request_id&msg=reason_required");
+            exit;
+        }
+        $reason = $remarks;
         $log    = "\n[" . date('Y-m-d H:i:s') . "] Secretary Rejected: " . $remarks;
-        $pdo->prepare("
+        $stmt = $pdo->prepare("
             UPDATE ServiceRequest
             SET Status          = 'Rejected',
                 RejectionReason = ?,
                 Remarks         = CONCAT(IFNULL(Remarks,''), ?)
-            WHERE RequestID = ?
-        ")->execute([$reason, $log, $request_id]);
+            WHERE RequestID = ? AND Status = 'ForApproval'
+        ");
+        $stmt->execute([$reason, $log, $request_id]);
+        if ($stmt->rowCount() === 0) {
+            header("Location: complaint_detail.php?id=$request_id&msg=not_actionable");
+            exit;
+        }
         header("Location: complaint_management.php?msg=updated");
         exit;
 
     } elseif ($action === 'cancel') {
-        $reason = trim($_POST['cancel_reason'] ?? '') ?: 'Cancelled by Secretary.';
-        $pdo->prepare("
+        $reason = trim($_POST['cancel_reason'] ?? '');
+        if ($reason === '') {
+            header("Location: complaint_detail.php?id=$request_id&msg=reason_required");
+            exit;
+        }
+        $stmt = $pdo->prepare("
             UPDATE ServiceRequest
             SET Status             = 'Cancelled',
                 CancelledBy        = ?,
                 CancelledAt        = NOW(),
                 CancellationReason = ?
-            WHERE RequestID = ?
-        ")->execute([$user_id, $reason, $request_id]);
+            WHERE RequestID = ? AND Status = 'ForApproval'
+        ");
+        $stmt->execute([$user_id, $reason, $request_id]);
+        if ($stmt->rowCount() === 0) {
+            header("Location: complaint_detail.php?id=$request_id&msg=not_actionable");
+            exit;
+        }
         header("Location: complaint_management.php?msg=updated");
         exit;
     }
@@ -152,7 +180,7 @@ include '../includes/header.php';
             </div>
 
             <!-- Action Form -->
-           <?php if (in_array($complaint['Status'] ?? '', ['ForApproval', 'Pending'])): ?>
+           <?php if (($complaint['Status'] ?? '') === 'ForApproval'): ?>
                 <div class="card mt-4">
                     <div class="card-header"><h3>Take Action</h3></div>
                     <div class="action-box">

@@ -9,6 +9,10 @@ require_once '../classes/UserAccount.php';
 require_role('secretary');
 
 $page_title = 'Resident Verification';
+$history_status = trim($_GET['history_status'] ?? '');
+if (!in_array($history_status, ['', 'Active', 'Rejected'], true)) {
+    $history_status = '';
+}
 
 // Fetch pending registrations from DB
 $pdo     = get_db();
@@ -24,7 +28,7 @@ $pending = $pdo->query("
 ")->fetchAll();
 
 // Fetch recently verified
-$verified = $pdo->query("
+$verifiedSql = "
     SELECT ua.UserAccountID, ua.AccountStatus,
            ua.VerifiedAt, ua.RejectionReason,
            r.FirstName, r.LastName,
@@ -35,9 +39,16 @@ $verified = $pdo->query("
     WHERE ua.AccountStatus IN ('Active','Rejected')
       AND ua.Role = 'resident'
       AND ua.VerifiedAt IS NOT NULL
-    ORDER BY ua.VerifiedAt DESC
-    LIMIT 20
-")->fetchAll();
+";
+$verifiedParams = [];
+if ($history_status !== '') {
+    $verifiedSql .= " AND ua.AccountStatus = ?";
+    $verifiedParams[] = $history_status;
+}
+$verifiedSql .= " ORDER BY ua.VerifiedAt DESC LIMIT 20";
+$verifiedStmt = $pdo->prepare($verifiedSql);
+$verifiedStmt->execute($verifiedParams);
+$verified = $verifiedStmt->fetchAll();
 
 include '../includes/header.php';
 ?>
@@ -171,13 +182,13 @@ include '../includes/header.php';
             <div class="card mt-4">
                 <div class="card-header">
                     <h3>Recently Verified</h3>
-                    <div class="card-actions">
-                        <select class="filter-select">
-                            <option value="">All</option>
-                            <option value="Active">Approved</option>
-                            <option value="Rejected">Rejected</option>
+                    <form method="GET" class="card-actions" id="historyFilterForm">
+                        <select name="history_status" class="filter-select" onchange="document.getElementById('historyFilterForm').submit()">
+                            <option value="" <?= $history_status === '' ? 'selected' : '' ?>>All</option>
+                            <option value="Active" <?= $history_status === 'Active' ? 'selected' : '' ?>>Approved</option>
+                            <option value="Rejected" <?= $history_status === 'Rejected' ? 'selected' : '' ?>>Rejected</option>
                         </select>
-                    </div>
+                    </form>
                 </div>
                 <table class="data-table">
                     <thead>

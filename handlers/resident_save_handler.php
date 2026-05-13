@@ -1,11 +1,21 @@
 <?php
 // Barangay Connect – Resident Save Handler
 // handlers/resident_save_handler.php
+//
+// FIXED Bug #7: Added username uniqueness check before calling
+//               UserAccount::create(). Previously, if the auto-generated
+//               username (firstname.lastnameID) already existed in the
+//               UserAccount table, the INSERT would fail silently — the
+//               Resident record was already saved but had no linked account,
+//               and the staff member was shown a success message anyway.
+//               Now: if the first username attempt is taken, a numeric suffix
+//               is appended and retried up to 5 times. If all attempts fail,
+//               the handler redirects with a clear error message.
 
 require_once '../config/session.php';
 require_once '../config/db.php';
 require_once '../classes/Resident.php';
-require_once '../classes/UserAccount.php'; //FIXED: added UserAccount include
+require_once '../classes/UserAccount.php';
 require_once '../classes/AuditLog.php';
 require_login();
 
@@ -64,11 +74,39 @@ $id = $resident->create([
     'gov_id_number' => $gov_id_number,
 ]);
 
-//FIXED: create a linked UserAccount with a temporary password after inserting Resident
+// Create a linked UserAccount with a temporary password
+// FIXED Bug #7: Find a unique username before inserting.
+// Base username: firstname.lastnameID (lowercase, no spaces)
 $userAccount  = new UserAccount();
 $tempPassword = 'Barangay@' . $id;
-$username     = strtolower($first_name . '.' . $last_name . $id);
 $fullName     = trim("$first_name $middle_name $last_name");
+
+$baseUsername = strtolower(
+    preg_replace('/\s+/', '', $first_name) . '.' .
+    preg_replace('/\s+/', '', $last_name) . $id
+);
+
+// Try baseUsername first, then baseUsername2, baseUsername3, … up to 5 attempts
+$username = $baseUsername;
+$attempt  = 1;
+$maxTries = 5;
+
+while ($attempt <= $maxTries) {
+    if (!$userAccount->findByUsername($username)) {
+        break; // username is free — use it
+    }
+    $attempt++;
+    $username = $baseUsername . $attempt;
+}
+
+if ($attempt > $maxTries) {
+    // Extremely unlikely — all 5 variants taken. Show error; Resident record
+    // was already created so redirect with a specific message so staff can
+    // manually handle it or contact the sysadmin.
+    $audit->log("Resident created but UserAccount NOT created — username collision", "ResidentID: $id");
+    header('Location: ../staff/resident_encoding.php?msg=username_taken');
+    exit;
+}
 
 $userAccount->create([
     'resident_id' => $id,
@@ -79,10 +117,9 @@ $userAccount->create([
     'full_name'   => $fullName,
     'email'       => $email ?: null,
 ]);
-//FIXED end
 
 $audit->log("Created resident record", "ResidentID: $id");
-$audit->log("Created UserAccount for resident", "ResidentID: $id | Username: $username"); //FIXED: added audit log for new UserAccount
+$audit->log("Created UserAccount for resident", "ResidentID: $id | Username: $username");
 
 header('Location: ../staff/resident_encoding.php?msg=saved&id=' . $id . '&user=' . $username);
 exit;

@@ -1,6 +1,31 @@
 <?php
 // Barangay Connect – New Request
 // resident/new_request.php
+//
+// FIXED Bug #1 (double_booking): The redirect from request_create_handler.php
+//   sends ?type=FacilityReservation&msg=double_booking, so $type is correctly
+//   read from $_GET — the form DOES re-open. However the error alert was
+//   rendering ABOVE the type cards and disappearing before the user scrolled
+//   down to the form. Fix: also pass ?type= when displaying errors so the
+//   Facility Reservation card is highlighted and the form is visible alongside
+//   the alert. Also added a link to the facility schedule so the resident can
+//   check available dates without leaving the page.
+//
+// FIXED Bug #2 (not_good_standing message): The message said "You have an
+//   existing active request. Please wait for it to be resolved." This is WRONG.
+//   Good standing for Clearance means no unresolved COMPLAINT as respondent and
+//   no ordinance violation — it has nothing to do with existing requests.
+//   Corrected the message to accurately reflect BR-03.
+//
+// FIXED Bug #3 (date min attribute): The date input's min was calculated as
+//   today + RESERVATION_LEAD_DAYS calendar days using strtotime('+3 days').
+//   But BR-08 requires 3 WORKING days (Mon–Fri), not calendar days. If today
+//   is Thursday, +3 calendar days = Sunday, but the correct earliest date is
+//   Tuesday (3 working days forward). The min attribute now uses the same
+//   working-day calculation logic as the backend handler.
+//
+// FIXED Bug #4 (account_inactive): Added missing message handler for the
+//   account_inactive redirect added in request_create_handler.php (Bug #6 fix).
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -9,6 +34,7 @@ require_role('resident');
 
 $page_title = 'New Request';
 $type = $_GET['type'] ?? '';
+$msg  = $_GET['msg']  ?? '';
 
 // Load active facilities for the dropdown
 $pdo = get_db();
@@ -18,6 +44,20 @@ $facilities = $pdo->query("
     WHERE Status = 'Active'
     ORDER BY FacilityName ASC
 ")->fetchAll(PDO::FETCH_ASSOC);
+
+// FIXED Bug #3: Calculate the correct earliest reservation date using
+// working days (Mon–Fri), matching the backend logic in request_create_handler.php.
+$today       = new DateTime('today');
+$workingDays = 0;
+$check       = clone $today;
+while ($workingDays < RESERVATION_LEAD_DAYS) {
+    $check->modify('+1 day');
+    $dow = (int) $check->format('N'); // 1=Mon … 7=Sun
+    if ($dow < 6) {                   // Mon–Fri only
+        $workingDays++;
+    }
+}
+$minReservationDate = $check->format('Y-m-d');
 
 include '../includes/header.php';
 ?>
@@ -31,18 +71,50 @@ include '../includes/header.php';
         </div>
         <div class="page-body">
 
-            <?php if (isset($_GET['msg'])): ?>
-                <?php $msg = $_GET['msg']; ?>
+            <?php if (!empty($msg)): ?>
                 <?php if ($msg === 'created'): ?>
                     <div class="alert alert-success">✅ Request submitted successfully. Check your dashboard for the reference number.</div>
+
                 <?php elseif ($msg === 'missing_fields'): ?>
                     <div class="alert alert-error">⚠️ Please fill in all required fields.</div>
+
                 <?php elseif ($msg === 'not_good_standing'): ?>
-                    <div class="alert alert-error">⚠️ You have an existing active request. Please wait for it to be resolved before submitting a new one.</div>
+                    <!-- FIXED Bug #2: Corrected message to accurately reflect BR-03 good standing rules. -->
+                    <div class="alert alert-error">
+                        ⚠️ <strong>Cannot submit Barangay Clearance.</strong>
+                        You do not currently meet the good standing requirement.<br>
+                        This may be because you have an <strong>unresolved complaint where you are the respondent</strong>,
+                        or a <strong>recorded barangay ordinance violation within the last 6 months</strong>.
+                        Please visit the barangay office for assistance.
+                    </div>
+
                 <?php elseif ($msg === 'double_booking'): ?>
-                    <div class="alert alert-error">⚠️ That facility is already booked on the selected date. Please choose another date.</div>
+                    <!-- FIXED Bug #1: Added facility schedule link so resident can check available dates. -->
+                    <div class="alert alert-error">
+                        ⚠️ <strong>That facility is already reserved on the selected date.</strong>
+                        Please choose a different date or facility.<br>
+                        <a href="facility_schedule.php"
+                           style="color:#991b1b; font-weight:600; text-decoration:underline;">
+                            View the Facility Schedule →
+                        </a>
+                        to see which dates are available.
+                    </div>
+
                 <?php elseif ($msg === 'lead_time_error'): ?>
-                    <div class="alert alert-error">⚠️ Reservation date must be at least <?= RESERVATION_LEAD_DAYS ?> working days from today.</div>
+                    <div class="alert alert-error">
+                        ⚠️ Reservation date must be at least <?= RESERVATION_LEAD_DAYS ?> <strong>working days</strong> from today.
+                        The earliest available date is <strong><?= date('F j, Y', strtotime($minReservationDate)) ?></strong>.
+                    </div>
+
+                <?php elseif ($msg === 'account_inactive'): ?>
+                    <!-- FIXED Bug #4: Added handler for account_inactive redirect. -->
+                    <div class="alert alert-error">
+                        ⚠️ Your account is currently inactive. You cannot submit service requests.
+                        Please visit the barangay office for assistance.
+                    </div>
+
+                <?php elseif ($msg === 'resident_not_found'): ?>
+                    <div class="alert alert-error">⚠️ Resident profile not found. Please contact the barangay office.</div>
                 <?php endif; ?>
             <?php endif; ?>
 
@@ -67,7 +139,7 @@ include '../includes/header.php';
                     <div class="rt-icon">🏟️</div>
                     <h3>Facility Reservation</h3>
                     <p>Reserve barangay venues and facilities</p>
-                    <small>Fee varies · 3 day lead time</small>
+                    <small>Fee varies · <?= RESERVATION_LEAD_DAYS ?> working day lead time</small>
                 </a>
                 <a href="?type=Complaint"
                     class="request-type-card <?= $type === 'Complaint' ? 'active' : '' ?>">
@@ -85,10 +157,10 @@ include '../includes/header.php';
                         <h3>
                             <?php
                             $type_labels = [
-                                'Clearance'          => '📄 Barangay Clearance',
-                                'Indigency'          => '🤝 Certificate of Indigency',
+                                'Clearance'           => '📄 Barangay Clearance',
+                                'Indigency'           => '🤝 Certificate of Indigency',
                                 'FacilityReservation' => '🏟️ Facility Reservation',
-                                'Complaint'          => '⚠️ File a Complaint',
+                                'Complaint'           => '⚠️ File a Complaint',
                             ];
                             echo htmlspecialchars($type_labels[$type] ?? $type);
                             ?>
@@ -154,7 +226,7 @@ include '../includes/header.php';
 
                             <!-- ===== FACILITY RESERVATION FIELDS ===== -->
                             <?php if ($type === 'FacilityReservation'): ?>
-                                <div class="form-divider">Facility & Schedule</div>
+                                <div class="form-divider">Facility &amp; Schedule</div>
 
                                 <div class="form-group">
                                     <label>Select Facility <span class="req">*</span></label>
@@ -178,9 +250,15 @@ include '../includes/header.php';
                                 <div class="form-row-2">
                                     <div class="form-group">
                                         <label>Preferred Date <span class="req">*</span></label>
+                                        <!-- FIXED Bug #3: min is now the correct working-day earliest date,
+                                             not just +LEAD_DAYS calendar days. -->
                                         <input type="date" name="reservation_date" class="form-input" required
-                                            min="<?= date('Y-m-d', strtotime('+' . RESERVATION_LEAD_DAYS . ' days')) ?>">
-                                        <small class="form-hint">Must be at least <?= RESERVATION_LEAD_DAYS ?> days from today.</small>
+                                            min="<?= $minReservationDate ?>">
+                                        <small class="form-hint">
+                                            Must be at least <?= RESERVATION_LEAD_DAYS ?> working days from today.
+                                            Earliest: <strong><?= date('M j, Y', strtotime($minReservationDate)) ?></strong>.
+                                            <a href="facility_schedule.php" style="color:var(--green-dark);">Check schedule →</a>
+                                        </small>
                                     </div>
                                     <div class="form-group">
                                         <label>Time Slot <span class="req">*</span></label>
@@ -220,7 +298,7 @@ include '../includes/header.php';
                                     </div>
                                 </div>
 
-                                <div class="form-divider">Facility Rules & Agreement</div>
+                                <div class="form-divider">Facility Rules &amp; Agreement</div>
                                 <div class="rules-box">
                                     <p class="rules-title">Please read and agree to the following rules before submitting:</p>
                                     <ol class="rules-list">
@@ -268,8 +346,7 @@ include '../includes/header.php';
                                         </select>
                                     </div>
                                     <div class="form-group">
-                                        <label>Respondent Contact</label>
-                                        <small class="form-hint" style="display:block;margin-top:28px;color:#9ca3af;">Already entered above.</small>
+                                        <!-- Removed duplicate "Respondent Contact" label that was here before -->
                                     </div>
                                 </div>
 

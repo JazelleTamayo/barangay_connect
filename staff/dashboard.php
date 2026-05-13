@@ -10,16 +10,17 @@ require_role('staff');
 $pdo = get_db();
 
 // --- Stat counts ---
+// FIX: Count actual NEW Pending requests that staff needs to forward (was wrongly counting ForApproval)
 $pendingCount = $pdo->query(
-    "SELECT COUNT(*) FROM ServiceRequest WHERE Status = 'ForApproval'"
+    "SELECT COUNT(*) FROM ServiceRequest WHERE Status = 'Pending'"
 )->fetchColumn();
 
-// FIXED: Docs to Prepare = Approved (physical document not yet prepared)
+// Docs to Prepare = Approved (physical document not yet prepared)
 $prepareCount = $pdo->query(
     "SELECT COUNT(*) FROM ServiceRequest WHERE Status = 'Approved'"
 )->fetchColumn();
 
-// NEW: Ready for Release = Prepared (document ready, waiting for payment & release)
+// Ready for Release = Prepared (document ready, waiting for payment & release)
 $readyReleaseCount = $pdo->query(
     "SELECT COUNT(*) FROM ServiceRequest WHERE Status = 'Prepared'"
 )->fetchColumn();
@@ -35,26 +36,27 @@ $overdueCount = $pdo->query(
     "SELECT COUNT(*) FROM ServiceRequest
      WHERE Status IN ('Pending','ForApproval')
      AND (
-         (RequestType = 'Clearance'            AND TIMESTAMPDIFF(HOUR, CreatedAt, NOW()) > " . SLA_CLEARANCE . ")
-         OR (RequestType = 'Indigency'         AND TIMESTAMPDIFF(HOUR, CreatedAt, NOW()) > " . SLA_INDIGENCY . ")
+         (RequestType = 'Clearance'              AND TIMESTAMPDIFF(HOUR, CreatedAt, NOW()) > " . SLA_CLEARANCE . ")
+         OR (RequestType = 'Indigency'           AND TIMESTAMPDIFF(HOUR, CreatedAt, NOW()) > " . SLA_INDIGENCY . ")
          OR (RequestType = 'FacilityReservation' AND TIMESTAMPDIFF(HOUR, CreatedAt, NOW()) > " . SLA_RESERVATION . ")
-         OR (RequestType = 'Complaint'         AND TIMESTAMPDIFF(HOUR, CreatedAt, NOW()) > " . SLA_COMPLAINT . ")
+         OR (RequestType = 'Complaint'           AND TIMESTAMPDIFF(HOUR, CreatedAt, NOW()) > " . SLA_COMPLAINT . ")
      )"
 )->fetchColumn();
 
-// --- Pending Requests (staff review) ---
+// FIX: Pending requests = Status 'Pending' — staff must review and forward these to Secretary
+// ORIGINAL BUG: was querying Status = 'Approved', so new requests were invisible to staff
 $pendingRequests = $pdo->query(
     "SELECT sr.RequestID, sr.ReferenceNo, sr.RequestType,
             sr.Status, sr.CreatedAt,
             CONCAT(r.FirstName,' ',r.LastName) AS ResidentName
      FROM ServiceRequest sr
      JOIN Resident r ON sr.ResidentID = r.ResidentID
-     WHERE sr.Status = 'Approved'
+     WHERE sr.Status = 'Pending'
      ORDER BY sr.CreatedAt ASC
      LIMIT 10"
 )->fetchAll(PDO::FETCH_ASSOC);
 
-// --- Documents to Prepare (Approved) ---
+// Documents to Prepare = Approved by Secretary, staff now physically prepares them
 $docsToPrepare = $pdo->query(
     "SELECT sr.RequestID, sr.ReferenceNo, sr.RequestType,
             sr.ProcessedAt,
@@ -66,7 +68,7 @@ $docsToPrepare = $pdo->query(
      LIMIT 10"
 )->fetchAll(PDO::FETCH_ASSOC);
 
-// --- NEW: Ready for Release (Prepared) ---
+// Ready for Release = Prepared, waiting for resident to claim
 $readyForRelease = $pdo->query(
     "SELECT sr.RequestID, sr.ReferenceNo, sr.RequestType,
             sr.PreparedAt,
@@ -91,13 +93,14 @@ include '../includes/header.php';
         </div>
         <div class="page-body">
 
-            <!-- Stats (now 5 cards) -->
+            <!-- Stats -->
             <div class="stats-grid">
+                <!-- FIX: label updated to reflect Pending (needs forwarding), not ForApproval -->
                 <div class="stat-card stat-blue">
                     <div class="stat-icon">📥</div>
                     <div class="stat-info">
                         <span class="stat-value"><?= $pendingCount ?></span>
-                        <span class="stat-label">Awaiting Preparation</span>
+                        <span class="stat-label">Pending — Needs Forwarding</span>
                     </div>
                 </div>
                 <div class="stat-card stat-yellow">
@@ -130,11 +133,13 @@ include '../includes/header.php';
                 </div>
             </div>
 
-            <!-- Approved - Awaiting Preparation -->
+            <!-- FIXED: Shows Pending requests staff must review and forward to Secretary -->
+            <!-- ORIGINAL BUG: this section was titled "Approved - Awaiting Preparation" and
+                 linked to document_preparation.php — staff could never see or act on new requests -->
             <div class="card">
                 <div class="card-header">
-                    <h3>Approved — Ready to Prepare</h3>
-                    <a href="document_preparation.php" class="btn btn-primary btn-small">View All</a>
+                    <h3>⚠️ Pending — Review &amp; Forward to Secretary</h3>
+                    <a href="request_status_update.php" class="btn btn-primary btn-small">View All</a>
                 </div>
                 <table class="data-table">
                     <thead>
@@ -150,7 +155,7 @@ include '../includes/header.php';
                     <tbody>
                         <?php if (empty($pendingRequests)): ?>
                             <tr>
-                                <td colspan="6" class="empty-row">No pending requests.</td>
+                                <td colspan="6" class="empty-row">No pending requests to forward.</td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($pendingRequests as $req): ?>
@@ -160,7 +165,8 @@ include '../includes/header.php';
                                     <td><?= htmlspecialchars($req['RequestType']) ?></td>
                                     <td><?= date('M d, Y h:i A', strtotime($req['CreatedAt'])) ?></td>
                                     <td><span class="badge badge-pending"><?= $req['Status'] ?></span></td>
-                                    <td><a href="document_preparation.php?id=<?= $req['RequestID'] ?>" class="btn btn-small btn-primary">Prepare</a></td>
+                                    <!-- FIX: was href="document_preparation.php?id=..." — now correctly goes to forwarding page -->
+                                    <td><a href="request_status_update.php?id=<?= $req['RequestID'] ?>" class="btn btn-small btn-primary">Review &amp; Forward</a></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -168,7 +174,7 @@ include '../includes/header.php';
                 </table>
             </div>
 
-            <!-- Documents to Prepare (Approved) -->
+            <!-- Documents to Prepare (Approved by Secretary) -->
             <div class="card">
                 <div class="card-header">
                     <h3>Documents to Prepare</h3>
@@ -204,7 +210,7 @@ include '../includes/header.php';
                 </table>
             </div>
 
-            <!-- NEW: Ready for Release (Prepared) -->
+            <!-- Ready for Release (Prepared — waiting for resident pickup) -->
             <div class="card">
                 <div class="card-header">
                     <h3>Ready for Release</h3>
@@ -244,7 +250,6 @@ include '../includes/header.php';
     </main>
 </div>
 
-<!-- Additional style for purple stat card (if not already defined) -->
 <style>
     .stat-purple {
         background: linear-gradient(135deg, #8b5cf6, #6d28d9);

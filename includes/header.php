@@ -15,6 +15,10 @@ $page_title = $page_title ?? 'Barangay Connect';
     <link rel="stylesheet" href="/BARANGAY_CONNECT/assets/css/dashboard.css" />
     <link rel="stylesheet" href="/BARANGAY_CONNECT/assets/css/tables.css" />
     <link rel="stylesheet" href="/BARANGAY_CONNECT/assets/css/forms.css" />
+    <link rel="stylesheet" href="/BARANGAY_CONNECT/assets/css/schedule.css" />
+    <link rel="stylesheet" href="/BARANGAY_CONNECT/assets/css/reports.css" />
+    <link rel="stylesheet" href="/BARANGAY_CONNECT/assets/css/complaints.css" />
+    <link rel="stylesheet" href="/BARANGAY_CONNECT/assets/css/profile.css" />
 </head>
 
 <body>

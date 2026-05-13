@@ -35,11 +35,12 @@ $menus = [
         ['href' => '/BARANGAY_CONNECT/secretary/reports.php',               'icon' => '📊', 'label' => 'Reports'],
     ],
     'staff' => [
-        ['href' => '/BARANGAY_CONNECT/staff/dashboard.php',             'icon' => '🏠', 'label' => 'Dashboard'],
-        ['href' => '/BARANGAY_CONNECT/staff/resident_encoding.php',     'icon' => '👤', 'label' => 'Encode Resident'],
-        ['href' => '/BARANGAY_CONNECT/staff/request_acceptance.php',    'icon' => '📥', 'label' => 'Accept Request'],
-        ['href' => '/BARANGAY_CONNECT/staff/document_preparation.php',  'icon' => '📄', 'label' => 'Prepare Documents'],
-        ['href' => '/BARANGAY_CONNECT/staff/release_document.php',      'icon' => '💰', 'label' => 'Release Document & Payment'],
+        ['href' => '/BARANGAY_CONNECT/staff/dashboard.php',              'icon' => '🏠', 'label' => 'Dashboard'],
+        ['href' => '/BARANGAY_CONNECT/staff/resident_encoding.php',      'icon' => '👤', 'label' => 'Encode Resident'],
+        ['href' => '/BARANGAY_CONNECT/staff/request_acceptance.php',     'icon' => '📥', 'label' => 'Accept Request'],
+        ['href' => '/BARANGAY_CONNECT/staff/request_status_update.php',  'icon' => '📨', 'label' => 'Review & Forward'],
+        ['href' => '/BARANGAY_CONNECT/staff/document_preparation.php',   'icon' => '📄', 'label' => 'Prepare Documents'],
+        ['href' => '/BARANGAY_CONNECT/staff/release_document.php',       'icon' => '💰', 'label' => 'Release Document & Payment'],
     ],
     'sysadmin' => [
         ['href' => '/BARANGAY_CONNECT/sysadmin/dashboard.php',       'icon' => '🖥️', 'label' => 'Dashboard'],

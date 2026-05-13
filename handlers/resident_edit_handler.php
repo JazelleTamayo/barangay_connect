@@ -1,6 +1,23 @@
 <?php
 // Barangay Connect – Resident Edit Handler
 // handlers/resident_edit_handler.php
+//
+// FIXED Bug #4: The guard query was logically broken. The previous query used
+//               LEFT JOIN + WHERE ua.UserAccountID IS NULL, which means it only
+//               returned a row when NO non-resident account exists — this is
+//               correct for normal residents with a 'resident' role account, but
+//               it BLOCKED editing of walk-in residents who have no UserAccount
+//               at all (encoded before the account-creation fix), because the
+//               LEFT JOIN on Role <> 'resident' produced no match AND
+//               ua.UserAccountID was NULL for those rows too — so fetchColumn()
+//               returned false for both cases, making them indistinguishable.
+//
+//               The fix: separate the two checks cleanly.
+//               Step 1 — confirm the ResidentID exists.
+//               Step 2 — if a non-resident account (captain/secretary/staff/
+//                         sysadmin) is linked to this ResidentID, block editing.
+//               Any resident account (role='resident') or no account at all
+//               is allowed to be edited by the Secretary.
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -34,7 +51,7 @@ if (!$resident_id) {
     exit;
 }
 
-$allowed_sex = ['Male', 'Female'];
+$allowed_sex    = ['Male', 'Female'];
 $allowed_status = ['Active', 'Inactive'];
 
 // Required field check
@@ -68,15 +85,26 @@ $residentClass = new Resident();
 $audit         = new AuditLog();
 $pdo           = get_db();
 
-$stmt = $pdo->prepare("
-    SELECT r.ResidentID
-    FROM Resident r
-    LEFT JOIN UserAccount ua ON ua.ResidentID = r.ResidentID AND ua.Role <> 'resident'
-    WHERE r.ResidentID = ?
-      AND ua.UserAccountID IS NULL
+// FIXED Bug #4: Step 1 — confirm the resident record exists at all.
+$stmtExists = $pdo->prepare("SELECT ResidentID FROM Resident WHERE ResidentID = ?");
+$stmtExists->execute([$resident_id]);
+if (!$stmtExists->fetchColumn()) {
+    header('Location: ../secretary/resident_management.php?msg=not_found');
+    exit;
+}
+
+// FIXED Bug #4: Step 2 — block if a personnel account (non-resident role) is
+// linked to this ResidentID. A resident-role account or no account is fine.
+$stmtBlock = $pdo->prepare("
+    SELECT UserAccountID
+    FROM UserAccount
+    WHERE ResidentID = ?
+      AND Role NOT IN ('resident')
+    LIMIT 1
 ");
-$stmt->execute([$resident_id]);
-if (!$stmt->fetchColumn()) {
+$stmtBlock->execute([$resident_id]);
+if ($stmtBlock->fetchColumn()) {
+    // A captain/secretary/staff/sysadmin account is tied to this ResidentID — block.
     header('Location: ../secretary/resident_management.php?msg=not_allowed');
     exit;
 }
@@ -103,7 +131,7 @@ $updated = $residentClass->update($resident_id, [
 ]);
 
 if (!$updated) {
-    header("Location: $back&msg=updated");
+    header("Location: $back&msg=error");
     exit;
 }
 

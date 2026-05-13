@@ -1,6 +1,13 @@
 <?php
 // Barangay Connect – Resident Encoding
 // staff/resident_encoding.php
+//
+// FIXED Bug #5: Corrected the broken JavaScript path.
+//               Was:  /barangay_connect/assets/css/js/form_validation.js
+//               Now:  /BARANGAY_CONNECT/assets/js/form_validation.js
+//               The path /assets/css/js/ does not exist; the JS lives at
+//               /assets/js/. This caused client-side form validation to
+//               silently fail — required-field checks did not fire.
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -26,10 +33,10 @@ include '../includes/header.php';
         <div class="page-body">
 
             <?php if (isset($_GET['msg']) && $_GET['msg'] === 'saved'): ?>
-                <?php 
+                <?php
                     // Capture the data passed from the handler
-                    $new_id = $_GET['id'] ?? '';
-                    $new_user = $_GET['user'] ?? '';
+                    $new_id   = $_GET['id']   ?? '';
+                    $new_user = $_GET['user']  ?? '';
                     $temp_pass = 'Barangay@' . $new_id;
                 ?>
                 <div class="alert alert-success" style="line-height: 1.6;">
@@ -48,13 +55,15 @@ include '../includes/header.php';
             <?php if (isset($_GET['msg']) && $_GET['msg'] === 'duplicate'): ?>
                 <div class="alert alert-error">❌ A resident with the same name, birthdate, and address already exists.</div>
             <?php endif; ?>
+            <?php if (isset($_GET['msg']) && $_GET['msg'] === 'username_taken'): ?>
+                <div class="alert alert-error">❌ Could not generate a unique username. Please try again.</div>
+            <?php endif; ?>
 
             <div class="card">
                 <div class="card-header">
                     <h3>New Resident Registration</h3>
                     <p class="card-desc">
-                        All fields marked * are required. Records will be reviewed
-                        by the Barangay Secretary.
+                        All fields marked * are required. The resident will be set to Active immediately.
                     </p>
                 </div>
                 <form method="POST"
@@ -154,5 +163,7 @@ include '../includes/header.php';
         </div>
     </main>
 </div>
-<script src="/barangay_connect/assets/css/js/form_validation.js"></script>
+
+<!-- FIXED Bug #5: Corrected path from /assets/css/js/ to /assets/js/ -->
+<script src="/BARANGAY_CONNECT/assets/js/form_validation.js"></script>
 <?php include '../includes/footer.php'; ?>

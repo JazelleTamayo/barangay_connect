@@ -1,6 +1,12 @@
 <?php
 // Barangay Connect – Request Create Handler
 // handlers/request_create_handler.php
+//
+// FIXED Bug #6: Added Active account status check for resident-submitted
+//               requests. BR-02 states a resident must have an Active account
+//               before any service request can be created. Previously, an
+//               Inactive resident could still submit requests because neither
+//               Resident.Status nor UserAccount.AccountStatus was checked here.
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -34,6 +40,29 @@ if ($submitted_by === 'resident') {
         exit;
     }
     $resident_id = (int) $residentData['ResidentID'];
+
+    // FIXED Bug #6: Enforce Active status. BR-02 requires Active account before
+    // any request can be submitted. Check both Resident.Status and
+    // UserAccount.AccountStatus to be thorough.
+    $pdo = get_db();
+    $stmtStatus = $pdo->prepare("
+        SELECT r.Status AS resident_status, ua.AccountStatus
+        FROM Resident r
+        JOIN UserAccount ua ON ua.ResidentID = r.ResidentID
+        WHERE ua.UserAccountID = ?
+        LIMIT 1
+    ");
+    $stmtStatus->execute([$_SESSION['user_id']]);
+    $statusRow = $stmtStatus->fetch();
+
+    if (
+        !$statusRow ||
+        $statusRow['resident_status'] !== 'Active' ||
+        $statusRow['AccountStatus']   !== 'Active'
+    ) {
+        header('Location: ../resident/new_request.php?msg=account_inactive');
+        exit;
+    }
 }
 
 if (empty($request_type) || empty($purpose)) {
@@ -87,7 +116,7 @@ if ($request_type === 'Indigency') {
 
     $pdo = get_db();
     $stmt = $pdo->prepare("
-        INSERT INTO IndigencyDetail 
+        INSERT INTO IndigencyDetail
         (RequestID, MonthlyIncome, HouseholdSize, EmploymentStatus, IncomeSource, AssistanceReceived)
         VALUES (?, ?, ?, ?, ?, ?)
     ");

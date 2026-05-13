@@ -1,6 +1,13 @@
 <?php
 // Barangay Connect – Self Registration (Public)
 // public/register.php
+//
+// FIXED Bug #1: Government ID upload now validates actual MIME type via finfo,
+//               not just the file extension from the untrusted filename.
+//               Extension is now derived from the validated MIME type.
+// FIXED Bug #2: Added gov_id_type field to the self-registration form so that
+//               the Secretary can identify the type of ID during verification.
+//               Previously, self-registered residents always had NULL GovIDType.
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -22,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $purok        = trim($_POST['purok']        ?? '');
     $contact      = trim($_POST['contact']      ?? '');
     $email        = trim($_POST['email']        ?? '');
+    $gov_id_type  = trim($_POST['gov_id_type']  ?? ''); // FIXED Bug #2: collect gov_id_type
     $username     = trim($_POST['username']     ?? '');
     $password     = $_POST['password']          ?? '';
     $confirm_pass = $_POST['confirm_password']  ?? '';
@@ -60,60 +68,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'That username is already taken. Please choose another.';
         } else {
             // Handle government ID upload
+            // FIXED Bug #1: Validate MIME type via finfo, not just file extension.
             $gov_id_path = null;
             if (
                 isset($_FILES['gov_id_image']) &&
                 $_FILES['gov_id_image']['error'] === UPLOAD_ERR_OK
             ) {
-                $upload_dir = '../uploads/government_ids/';
-                if (!is_dir($upload_dir)) {
-                    mkdir($upload_dir, 0755, true);
-                }
-                $ext         = pathinfo(
-                    $_FILES['gov_id_image']['name'],
-                    PATHINFO_EXTENSION
-                );
-                $filename    = uniqid('gov_id_', true) . '.' . $ext;
-                $destination = $upload_dir . $filename;
-                if (move_uploaded_file(
-                    $_FILES['gov_id_image']['tmp_name'],
-                    $destination
-                )) {
-                    $gov_id_path = 'uploads/government_ids/' . $filename;
+                $allowed_mime = ['image/jpeg', 'image/jpg', 'image/png'];
+                $finfo        = finfo_open(FILEINFO_MIME_TYPE);
+                $actual_mime  = finfo_file($finfo, $_FILES['gov_id_image']['tmp_name']);
+                finfo_close($finfo);
+
+                if (!in_array($actual_mime, $allowed_mime)) {
+                    $error = 'Invalid file type. Only JPEG and PNG images are allowed for government ID.';
+                } elseif ($_FILES['gov_id_image']['size'] > 5 * 1024 * 1024) {
+                    $error = 'Government ID file must be 5MB or smaller.';
+                } else {
+                    $upload_dir = '../uploads/government_ids/';
+                    if (!is_dir($upload_dir)) {
+                        mkdir($upload_dir, 0755, true);
+                    }
+                    // Derive extension from validated MIME type — NOT the untrusted filename
+                    $ext_map     = ['image/jpeg' => 'jpg', 'image/jpg' => 'jpg', 'image/png' => 'png'];
+                    $ext         = $ext_map[$actual_mime];
+                    $filename    = uniqid('gov_id_', true) . '.' . $ext;
+                    $destination = $upload_dir . $filename;
+                    if (move_uploaded_file(
+                        $_FILES['gov_id_image']['tmp_name'],
+                        $destination
+                    )) {
+                        $gov_id_path = 'uploads/government_ids/' . $filename;
+                    }
                 }
             }
 
-            // Create resident record
-            $resident_id = $resident->create([
-                'first_name'   => $first_name,
-                'middle_name'  => $middle_name,
-                'last_name'    => $last_name,
-                'birthdate'    => $birthdate,
-                'sex'          => $sex,
-                'address'      => $address,
-                'purok'        => $purok,
-                'contact'      => $contact,
-                'email'        => $email,
-                'gov_id_path'  => $gov_id_path,
-            ]);
+            // Only proceed if no upload error was set above
+            if (empty($error)) {
+                // Create resident record
+                $resident_id = $resident->create([
+                    'first_name'   => $first_name,
+                    'middle_name'  => $middle_name,
+                    'last_name'    => $last_name,
+                    'birthdate'    => $birthdate,
+                    'sex'          => $sex,
+                    'address'      => $address,
+                    'purok'        => $purok,
+                    'contact'      => $contact,
+                    'email'        => $email,
+                    'gov_id_type'  => $gov_id_type, // FIXED Bug #2: save gov_id_type
+                    'gov_id_path'  => $gov_id_path,
+                ]);
 
-            // Create user account with PendingVerification
-            $ua->create([
-                'resident_id' => $resident_id,
-                'username'    => $username,
-                'password'    => $password,
-                'role'        => 'resident',
-                'status'      => 'PendingVerification',
-                'full_name'   => trim("$first_name $last_name"),
-                'email'       => $email,
-            ]);
+                // Create user account with PendingVerification
+                $ua->create([
+                    'resident_id' => $resident_id,
+                    'username'    => $username,
+                    'password'    => $password,
+                    'role'        => 'resident',
+                    'status'      => 'PendingVerification',
+                    'full_name'   => trim("$first_name $last_name"),
+                    'email'       => $email,
+                ]);
 
-            $audit->log(
-                "New self-registration submitted",
-                "ResidentID: $resident_id | Username: $username"
-            );
+                $audit->log(
+                    "New self-registration submitted",
+                    "ResidentID: $resident_id | Username: $username"
+                );
 
-            $success = 'Your registration has been submitted! A barangay secretary will review your information within 24 hours. You will be notified once your account is activated.';
+                $success = 'Your registration has been submitted! A barangay secretary will review your information within 24 hours. You will be notified once your account is activated.';
+            }
         }
     }
 }
@@ -319,20 +342,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
 
                         <!-- Government ID -->
+                        <!-- FIXED Bug #2: Added gov_id_type dropdown -->
                         <div class="register-section-title register-full">
                             Government ID
                         </div>
 
-                        <div class="form-group register-full">
+                        <div class="form-group">
+                            <label>ID TYPE *</label>
+                            <select name="gov_id_type" class="form-input" required>
+                                <option value="">-- Select --</option>
+                                <?php
+                                $id_types = [
+                                    'PhilSys ID', "Voter's ID", "Driver's License",
+                                    'Passport', 'SSS ID', 'GSIS ID', 'PhilHealth ID',
+                                ];
+                                foreach ($id_types as $t):
+                                ?>
+                                    <option value="<?= htmlspecialchars($t) ?>"
+                                        <?= ($_POST['gov_id_type'] ?? '') === $t ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($t) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label>UPLOAD GOVERNMENT ID *</label>
                             <input type="file"
                                 name="gov_id_image"
                                 class="form-input"
-                                accept="image/*,.pdf"
+                                accept="image/jpeg,image/jpg,image/png"
                                 required />
                             <small class="form-hint">
-                                Upload a clear photo of your government-issued ID
-                                showing your name and address.
+                                JPEG or PNG only, max 5MB. Upload a clear photo of your
+                                government-issued ID showing your name and address.
                             </small>
                         </div>
 

@@ -39,6 +39,7 @@ if ($stmt->fetchColumn()) {
 }
 
 $page_title = 'Edit Resident';
+$page_back_url = 'resident_management.php';
 include '../includes/header.php';
 ?>
 <div class="app-layout">
@@ -46,17 +47,7 @@ include '../includes/header.php';
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
 
-        <div class="page-header">
-            <div>
-                <h1>Edit Resident</h1>
-                <span class="page-subtitle">
-                    Updating record for
-                    <?= htmlspecialchars(trim($resident['FirstName'] . ' ' . $resident['LastName'])) ?>
-                </span>
-            </div>
-            <a href="resident_management.php" class="btn btn-secondary btn-small">← Back to Residents</a>
-        </div>
-
+        
         <div class="page-body">
 
             <?php if (isset($_GET['msg'])): ?>

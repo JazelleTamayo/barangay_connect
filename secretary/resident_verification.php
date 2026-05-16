@@ -56,13 +56,7 @@ include '../includes/header.php';
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>Resident Verification</h1>
-            <span class="page-subtitle">
-                Review and approve self-registered residents
-            </span>
-        </div>
-        <div class="page-body">
+                <div class="page-body">
 
             <?php if (isset($_GET['msg']) && $_GET['msg'] === 'approved'): ?>
                 <div class="alert alert-success">

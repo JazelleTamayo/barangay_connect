@@ -46,11 +46,7 @@ include '../includes/header.php';
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>Approved Requests</h1>
-            <span class="page-subtitle">All requests that have been approved by the secretary</span>
-        </div>
-        <div class="page-body">
+                <div class="page-body">
             <div class="card">
                 <div class="card-header">
                     <h3>Approved Requests List</h3>

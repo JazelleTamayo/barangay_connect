@@ -61,11 +61,7 @@ include '../includes/header.php';
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>Resident Management</h1>
-            <span class="page-subtitle">View, search, and manage all barangay residents</span>
-        </div>
-        <div class="page-body">
+                <div class="page-body">
 
             <?php if (isset($_GET['msg']) && $_GET['msg'] === 'updated'): ?>
                 <div class="alert alert-success">✅ Resident record updated successfully.</div>

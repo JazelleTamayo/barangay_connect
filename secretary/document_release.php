@@ -152,11 +152,7 @@ include '../includes/header.php';
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>Document Release</h1>
-            <span class="page-subtitle">Release prepared documents and record payments</span>
-        </div>
-        <div class="page-body">
+                <div class="page-body">
 
             <?php if (isset($_GET['msg']) && $_GET['msg'] === 'released'): ?>
                 <div class="alert alert-success">Document released and payment recorded.</div>

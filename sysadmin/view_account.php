@@ -75,16 +75,14 @@ $al->execute([':username' => $acc['username']]);
 $logs = $al->fetchAll(PDO::FETCH_ASSOC);
 
 $page_title = 'View Account — ' . htmlspecialchars($acc['full_name']);
+$page_back_url = 'user_accounts.php';
 include '../includes/header.php';
 ?>
 <div class="app-layout">
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>Account Profile</h1>
-            <span class="page-subtitle">Viewing: <?= htmlspecialchars($acc['full_name']) ?></span>
-        </div>
+
         <div class="page-body">
 
             <div style="margin-bottom: 16px;">

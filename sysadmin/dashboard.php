@@ -41,10 +41,7 @@ include '../includes/header.php';
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>System Admin Dashboard</h1>
-            <span class="page-subtitle">Welcome, <?= current_user_name() ?></span>
-        </div>
+
         <div class="page-body">
 
             <!-- Stats — admin accounts only -->

@@ -65,10 +65,7 @@ include '../includes/header.php';
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>New Service Request</h1>
-            <span class="page-subtitle">Select a service type to get started</span>
-        </div>
+
         <div class="page-body">
 
             <?php if (!empty($msg)): ?>
@@ -94,7 +91,7 @@ include '../includes/header.php';
                         ⚠️ <strong>That facility is already reserved on the selected date.</strong>
                         Please choose a different date or facility.<br>
                         <a href="facility_schedule.php"
-                           style="color:#991b1b; font-weight:600; text-decoration:underline;">
+                            style="color:#991b1b; font-weight:600; text-decoration:underline;">
                             View the Facility Schedule →
                         </a>
                         to see which dates are available.

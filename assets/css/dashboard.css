@@ -106,7 +106,6 @@
 .main-content {
     background: var(--green-bg);
     min-height: 100vh;
-    overflow-y: auto;
 }
 
 .page-header {
@@ -116,10 +115,6 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    box-shadow: var(--shadow-sm);
 }
 
 .page-header h1 {
@@ -379,7 +374,9 @@
 
 @media (max-width: 900px) {
     .app-layout {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        min-height: 100vh;
     }
 
     .sidebar {
@@ -388,7 +385,7 @@
     }
 
     .page-body {
-        padding: 20px 16px;
+        padding: 28px 32px;
     }
 }
 
@@ -405,6 +402,7 @@
     top: 0;
     z-index: 100;
 }
+
 
 .topnav-left {
     display: flex;
@@ -506,3 +504,38 @@
     box-shadow: var(--shadow-sm);
 }
 
+
+/* --- Topnav page title area --- */
+.topnav-page-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.topnav-page-subtitle {
+    font-size: 0.72rem;
+    color: var(--text-light);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+}
+
+.topnav-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--green-pale);
+    color: var(--green-dark);
+    font-size: 1.1rem;
+    text-decoration: none;
+    border: 1px solid var(--green-light);
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+
+.topnav-back:hover {
+    background: var(--green-light);
+    color: var(--white);
+}

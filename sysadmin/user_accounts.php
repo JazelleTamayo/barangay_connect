@@ -55,10 +55,7 @@ include '../includes/header.php';
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>User Account Management</h1>
-            <span class="page-subtitle">Create, disable, and assign roles to accounts</span>
-        </div>
+
         <div class="page-body">
 
             <?php if (isset($_GET['msg'])): ?>

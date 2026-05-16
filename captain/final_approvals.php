@@ -27,10 +27,6 @@ include '../includes/header.php';
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>Final Approvals</h1>
-            <span class="page-subtitle">Escalated requests requiring your approval</span>
-        </div>
         <div class="page-body">
 
             <?php if (isset($_GET['msg']) && $_GET['msg'] === 'approved'): ?>
@@ -72,9 +68,9 @@ include '../includes/header.php';
                                     <td><?= htmlspecialchars($req['Remarks'] ?? '—') ?></td>
                                     <td>
                                         <a href="approval_action.php?id=<?= $req['RequestID'] ?>&action=approve"
-                                           class="btn btn-small btn-primary">Approve</a>
+                                            class="btn btn-small btn-primary">Approve</a>
                                         <a href="approval_action.php?id=<?= $req['RequestID'] ?>&action=reject"
-                                           class="btn btn-small btn-danger">Reject</a>
+                                            class="btn btn-small btn-danger">Reject</a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

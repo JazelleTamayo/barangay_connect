@@ -147,7 +147,7 @@ if ($resident_id) {
                                     <td><?= htmlspecialchars($req['RequestType']) ?></td>
                                     <td><?= date('M d, Y', strtotime($req['CreatedAt'])) ?></td>
                                     <td><span class="status-badge status-<?= strtolower($req['Status']) ?>"><?= $req['Status'] ?></span></td>
-                                    <td><a href="track_request.php?ref=<?= urlencode($req['ReferenceNo']) ?>" class="btn-link">Track</a></td>
+                                    <td><a href="track_request.php?ref=<?= urlencode($req['ReferenceNo']) ?>" class="btn btn-small btn-primary">Track</a></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>

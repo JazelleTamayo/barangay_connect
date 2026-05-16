@@ -33,10 +33,7 @@ include '../includes/header.php';
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>Database Backup</h1>
-            <span class="page-subtitle">Manage and create database backups</span>
-        </div>
+
         <div class="page-body">
 
             <?php if (isset($_GET['msg'])): ?>
@@ -80,24 +77,26 @@ include '../includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
-                    <?php if (empty($backups)): ?>
-                        <tr><td colspan="4" class="empty-row">No backups found.</td></tr>
-                    <?php else: ?>
-                        <?php foreach ($backups as $b): ?>
-                        <tr>
-                            <td>📄 <?= htmlspecialchars($b['filename']) ?></td>
-                            <td><?= $b['size'] ?></td>
-                            <td><?= $b['created'] ?></td>
-                            <td>
-                                <a href="../handlers/backup_handler.php?action=download&file=<?= urlencode($b['filename']) ?>"
-                                   class="btn btn-secondary btn-small">⬇ Download</a>
-                                <a href="../handlers/backup_handler.php?action=delete&file=<?= urlencode($b['filename']) ?>"
-                                   class="btn btn-danger btn-small"
-                                   onclick="return confirm('Delete this backup file?')">🗑 Delete</a>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                        <?php if (empty($backups)): ?>
+                            <tr>
+                                <td colspan="4" class="empty-row">No backups found.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($backups as $b): ?>
+                                <tr>
+                                    <td>📄 <?= htmlspecialchars($b['filename']) ?></td>
+                                    <td><?= $b['size'] ?></td>
+                                    <td><?= $b['created'] ?></td>
+                                    <td>
+                                        <a href="../handlers/backup_handler.php?action=download&file=<?= urlencode($b['filename']) ?>"
+                                            class="btn btn-secondary btn-small">⬇ Download</a>
+                                        <a href="../handlers/backup_handler.php?action=delete&file=<?= urlencode($b['filename']) ?>"
+                                            class="btn btn-danger btn-small"
+                                            onclick="return confirm('Delete this backup file?')">🗑 Delete</a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>

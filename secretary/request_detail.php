@@ -124,21 +124,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-$page_title = 'Review Request';
+$page_title    = 'Review Request';
+$page_back_url = 'request_processing.php';
+$page_subtitle = $request['ReferenceNo'] ?? '';
 include '../includes/header.php';
 ?>
 <div class="app-layout">
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header" style="display:flex; align-items:center; gap:16px;">
-            <a href="request_processing.php" class="btn-back" title="Back to list">&#8592;</a>
-            <div>
-                <h1 style="margin:0;">Review Request</h1>
-                <span class="page-subtitle"><?= htmlspecialchars($request['ReferenceNo'] ?? '') ?></span>
-            </div>
-        </div>
-        <div class="page-body">
+                <div class="page-body">
 
             <!-- Request Details -->
             <div class="card">
@@ -542,26 +537,6 @@ include '../includes/header.php';
 
     .mt-4 {
         margin-top: 1rem;
-    }
-
-    .btn-back {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        background: #f1f5f9;
-        color: #374151;
-        font-size: 1.2rem;
-        text-decoration: none;
-        border: 1px solid #e2e8f0;
-        flex-shrink: 0;
-        transition: background 0.15s;
-    }
-
-    .btn-back:hover {
-        background: #e2e8f0;
     }
 </style>
 

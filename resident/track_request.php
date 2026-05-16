@@ -416,7 +416,7 @@ function statusLabel(string $status): string
                                                 —
                                             <?php endif; ?>
                                         </td>
-                                        <td><a href="track_request.php?ref=<?= urlencode($req['ReferenceNo']) ?>" class="btn-link">View Details</a></td>
+                                        <td><a href="track_request.php?ref=<?= urlencode($req['ReferenceNo']) ?>" class="btn btn-small btn-primary">View Details</a></td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>

@@ -14,10 +14,7 @@ include '../includes/header.php';
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>Accept Service Request</h1>
-            <span class="page-subtitle">Create a new request on behalf of a resident</span>
-        </div>
+
         <div class="page-body">
 
             <?php if (isset($_GET['msg']) && $_GET['msg'] === 'created'): ?>

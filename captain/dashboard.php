@@ -60,10 +60,6 @@ include '../includes/header.php';
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>Captain Dashboard</h1>
-            <span class="page-subtitle">Welcome, <?= current_user_name() ?></span>
-        </div>
         <div class="page-body">
 
             <!-- Stats -->
@@ -130,7 +126,7 @@ include '../includes/header.php';
                                     <td><?= date('M d, Y h:i A', strtotime($req['CreatedAt'])) ?></td>
                                     <td>
                                         <a href="final_approvals.php?id=<?= $req['RequestID'] ?>"
-                                           class="btn btn-small btn-primary">Review</a>
+                                            class="btn btn-small btn-primary">Review</a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

@@ -91,10 +91,7 @@ include '../includes/header.php';
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>Facility Schedule</h1>
-            <span class="page-subtitle">View approved facility reservations</span>
-        </div>
+
         <div class="page-body">
 
             <!-- Calendar Card -->
@@ -177,14 +174,17 @@ include '../includes/header.php';
     tr.my-booking {
         background-color: rgba(var(--color-primary-rgb, 59, 130, 246), 0.07);
     }
+
     .my-booking-label {
         font-weight: 600;
         color: var(--color-primary, #3b82f6);
     }
+
     .my-booking-label small {
         font-weight: 400;
         margin-left: 4px;
     }
+
     .my-booking-badge {
         background-color: var(--color-primary, #3b82f6) !important;
         color: #fff !important;
@@ -198,13 +198,13 @@ include '../includes/header.php';
     window.calendarReservations = allReservations;
 
     // Filter both calendar and table when dropdown changes
-    document.getElementById('facility-filter').addEventListener('change', function () {
+    document.getElementById('facility-filter').addEventListener('change', function() {
         const selected = this.value;
 
         // Update calendar data and re-render
-        window.calendarReservations = selected === ''
-            ? allReservations
-            : allReservations.filter(r => r.facility === selected);
+        window.calendarReservations = selected === '' ?
+            allReservations :
+            allReservations.filter(r => r.facility === selected);
 
         if (typeof renderCalendar === 'function') {
             renderCalendar(currentMonth, currentYear);

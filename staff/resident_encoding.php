@@ -26,18 +26,15 @@ include '../includes/header.php';
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>Encode Resident</h1>
-            <span class="page-subtitle">Register a new resident in the system</span>
-        </div>
+
         <div class="page-body">
 
             <?php if (isset($_GET['msg']) && $_GET['msg'] === 'saved'): ?>
                 <?php
-                    // Capture the data passed from the handler
-                    $new_id   = $_GET['id']   ?? '';
-                    $new_user = $_GET['user']  ?? '';
-                    $temp_pass = 'Barangay@' . $new_id;
+                // Capture the data passed from the handler
+                $new_id   = $_GET['id']   ?? '';
+                $new_user = $_GET['user']  ?? '';
+                $temp_pass = 'Barangay@' . $new_id;
                 ?>
                 <div class="alert alert-success" style="line-height: 1.6;">
                     <h4 style="margin-bottom: 10px;">✅ Resident Saved Successfully!</h4>

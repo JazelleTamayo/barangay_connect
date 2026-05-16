@@ -11,7 +11,8 @@ require_role('staff');
 $pdo     = get_db();
 $user_id = $_SESSION['user_id'];
 
-function getExpectedAmount($pdo, $request_id, $request_type) {
+function getExpectedAmount($pdo, $request_id, $request_type)
+{
     $clearance_fee = get_setting('clearance_fee', 50.00);
     if ($request_type === 'Clearance') return (float)$clearance_fee;
     if ($request_type === 'FacilityReservation') {
@@ -103,10 +104,7 @@ include '../includes/header.php';
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>Release Document</h1>
-            <span class="page-subtitle">Collect payment and release document to resident</span>
-        </div>
+
         <div class="page-body">
 
             <?php if (isset($_GET['msg']) && $_GET['msg'] === 'released'): ?>
@@ -163,14 +161,14 @@ include '../includes/header.php';
                                     <div class="input-prefix-wrap">
                                         <span class="input-prefix">₱</span>
                                         <input type="number" step="0.01" name="amount"
-                                               class="form-input with-prefix" required
-                                               value="<?= htmlspecialchars($release_request['expected_amount'] ?? 0) ?>">
+                                            class="form-input with-prefix" required
+                                            value="<?= htmlspecialchars($release_request['expected_amount'] ?? 0) ?>">
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Receipt Number <span class="req">*</span></label>
                                     <input type="text" name="receipt_no" class="form-input" required
-                                           placeholder="e.g. REC-20260427-001">
+                                        placeholder="e.g. REC-20260427-001">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Payment Method</label>
@@ -224,7 +222,7 @@ include '../includes/header.php';
                                         <td><?= $doc['PreparedAt'] ? date('M d, Y', strtotime($doc['PreparedAt'])) : '—' ?></td>
                                         <td>
                                             <a href="release_document.php?id=<?= $doc['RequestID'] ?>"
-                                               class="btn btn-small btn-primary">Release</a>
+                                                class="btn btn-small btn-primary">Release</a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -240,87 +238,151 @@ include '../includes/header.php';
 </div>
 
 <style>
-/* Back button spacing */
-.mb-3 { margin-bottom: 1rem; }
+    /* Back button spacing */
+    .mb-3 {
+        margin-bottom: 1rem;
+    }
 
-/* Ref tag under card title */
-.ref-tag {
-    font-size: 0.8rem;
-    color: #6b7280;
-    margin-top: 2px;
-    display: block;
-}
+    /* Ref tag under card title */
+    .ref-tag {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 2px;
+        display: block;
+    }
 
-/* Card body padding */
-.card-body { padding: 20px 24px 24px; }
+    /* Card body padding */
+    .card-body {
+        padding: 20px 24px 24px;
+    }
 
-/* Summary box (replaces the info-table) */
-.summary-box {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 4px 0;
-    margin-bottom: 24px;
-}
-.summary-row {
-    display: flex;
-    align-items: center;
-    padding: 12px 20px;
-    border-bottom: 1px solid #e2e8f0;
-    gap: 16px;
-}
-.summary-row:last-child { border-bottom: none; }
-.summary-label {
-    width: 160px;
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: #374151;
-    flex-shrink: 0;
-}
-.summary-value {
-    font-size: 0.9rem;
-    color: #111827;
-}
-.amount-highlight {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #2e7d32;
-}
+    /* Summary box (replaces the info-table) */
+    .summary-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 4px 0;
+        margin-bottom: 24px;
+    }
 
-/* Form layout */
-.payment-form { margin-top: 4px; }
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 8px;
-}
-@media (max-width: 700px) {
-    .form-row { grid-template-columns: 1fr; }
-}
-.form-group { display: flex; flex-direction: column; gap: 6px; }
-.form-label { font-size: 0.875rem; font-weight: 600; color: #374151; }
-.req { color: #dc2626; margin-left: 2px; }
+    .summary-row {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        border-bottom: 1px solid #e2e8f0;
+        gap: 16px;
+    }
 
-/* Input with peso prefix */
-.input-prefix-wrap { position: relative; display: flex; align-items: center; }
-.input-prefix {
-    position: absolute;
-    left: 11px;
-    font-size: 0.95rem;
-    color: #6b7280;
-    pointer-events: none;
-}
-.form-input { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem; width: 100%; box-sizing: border-box; }
-.form-input.with-prefix { padding-left: 26px; }
-.form-input:focus { outline: none; border-color: #2e7d32; box-shadow: 0 0 0 3px #c8e6c9; }
+    .summary-row:last-child {
+        border-bottom: none;
+    }
 
-/* Confirm button */
-.form-actions { display: flex; gap: 10px; margin-top: 20px; align-items: center; }
-.btn-confirm { font-size: 0.95rem; padding: 10px 20px; }
+    .summary-label {
+        width: 160px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: #374151;
+        flex-shrink: 0;
+    }
 
-/* Card subtitle */
-.card-subtitle { font-size: 0.82rem; color: #6b7280; }
+    .summary-value {
+        font-size: 0.9rem;
+        color: #111827;
+    }
+
+    .amount-highlight {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #2e7d32;
+    }
+
+    /* Form layout */
+    .payment-form {
+        margin-top: 4px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 8px;
+    }
+
+    @media (max-width: 700px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .form-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .req {
+        color: #dc2626;
+        margin-left: 2px;
+    }
+
+    /* Input with peso prefix */
+    .input-prefix-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-prefix {
+        position: absolute;
+        left: 11px;
+        font-size: 0.95rem;
+        color: #6b7280;
+        pointer-events: none;
+    }
+
+    .form-input {
+        padding: 8px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .form-input.with-prefix {
+        padding-left: 26px;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #2e7d32;
+        box-shadow: 0 0 0 3px #c8e6c9;
+    }
+
+    /* Confirm button */
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+        align-items: center;
+    }
+
+    .btn-confirm {
+        font-size: 0.95rem;
+        padding: 10px 20px;
+    }
+
+    /* Card subtitle */
+    .card-subtitle {
+        font-size: 0.82rem;
+        color: #6b7280;
+    }
 </style>
 
 <?php include '../includes/footer.php'; ?>

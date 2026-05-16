@@ -17,10 +17,7 @@ include '../includes/header.php';
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>System Settings</h1>
-            <span class="page-subtitle">Configure application settings</span>
-        </div>
+
         <div class="page-body">
 
             <?php if (isset($_GET['msg']) && $_GET['msg'] === 'saved'): ?>

@@ -13,7 +13,7 @@ $user_id = $_SESSION['user_id'];
 // --- Handle "Mark as Prepared" action ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['prepare_document'])) {
     $request_id = intval($_POST['request_id']);
-    
+
     $stmt = $pdo->prepare("
         UPDATE ServiceRequest 
         SET Status = 'Prepared',
@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['prepare_document'])) 
         WHERE RequestID = ? AND Status = 'Approved'
     ");
     $stmt->execute([$user_id, $request_id]);
-    
+
     header("Location: document_preparation.php?msg=prepared");
     exit;
 }
@@ -55,6 +55,7 @@ $approvedRequests = $pdo->query("
 ")->fetchAll(PDO::FETCH_ASSOC);
 
 $page_title = 'Document Preparation';
+$page_back_url = 'document_preparation.php';
 include '../includes/header.php';
 ?>
 <div class="app-layout">
@@ -62,10 +63,6 @@ include '../includes/header.php';
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
 
-        <div class="page-header">
-            <h1>Document Preparation</h1>
-            <span class="page-subtitle">Prepare approved documents for release</span>
-        </div>
 
         <div class="page-body">
 
@@ -186,82 +183,184 @@ include '../includes/header.php';
 </div>
 
 <script>
-function confirmPrepare() {
-    if (confirm('Mark this document as PREPARED and ready for pickup?')) {
-        document.getElementById('prepareForm').submit();
+    function confirmPrepare() {
+        if (confirm('Mark this document as PREPARED and ready for pickup?')) {
+            document.getElementById('prepareForm').submit();
+        }
     }
-}
 </script>
 
 <style>
-/* Layout */
-.back-bar { margin-bottom: 1rem; }
-.card-body { padding: 20px; }
+    /* Layout */
+    .back-bar {
+        margin-bottom: 1rem;
+    }
 
-/* Info Table (detail view) */
-.info-table { width: 100%; border-collapse: collapse; }
-.info-table th,
-.info-table td {
-    padding: 11px 14px;
-    border-bottom: 1px solid #e2e8f0;
-    text-align: left;
-    vertical-align: top;
-    font-size: 0.9rem;
-}
-.info-table th {
-    width: 160px;
-    background: #f8fafc;
-    color: #374151;
-    font-weight: 600;
-    white-space: nowrap;
-}
-.info-table tr:last-child th,
-.info-table tr:last-child td { border-bottom: none; }
+    .card-body {
+        padding: 20px;
+    }
 
-/* Data Table (list view) */
-.table-wrapper { overflow-x: auto; }
-.data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-.data-table thead tr { background: #f8fafc; border-bottom: 2px solid #e2e8f0; }
-.data-table th { padding: 12px 14px; text-align: left; font-weight: 600; color: #374151; white-space: nowrap; }
-.data-table td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; color: #1f2937; vertical-align: middle; }
-.data-table tbody tr:hover { background: #f9fafb; }
-.data-table tbody tr:last-child td { border-bottom: none; }
+    /* Info Table (detail view) */
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-/* Type Badge */
-.type-badge {
-    display: inline-block;
-    background: #eff6ff;
-    color: #1d4ed8;
-    border: 1px solid #bfdbfe;
-    padding: 2px 10px;
-    border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 500;
-    white-space: nowrap;
-}
+    .info-table th,
+    .info-table td {
+        padding: 11px 14px;
+        border-bottom: 1px solid #e2e8f0;
+        text-align: left;
+        vertical-align: top;
+        font-size: 0.9rem;
+    }
 
-/* Ref No */
-.ref-no { font-family: monospace; font-size: 0.85rem; color: #374151; }
+    .info-table th {
+        width: 160px;
+        background: #f8fafc;
+        color: #374151;
+        font-weight: 600;
+        white-space: nowrap;
+    }
 
-/* Empty State */
-.empty-row { text-align: center; padding: 40px 0 !important; }
-.empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #9ca3af; }
-.empty-icon { font-size: 2rem; }
-.empty-state p { margin: 0; font-size: 0.9rem; }
+    .info-table tr:last-child th,
+    .info-table tr:last-child td {
+        border-bottom: none;
+    }
 
-/* Form Actions */
-.form-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; align-items: center; }
+    /* Data Table (list view) */
+    .table-wrapper {
+        overflow-x: auto;
+    }
 
-/* Card desc */
-.card-desc { margin: 4px 0 0; color: #6b7280; font-size: 0.85rem; }
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
 
-/* Buttons */
-.btn { padding: 9px 18px; border-radius: 6px; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 500; text-decoration: none; display: inline-block; transition: background 0.15s; }
-.btn-small { padding: 6px 14px; font-size: 0.82rem; }
-.btn-primary { background: #2563eb; color: white; }
-.btn-primary:hover { background: #1d4ed8; }
-.btn-secondary { background: #6b7280; color: white; }
-.btn-secondary:hover { background: #4b5563; }
+    .data-table thead tr {
+        background: #f8fafc;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .data-table th {
+        padding: 12px 14px;
+        text-align: left;
+        font-weight: 600;
+        color: #374151;
+        white-space: nowrap;
+    }
+
+    .data-table td {
+        padding: 12px 14px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #1f2937;
+        vertical-align: middle;
+    }
+
+    .data-table tbody tr:hover {
+        background: #f9fafb;
+    }
+
+    .data-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Type Badge */
+    .type-badge {
+        display: inline-block;
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    /* Ref No */
+    .ref-no {
+        font-family: monospace;
+        font-size: 0.85rem;
+        color: #374151;
+    }
+
+    /* Empty State */
+    .empty-row {
+        text-align: center;
+        padding: 40px 0 !important;
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        color: #9ca3af;
+    }
+
+    .empty-icon {
+        font-size: 2rem;
+    }
+
+    .empty-state p {
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    /* Card desc */
+    .card-desc {
+        margin: 4px 0 0;
+        color: #6b7280;
+        font-size: 0.85rem;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 9px 18px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        transition: background 0.15s;
+    }
+
+    .btn-small {
+        padding: 6px 14px;
+        font-size: 0.82rem;
+    }
+
+    .btn-primary {
+        background: #2563eb;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #1d4ed8;
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+    }
 </style>
 
 <?php include '../includes/footer.php'; ?>

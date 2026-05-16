@@ -109,7 +109,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$page_title = 'Complaint Detail';
+$page_title    = 'Complaint Detail';
+$page_back_url = 'complaint_management.php';
+$page_subtitle = $complaint['ReferenceNo'] ?? '';
 include '../includes/header.php';
 ?>
 <div class="app-layout">
@@ -117,14 +119,7 @@ include '../includes/header.php';
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
 
-        <div class="page-header" style="display:flex; align-items:center; gap:16px; justify-content:flex-start;">
-            <a href="complaint_management.php" class="btn-back" title="Back">&#8592;</a>
-            <div>
-                <h1 style="margin:0;">Complaint Detail</h1>
-                <span class="page-subtitle"><?= htmlspecialchars($complaint['ReferenceNo'] ?? '') ?></span>
-            </div>
-        </div>
-
+        
         <div class="page-body">
 
             <!-- Complaint Info -->
@@ -267,8 +262,7 @@ function submitAction(action) {
 .btn-success { background:#2e7d32; color:white; } .btn-success:hover { background:#1b5e20; }
 .btn-danger  { background:#c62828; color:white; } .btn-danger:hover  { background:#7f0000; }
 .btn-secondary { background:#6b7280; color:white; } .btn-secondary:hover { background:#4b5563; }
-.btn-back { display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:50%; background:#f1f5f9; color:#374151; font-size:1.2rem; text-decoration:none; border:1px solid #e2e8f0; flex-shrink:0; transition:background .15s; }
-.btn-back:hover { background:#e2e8f0; }
+
 .mt-4 { margin-top:1rem; }
 </style>
 

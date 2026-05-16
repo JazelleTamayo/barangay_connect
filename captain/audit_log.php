@@ -24,10 +24,7 @@ include '../includes/header.php';
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>Audit Log</h1>
-            <span class="page-subtitle">Read-only system activity trail</span>
-        </div>
+
         <div class="page-body">
 
             <div class="card">

@@ -19,6 +19,7 @@ $page_title = $page_title ?? 'Barangay Connect';
     <link rel="stylesheet" href="/BARANGAY_CONNECT/assets/css/reports.css" />
     <link rel="stylesheet" href="/BARANGAY_CONNECT/assets/css/complaints.css" />
     <link rel="stylesheet" href="/BARANGAY_CONNECT/assets/css/profile.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 
 <body>

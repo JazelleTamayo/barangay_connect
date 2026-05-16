@@ -208,11 +208,21 @@ include '../includes/header.php';
                     </div>
                     <div class="form-group">
                         <label>Password * <small>(min. 8 characters)</small></label>
-                        <input type="password" name="password" class="form-input" required minlength="8" />
+                        <div class="input-wrap">
+                        <input type="password" name="password" class="form-input pw-input" required minlength="8" />
+                        <button type="button" class="input-toggle" onclick="togglePassword(this)" tabindex="-1">
+                            <i class="fa fa-eye"></i>
+                        </button>
+                    </div>
                     </div>
                     <div class="form-group">
                         <label>Confirm Password *</label>
-                        <input type="password" name="confirm_password" class="form-input" required />
+                        <div class="input-wrap">
+                        <input type="password" name="confirm_password" class="form-input pw-input" required />
+                        <button type="button" class="input-toggle" onclick="togglePassword(this)" tabindex="-1">
+                            <i class="fa fa-eye"></i>
+                        </button>
+                    </div>
                     </div>
                     <div class="form-group form-full">
                         <div class="form-actions">

@@ -32,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['full_name']      = $user['FullName'];
                     $_SESSION['role']           = strtolower($user['Role']);
                     $_SESSION['account_status'] = $user['AccountStatus'];
+                    session_regenerate_id(true);
                     redirect_to_dashboard();
                 }
             } else {
@@ -52,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Login – Barangay Connect</title>
     <link rel="stylesheet" href="../assets/css/style.css" />
     <link rel="stylesheet" href="../assets/css/auth.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 
 <body>
@@ -142,6 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 placeholder="Enter your password"
                                 required
                                 autocomplete="current-password" />
+                            <button type="button" class="input-toggle" onclick="togglePassword(this)" tabindex="-1"><i class="fa fa-eye"></i></button>
                         </div>
                         <div class="form-row-end">
                             <a href="#">Forgot password?</a>
@@ -163,6 +166,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script src="../assets/js/main.js"></script>
+
+<script>
+function togglePassword(btn) {
+    const input = btn.closest('.input-wrap').querySelector('input[type="password"], input[type="text"]');
+    const icon  = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+</script>
 </body>
 
 </html>

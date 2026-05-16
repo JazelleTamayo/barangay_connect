@@ -539,3 +539,29 @@
     background: var(--green-light);
     color: var(--white);
 }
+/* --- Password eye toggle (dashboard context) --- */
+.input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.input-wrap .form-input,
+.input-wrap .pw-input {
+    flex: 1;
+    padding-right: 42px;
+}
+.input-toggle {
+    flex-shrink: 0;
+    margin-left: -36px;
+    z-index: 2;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #9ca3af;
+    font-size: 0.95rem;
+    padding: 0 10px 0 0;
+    line-height: 1;
+}
+.input-toggle:hover {
+    color: var(--green-dark);
+}

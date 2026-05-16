@@ -279,13 +279,23 @@ $profile_pic_url = !empty($resident['ProfilePicture'])
                     </div>
                     <div class="form-group">
                         <label>New Password <span style="color:#e53e3e;">*</span></label>
-                        <input type="password" name="password" class="form-input"
-                            placeholder="Min. 8 characters" minlength="8" required>
+                        <div class="input-wrap">
+                            <input type="password" name="password" class="form-input pw-input"
+                                placeholder="Min. 8 characters" minlength="8" required>
+                            <button type="button" class="input-toggle" onclick="togglePassword(this)" tabindex="-1">
+                                <i class="fa fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Confirm New Password <span style="color:#e53e3e;">*</span></label>
-                        <input type="password" name="confirm_password" class="form-input"
-                            placeholder="Re-enter new password" minlength="8" required>
+                        <div class="input-wrap">
+                            <input type="password" name="confirm_password" class="form-input pw-input"
+                                placeholder="Re-enter new password" minlength="8" required>
+                            <button type="button" class="input-toggle" onclick="togglePassword(this)" tabindex="-1">
+                                <i class="fa fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">Update Password</button>

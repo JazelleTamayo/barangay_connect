@@ -507,3 +507,22 @@ body.page-loaded {
         padding: 24px;
     }
 }
+/* --- Password eye toggle --- */
+.input-toggle {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #9ca3af;
+    font-size: 0.95rem;
+    padding: 0;
+    z-index: 2;
+    line-height: 1;
+}
+.input-toggle:hover {
+    color: var(--green-mid);
+}
+.input-wrap input {
+    padding-right: 42px;
+}

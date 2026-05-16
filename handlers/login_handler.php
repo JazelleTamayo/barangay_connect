@@ -48,6 +48,9 @@ if (!password_verify($password, $user['PasswordHash'])) {
     exit;
 }
 
+// Regenerate session ID to prevent fixation
+session_regenerate_id(true);
+
 // Set session
 $_SESSION['user_id']        = $user['UserAccountID'];
 $_SESSION['username']       = $user['Username'];

@@ -36,11 +36,15 @@ include '../includes/header.php';
 
         <div class="page-body">
 
-            <?php if (isset($_GET['msg'])): ?>
+            <?php if (isset($_GET['msg'])): ?>\
                 <?php if ($_GET['msg'] === 'success'): ?>
                     <div class="alert alert-success">✅ Backup completed successfully.</div>
                 <?php elseif ($_GET['msg'] === 'failed'): ?>
                     <div class="alert alert-error">❌ Backup failed. Please check server permissions.</div>
+                <?php elseif ($_GET['msg'] === 'purged'): ?>
+                    <div class="alert alert-success">✅ Audit log purge complete. <?= (int)($_GET['count'] ?? 0) ?> record(s) older than 1 year deleted.</div>
+                <?php elseif ($_GET['msg'] === 'purge_failed'): ?>
+                    <div class="alert alert-error">❌ Audit log purge failed. Please try again.</div>
                 <?php endif; ?>
             <?php endif; ?>
 
@@ -55,6 +59,7 @@ include '../includes/header.php';
                 </div>
                 <div style="padding: 24px;">
                     <form method="POST" action="../handlers/backup_handler.php">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
                         <input type="hidden" name="action" value="backup" />
                         <button type="submit" class="btn btn-primary">💾 Run Backup Now</button>
                     </form>
@@ -99,6 +104,37 @@ include '../includes/header.php';
                         <?php endif; ?>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Audit Log Retention (BR-11) -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h3>Audit Log Retention</h3>
+                    <p class="card-desc">
+                        BR-11 requires logs be kept for a minimum of 1 year.
+                        This action permanently deletes all audit log entries older than 1 year.
+                    </p>
+                </div>
+                <div style="padding: 24px;">
+                    <?php
+                        $pdo_count = get_db();
+                        $old_count = $pdo_count->query(
+                            "SELECT COUNT(*) FROM auditlog WHERE LoggedAt < DATE_SUB(NOW(), INTERVAL 1 YEAR)"
+                        )->fetchColumn();
+                    ?>
+                    <p style="margin-bottom:16px;">
+                        Records older than 1 year: <strong><?= number_format((int)$old_count) ?></strong>
+                    </p>
+                    <form method="POST" action="../handlers/backup_handler.php"
+                          onsubmit="return confirm('Permanently delete <?= (int)$old_count ?> audit log record(s) older than 1 year? This cannot be undone.')">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
+                        <input type="hidden" name="action" value="purge_logs">
+                        <button type="submit" class="btn btn-danger"
+                                <?= $old_count == 0 ? 'disabled' : '' ?>>
+                            🗑 Purge Old Logs (<?= (int)$old_count ?> records)
+                        </button>
+                    </form>
+                </div>
             </div>
 
         </div>

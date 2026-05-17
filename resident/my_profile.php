@@ -91,6 +91,7 @@ $profile_pic_path = !empty($resident['ProfilePicture'])
                     <form id="avatarForm" method="POST"
                           action="../handlers/profile_update_handler.php"
                           enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
                         <input type="hidden" name="action" value="update_picture">
                         <input type="file" name="profile_picture" id="profile_picture"
                                accept="image/jpeg,image/png,image/jpg" style="display:none;">
@@ -228,6 +229,7 @@ $profile_pic_path = !empty($resident['ProfilePicture'])
                      permanently unable to save their profile if these stay required. -->
                 <form method="POST" action="../handlers/profile_update_handler.php"
                       class="form-grid validate-form">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
                     <input type="hidden" name="action" value="update_info">
 
                     <div class="form-group">
@@ -264,6 +266,7 @@ $profile_pic_path = !empty($resident['ProfilePicture'])
                 </div>
                 <form method="POST" action="../handlers/password_change_handler.php"
                       class="form-vertical validate-form" style="padding: 20px 24px;">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
 
                     <div class="form-group">
                         <label for="current_password">

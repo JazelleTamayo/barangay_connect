@@ -1,16 +1,14 @@
 <?php
 // Barangay Connect – Complaint Management
 // secretary/complaint_management.php
+// FIXED: Added pagination (25 per page).
 
 require_once '../config/session.php';
 require_once '../config/db.php';
 require_once '../config/constants.php';
 require_role('secretary');
 
-//FIX: Load Active Complaints from DB.
-// Joins: Complaint → ServiceRequest → Resident
-// Excludes terminal statuses (Rejected, Cancelled, Released).
-$pdo = get_db();
+$pdo    = get_db();
 $search = trim($_GET['search'] ?? '');
 $status = trim($_GET['status'] ?? '');
 
@@ -19,44 +17,58 @@ if ($status !== '' && !in_array($status, $validStatuses, true)) {
     $status = '';
 }
 
+$per_page = 25;
+$page     = max(1, (int)($_GET['page'] ?? 1));
+
 $params = [];
-$sql = "SELECT
-         sr.ReferenceNo,
-         CONCAT(r.FirstName, ' ', r.LastName)  AS ComplainantName,
-         c.RespondentName,
-         c.IncidentDate,
-         sr.Status,
-         c.MediationDate,
-         sr.RequestID
-     FROM Complaint c
-     JOIN ServiceRequest sr ON c.RequestID  = sr.RequestID
-     JOIN Resident r        ON sr.ResidentID = r.ResidentID
-     WHERE sr.RequestType = 'Complaint'
-       AND sr.Status NOT IN ('Rejected', 'Cancelled', 'Released')
-";
+$where  = [
+    "sr.RequestType = 'Complaint'",
+    "sr.Status NOT IN ('Rejected', 'Cancelled', 'Released')",
+];
 
 if ($status !== '') {
-    $sql .= " AND sr.Status = ?";
+    $where[]  = 'sr.Status = ?';
     $params[] = $status;
 }
 
 if ($search !== '') {
-    $sql .= " AND (
-        sr.ReferenceNo LIKE ? OR
-        CONCAT(r.FirstName, ' ', r.LastName) LIKE ? OR
-        c.RespondentName LIKE ?
-    )";
-    $like = '%' . $search . '%';
+    $like     = '%' . $search . '%';
+    $where[]  = "(sr.ReferenceNo LIKE ? OR CONCAT(r.FirstName, ' ', r.LastName) LIKE ? OR c.RespondentName LIKE ?)";
     $params[] = $like;
     $params[] = $like;
     $params[] = $like;
 }
 
-$sql .= " ORDER BY sr.CreatedAt DESC";
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$complaints = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$where_sql = implode(' AND ', $where);
 
+$base_sql = "FROM Complaint c
+             JOIN ServiceRequest sr ON c.RequestID  = sr.RequestID
+             JOIN Resident r        ON sr.ResidentID = r.ResidentID
+             WHERE $where_sql";
+
+// Count total
+$count_stmt = $pdo->prepare("SELECT COUNT(*) $base_sql");
+$count_stmt->execute($params);
+$total_count = (int)$count_stmt->fetchColumn();
+$total_pages = max(1, (int)ceil($total_count / $per_page));
+$page        = min($page, $total_pages);
+$offset      = ($page - 1) * $per_page;
+
+// Paginated fetch
+$stmt = $pdo->prepare(
+    "SELECT sr.ReferenceNo,
+            CONCAT(r.FirstName, ' ', r.LastName) AS ComplainantName,
+            c.RespondentName,
+            c.IncidentDate,
+            sr.Status,
+            c.MediationDate,
+            sr.RequestID
+     $base_sql
+     ORDER BY sr.CreatedAt DESC
+     LIMIT ? OFFSET ?"
+);
+$stmt->execute(array_merge($params, [$per_page, $offset]));
+$complaints = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $page_title = 'Complaint Management';
 include '../includes/header.php';
@@ -82,7 +94,11 @@ include '../includes/header.php';
 
             <div class="card">
                 <div class="card-header">
-                    <h3>Active Complaints</h3>
+                    <h3>Active Complaints
+                        <span style="font-size:0.82rem;font-weight:400;color:var(--text-light);margin-left:8px;">
+                            (<?= number_format($total_count) ?> found)
+                        </span>
+                    </h3>
                     <form method="GET" class="card-actions">
                         <input type="text"
                             name="search"
@@ -91,11 +107,12 @@ include '../includes/header.php';
                             value="<?= htmlspecialchars($search) ?>" />
                         <select name="status" class="filter-select">
                             <option value="" <?= $status === '' ? 'selected' : '' ?>>All Active Status</option>
-                            <option value="Pending" <?= $status === 'Pending' ? 'selected' : '' ?>>Pending</option>
+                            <option value="Pending"     <?= $status === 'Pending'     ? 'selected' : '' ?>>Pending</option>
                             <option value="ForApproval" <?= $status === 'ForApproval' ? 'selected' : '' ?>>For Approval</option>
-                            <option value="Approved" <?= $status === 'Approved' ? 'selected' : '' ?>>Approved</option>
-                            <option value="Prepared" <?= $status === 'Prepared' ? 'selected' : '' ?>>Prepared</option>
+                            <option value="Approved"    <?= $status === 'Approved'    ? 'selected' : '' ?>>Approved</option>
+                            <option value="Prepared"    <?= $status === 'Prepared'    ? 'selected' : '' ?>>Prepared</option>
                         </select>
+                        <input type="hidden" name="page" value="1">
                         <button type="submit" class="btn btn-primary btn-small">Filter</button>
                         <a href="complaint_management.php" class="btn-link">Clear</a>
                     </form>
@@ -117,7 +134,7 @@ include '../includes/header.php';
                             <tr>
                                 <td colspan="7" class="empty-row">No active complaints found.</td>
                             </tr>
-                            <?php else: foreach ($complaints as $c): ?>
+                        <?php else: foreach ($complaints as $c): ?>
                                 <tr>
                                     <td><?= htmlspecialchars($c['ReferenceNo'])     ?></td>
                                     <td><?= htmlspecialchars($c['ComplainantName']) ?></td>
@@ -139,6 +156,23 @@ include '../includes/header.php';
                         endif; ?>
                     </tbody>
                 </table>
+
+                <!-- Pagination -->
+                <?php if ($total_pages > 1): ?>
+                <div class="pagination">
+                    <?php
+                    $base = '?search=' . urlencode($search) . '&status=' . urlencode($status);
+                    ?>
+                    <?php if ($page > 1): ?>
+                        <a href="<?= $base ?>&page=<?= $page - 1 ?>" class="btn btn-secondary btn-small">← Prev</a>
+                    <?php endif; ?>
+                    <span class="pagination-info">Page <?= $page ?> of <?= $total_pages ?></span>
+                    <?php if ($page < $total_pages): ?>
+                        <a href="<?= $base ?>&page=<?= $page + 1 ?>" class="btn btn-secondary btn-small">Next →</a>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
+
             </div>
 
             <!-- Schedule Mediation Form -->
@@ -190,8 +224,21 @@ include '../includes/header.php';
         </div>
     </main>
 </div>
+
 <style>
 .btn-link { color: #2563eb; text-decoration: none; }
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border-top: 1px solid #e2e8f0;
+}
+.pagination-info {
+    font-size: 0.88rem;
+    color: #6b7280;
+}
 </style>
-<script src="/barangay_connect/assets/css/js/form_validation.js"></script>
+
+<script src="/barangay_connect/assets/js/form_validation.js"></script>
 <?php include '../includes/footer.php'; ?>

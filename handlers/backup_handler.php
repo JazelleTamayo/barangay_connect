@@ -36,11 +36,36 @@ if (($_GET['action'] ?? '') === 'delete') {
     exit;
 }
 
+// ── Purge audit logs older than 1 year (POST only) ────────────────────────────
+if (($_POST['action'] ?? '') === 'purge_logs') {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        header('Location: ../sysadmin/backup.php');
+        exit;
+    }
+    csrf_verify();
+    try {
+        $pdo   = get_db();
+        $audit = new AuditLog();
+        $stmt  = $pdo->prepare(
+            "DELETE FROM auditlog WHERE LoggedAt < DATE_SUB(NOW(), INTERVAL 1 YEAR)"
+        );
+        $stmt->execute();
+        $deleted = $stmt->rowCount();
+        $audit->log("Purged audit logs older than 1 year", "Rows deleted: $deleted");
+        header("Location: ../sysadmin/backup.php?msg=purged&count=$deleted");
+    } catch (Exception $e) {
+        header('Location: ../sysadmin/backup.php?msg=purge_failed');
+    }
+    exit;
+}
+
 // ── Create Backup (POST only) ─────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: ../sysadmin/backup.php');
     exit;
 }
+
+csrf_verify(); // ADDED: CSRF protection
 
 try {
     $pdo      = get_db();

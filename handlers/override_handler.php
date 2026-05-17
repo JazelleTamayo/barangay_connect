@@ -13,6 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+csrf_verify(); // ADDED: CSRF protection
+
 $reference_no = trim($_POST['reference_no'] ?? '');
 $new_status   = trim($_POST['new_status']   ?? '');
 $reason       = trim($_POST['reason']       ?? '');

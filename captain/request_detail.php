@@ -281,6 +281,7 @@ include '../includes/header.php';
                     <div class="action-box">
                         <?php if (($request['Status'] ?? '') === 'ForApproval'): ?>
                         <form method="POST" id="actionForm">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
                             <input type="hidden" name="action" id="actionInput" value="">
 
                             <?php if (($request['RequestType'] ?? '') === 'FacilityReservation'): ?>
@@ -327,6 +328,7 @@ include '../includes/header.php';
                     </div>
                     <div class="action-box">
                         <form method="POST" id="cancelForm">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
                             <input type="hidden" name="action" value="cancel">
                             <div class="form-group">
                                 <label class="form-label">Cancellation Reason <span style="color:#dc2626;">*</span></label>

@@ -146,6 +146,24 @@ function statusLabel(string $status): string {
             <?php if (isset($_GET['msg'])): ?>
                 <?php if ($_GET['msg'] === 'submitted'): ?>
                     <div class="alert alert-success">✅ Request submitted successfully! Track it below using your reference number.</div>
+                    <?php if (!empty($all_requests)): $latest = $all_requests[0]; ?>
+                    <div id="slip-wrapper" style="margin-bottom:16px;">
+                        <div id="print-slip" style="border:1px solid #d1d5db;border-radius:8px;padding:20px 24px;background:#fff;max-width:480px;">
+                            <div style="text-align:center;margin-bottom:12px;">
+                                <strong style="font-size:1rem;">Barangay Connect</strong><br>
+                                <span style="font-size:0.82rem;color:#6b7280;">Request Submission Slip</span>
+                            </div>
+                            <table style="width:100%;border-collapse:collapse;font-size:0.88rem;">
+                                <tr><td style="padding:5px 8px;color:#6b7280;width:140px;">Reference No.</td><td style="padding:5px 8px;font-family:monospace;font-weight:700;"><?= htmlspecialchars($latest['ReferenceNo']) ?></td></tr>
+                                <tr><td style="padding:5px 8px;color:#6b7280;">Request Type</td><td style="padding:5px 8px;"><?= htmlspecialchars($latest['RequestType']) ?></td></tr>
+                                <tr><td style="padding:5px 8px;color:#6b7280;">Date Submitted</td><td style="padding:5px 8px;"><?= date('M d, Y h:i A', strtotime($latest['CreatedAt'])) ?></td></tr>
+                                <tr><td style="padding:5px 8px;color:#6b7280;">Status</td><td style="padding:5px 8px;">Pending</td></tr>
+                            </table>
+                            <p style="margin:12px 0 0;font-size:0.78rem;color:#9ca3af;text-align:center;">Present this slip or your reference number when following up at the Barangay Hall.</p>
+                        </div>
+                        <button onclick="window.print()" class="btn btn-secondary btn-small" style="margin-top:10px;">🖨 Print Slip</button>
+                    </div>
+                    <?php endif; ?>
                 <?php elseif ($_GET['msg'] === 'cancelled'): ?>
                     <div class="alert alert-warning">🚫 Your request has been cancelled.</div>
                 <?php elseif ($_GET['msg'] === 'cannot_cancel'): ?>
@@ -311,6 +329,20 @@ function statusLabel(string $status): string {
                                     </div>
                                     <button type="submit" class="btn btn-danger">🚫 Cancel This Request</button>
                                 </form>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Print button — Released Clearance/Indigency only -->
+                        <?php if (
+                            $search_result['Status'] === 'Released' &&
+                            in_array($search_result['RequestType'], ['Clearance','Indigency'])
+                        ): ?>
+                            <div style="margin-top:20px; padding-top:16px; border-top:1px solid #e5e7eb;">
+                                <a href="../staff/print_document.php?id=<?= $search_result['RequestID'] ?>"
+                                   target="_blank"
+                                   class="btn btn-primary">
+                                    🖨 View / Print Document
+                                </a>
                             </div>
                         <?php endif; ?>
 
@@ -481,6 +513,18 @@ function statusLabel(string $status): string {
 .remark-time    { font-size: 0.78rem; color: #888; }
 .remark-message { font-size: 0.9rem; color: #333; line-height: 1.5; }
 .remark-none    { color: #999; font-style: italic; font-size: 0.88rem; }
+
+@media print {
+    .app-layout > *:not(.main-content),
+    .main-content > *:not(.page-body),
+    .page-header, .search-filter-bar, .card:not(:has(#print-slip)),
+    .back-bar, .cancel-section, .pickup-banner,
+    nav, aside, header, footer,
+    .btn, button, a.btn { display: none !important; }
+    #print-slip { border: 1px solid #000 !important; }
+    #slip-wrapper button { display: none !important; }
+    body { background: white; }
+}
 </style>
 
 <script>

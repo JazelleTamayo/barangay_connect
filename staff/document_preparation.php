@@ -1,6 +1,7 @@
 <?php
 // Barangay Connect – Document Preparation
 // staff/document_preparation.php
+// FIXED: Added pagination (25 per page).
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -45,8 +46,19 @@ if (isset($_GET['id'])) {
     $prepare_request = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-// --- List all approved requests ---
-$approvedRequests = $pdo->query("
+// --- Pagination for approved requests list ---
+$per_page = 25;
+$page     = max(1, (int)($_GET['page'] ?? 1));
+$offset   = ($page - 1) * $per_page;
+
+$count_stmt = $pdo->query("
+    SELECT COUNT(*) FROM ServiceRequest WHERE Status = 'Approved'
+");
+$total_count = (int)$count_stmt->fetchColumn();
+$total_pages = max(1, (int)ceil($total_count / $per_page));
+$page        = min($page, $total_pages);
+
+$approvedRequests = $pdo->prepare("
     SELECT sr.RequestID, sr.ReferenceNo, sr.RequestType,
            sr.ProcessedAt,
            CONCAT(r.FirstName,' ',r.LastName) AS ResidentName
@@ -54,7 +66,10 @@ $approvedRequests = $pdo->query("
     JOIN Resident r ON sr.ResidentID = r.ResidentID
     WHERE sr.Status = 'Approved'
     ORDER BY sr.ProcessedAt ASC
-")->fetchAll(PDO::FETCH_ASSOC);
+    LIMIT ? OFFSET ?
+");
+$approvedRequests->execute([$per_page, $offset]);
+$approvedRequests = $approvedRequests->fetchAll(PDO::FETCH_ASSOC);
 
 $page_title = 'Document Preparation';
 $page_back_url = 'document_preparation.php';
@@ -139,7 +154,11 @@ include '../includes/header.php';
                 <!-- Approved Requests Table -->
                 <div class="card">
                     <div class="card-header">
-                        <h3>Approved Requests</h3>
+                        <h3>Approved Requests
+                            <span style="font-size:0.82rem;font-weight:400;color:var(--text-light);margin-left:8px;">
+                                (<?= number_format($total_count) ?> total)
+                            </span>
+                        </h3>
                         <p class="card-desc">Click <strong>Prepare</strong> to mark a document as ready for pickup.</p>
                     </div>
                     <div class="table-wrapper">
@@ -183,6 +202,20 @@ include '../includes/header.php';
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Pagination -->
+                    <?php if ($total_pages > 1): ?>
+                    <div class="pagination">
+                        <?php if ($page > 1): ?>
+                            <a href="document_preparation.php?page=<?= $page - 1 ?>" class="btn btn-secondary btn-small">← Prev</a>
+                        <?php endif; ?>
+                        <span class="pagination-info">Page <?= $page ?> of <?= $total_pages ?></span>
+                        <?php if ($page < $total_pages): ?>
+                            <a href="document_preparation.php?page=<?= $page + 1 ?>" class="btn btn-secondary btn-small">Next →</a>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
+
                 </div>
 
             <?php endif; ?>
@@ -200,6 +233,17 @@ include '../includes/header.php';
 </script>
 
 <style>
+    .pagination {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 20px;
+        border-top: 1px solid #e2e8f0;
+    }
+    .pagination-info {
+        font-size: 0.88rem;
+        color: #6b7280;
+    }
     /* Layout */
     .back-bar {
         margin-bottom: 1rem;

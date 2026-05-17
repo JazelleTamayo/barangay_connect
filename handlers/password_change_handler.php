@@ -13,6 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+csrf_verify(); // ADDED: CSRF protection
+
 $current_password = $_POST['current_password'] ?? '';
 $new_password     = $_POST['password']         ?? '';
 $confirm_password = $_POST['confirm_password'] ?? '';

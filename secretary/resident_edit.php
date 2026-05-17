@@ -69,6 +69,7 @@ include '../includes/header.php';
                 </div>
 
                 <form method="POST" action="../handlers/resident_edit_handler.php">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
                     <input type="hidden" name="resident_id" value="<?= (int) $resident['ResidentID'] ?>">
 
                     <div class="form-grid">

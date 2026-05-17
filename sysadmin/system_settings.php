@@ -31,6 +31,7 @@ include '../includes/header.php';
                 <form method="POST"
                     action="../handlers/settings_handler.php"
                     class="form-grid validate-form">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
 
                     <div class="form-group">
                         <label>Barangay Name *</label>

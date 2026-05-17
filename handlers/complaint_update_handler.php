@@ -14,6 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+csrf_verify(); // ADDED: CSRF protection
+
 $reference_no   = trim($_POST['reference_no']   ?? '');
 $mediation_date = trim($_POST['mediation_date'] ?? '');
 $actions_taken  = trim($_POST['actions_taken']  ?? '');

@@ -1,6 +1,7 @@
 <?php
 // Barangay Connect – AuditLog Class
 // classes/AuditLog.php
+// FIXED: Added archiveOldLogs() method for BR-11 retention requirement.
 
 require_once __DIR__ . '/../classes/Database.php';
 
@@ -77,5 +78,30 @@ class AuditLog
              LIMIT ?",
             [$limit]
         );
+    }
+
+    /**
+     * Delete log entries older than the specified number of days.
+     * BR-11: Logs must be retained for a minimum of 1 year (365 days).
+     * This method enforces that floor — it will not delete logs newer than 365 days
+     * regardless of the $days argument.
+     *
+     * @param  int $days  Number of days to retain. Minimum enforced: 365.
+     * @return int        Number of rows deleted.
+     */
+    public function archiveOldLogs(int $days = 365): int
+    {
+        // Enforce minimum 1-year retention per BR-11
+        $days = max(365, $days);
+
+        $this->db->execute(
+            "DELETE FROM AuditLog
+             WHERE LoggedAt < DATE_SUB(NOW(), INTERVAL ? DAY)",
+            [$days]
+        );
+
+        // Return count of remaining rows as a sanity check
+        $result = $this->db->fetchOne("SELECT ROW_COUNT() AS deleted");
+        return (int)($result['deleted'] ?? 0);
     }
 }

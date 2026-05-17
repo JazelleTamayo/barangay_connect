@@ -7,6 +7,7 @@
 // FIXED: added missing error messages (missing_fields, password_mismatch, password_short)
 // FIXED: added View button per account
 // FIXED: JS path corrected
+// FIXED: Added pagination (25 per page).
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -19,6 +20,10 @@ $pdo = get_db();
 $search = trim($_GET['search'] ?? '');
 $role   = trim($_GET['role']   ?? '');
 $status = trim($_GET['status'] ?? '');
+
+$per_page = 25;
+$page     = max(1, (int)($_GET['page'] ?? 1));
+$offset   = ($page - 1) * $per_page;
 
 // Base: admin roles only — residents are managed by Secretary
 $where  = ["u.Role IN ('captain', 'secretary', 'staff', 'sysadmin')"];
@@ -37,12 +42,25 @@ if ($status !== '') {
     $params[':status']  = $status;
 }
 
+$where_sql = implode(' AND ', $where);
+
+// Count total
+$count_stmt = $pdo->prepare("SELECT COUNT(*) FROM useraccount u WHERE $where_sql");
+$count_stmt->execute($params);
+$total_count = (int)$count_stmt->fetchColumn();
+$total_pages = max(1, (int)ceil($total_count / $per_page));
+$page        = min($page, $total_pages);
+
+$params[':limit']  = $per_page;
+$params[':offset'] = $offset;
+
 $sql = "SELECT u.UserAccountID AS id, u.Username AS username, u.FullName AS full_name,
                u.Role AS role, u.AccountStatus AS status,
                u.CreatedAt AS created_at, u.Email AS email
         FROM   useraccount u
-        WHERE  " . implode(' AND ', $where) . "
-        ORDER  BY u.CreatedAt DESC";
+        WHERE  $where_sql
+        ORDER  BY u.CreatedAt DESC
+        LIMIT  :limit OFFSET :offset";
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
@@ -79,7 +97,9 @@ include '../includes/header.php';
             <!-- Account List -->
             <div class="card">
                 <div class="card-header">
-                    <h3>All User Accounts <span class="badge badge-gray"><?= count($accounts) ?> found</span></h3>
+                    <h3>All User Accounts
+                        <span class="badge badge-gray"><?= number_format($total_count) ?> found</span>
+                    </h3>
                     <div class="card-actions">
                         <form method="GET" action="user_accounts.php" style="display:contents;">
                             <input type="text" name="search"
@@ -102,6 +122,7 @@ include '../includes/header.php';
                                     </option>
                                 <?php endforeach; ?>
                             </select>
+                            <input type="hidden" name="page" value="1">
                             <button type="submit" class="btn btn-secondary btn-small">Filter</button>
                         </form>
                         <button class="btn btn-primary btn-small"
@@ -173,6 +194,23 @@ include '../includes/header.php';
                         <?php endif; ?>
                     </tbody>
                 </table>
+
+                <!-- Pagination -->
+                <?php if ($total_pages > 1): ?>
+                <div class="pagination">
+                    <?php
+                    $base = '?search=' . urlencode($search) . '&role=' . urlencode($role) . '&status=' . urlencode($status);
+                    ?>
+                    <?php if ($page > 1): ?>
+                        <a href="<?= $base ?>&page=<?= $page - 1 ?>" class="btn btn-secondary btn-small">← Prev</a>
+                    <?php endif; ?>
+                    <span class="pagination-info">Page <?= $page ?> of <?= $total_pages ?></span>
+                    <?php if ($page < $total_pages): ?>
+                        <a href="<?= $base ?>&page=<?= $page + 1 ?>" class="btn btn-secondary btn-small">Next →</a>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
+
             </div>
 
             <!-- Create Account Form -->
@@ -240,5 +278,20 @@ include '../includes/header.php';
         </div>
     </main>
 </div>
+
+<style>
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border-top: 1px solid #e2e8f0;
+}
+.pagination-info {
+    font-size: 0.88rem;
+    color: #6b7280;
+}
+</style>
+
 <script src="/barangay_connect/assets/js/form_validation.js"></script>
 <?php include '../includes/footer.php'; ?>

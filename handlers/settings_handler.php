@@ -15,6 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+csrf_verify(); // ADDED: CSRF protection
+
 $brgy_name     = trim($_POST['brgy_name']     ?? '');
 $municipality  = trim($_POST['municipality']  ?? '');
 $contact       = trim($_POST['contact']       ?? '');

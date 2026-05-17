@@ -30,6 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+csrf_verify(); // ADDED: CSRF protection
+
 $resident_id   = (int)  ($_POST['resident_id']  ?? 0);
 $first_name    = trim($_POST['first_name']    ?? '');
 $middle_name   = trim($_POST['middle_name']   ?? '');

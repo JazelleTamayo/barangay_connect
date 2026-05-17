@@ -66,6 +66,7 @@ include '../includes/header.php';
                 <form method="POST"
                     action="../handlers/resident_save_handler.php"
                     class="form-grid validate-form">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
 
                     <div class="form-group">
                         <label>First Name *</label>

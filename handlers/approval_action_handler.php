@@ -14,6 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+csrf_verify(); // ADDED: CSRF protection
+
 $id      = (int)  ($_POST['request_id'] ?? 0);
 $action  = trim(  $_POST['action']      ?? '');
 $remarks = trim(  $_POST['remarks']     ?? '');

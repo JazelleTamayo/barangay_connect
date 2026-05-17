@@ -19,6 +19,7 @@ if (!function_exists('csrf_token')) {
 }
 
 $page_title = 'Track Request';
+$page_subtitle = 'View your requests or look one up by reference number';
 include '../includes/header.php';
 
 $user_id = $_SESSION['user_id'];
@@ -137,10 +138,6 @@ function statusLabel(string $status): string {
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-        <div class="page-header">
-            <h1>Track Request</h1>
-            <span class="page-subtitle">View your requests or look one up by reference number</span>
-        </div>
         <div class="page-body">
 
             <?php if (isset($_GET['msg'])): ?>
@@ -161,7 +158,10 @@ function statusLabel(string $status): string {
                             </table>
                             <p style="margin:12px 0 0;font-size:0.78rem;color:#9ca3af;text-align:center;">Present this slip or your reference number when following up at the Barangay Hall.</p>
                         </div>
-                        <button onclick="window.print()" class="btn btn-secondary btn-small" style="margin-top:10px;">🖨 Print Slip</button>
+                        <a href="print_slip.php?ref=<?= urlencode($latest['ReferenceNo']) ?>"
+                           target="_blank"
+                           class="btn btn-secondary btn-small"
+                           style="margin-top:10px;display:inline-block;">🖨 Print Slip</a>
                     </div>
                     <?php endif; ?>
                 <?php elseif ($_GET['msg'] === 'cancelled'): ?>
@@ -338,7 +338,7 @@ function statusLabel(string $status): string {
                             in_array($search_result['RequestType'], ['Clearance','Indigency'])
                         ): ?>
                             <div style="margin-top:20px; padding-top:16px; border-top:1px solid #e5e7eb;">
-                                <a href="../staff/print_document.php?id=<?= $search_result['RequestID'] ?>"
+                                <a href="print_document.php?id=<?= $search_result['RequestID'] ?>"
                                    target="_blank"
                                    class="btn btn-primary">
                                     🖨 View / Print Document
@@ -515,15 +515,65 @@ function statusLabel(string $status): string {
 .remark-none    { color: #999; font-style: italic; font-size: 0.88rem; }
 
 @media print {
+    @page { size: A4; margin: 1.5cm; }
+
+    /* Hide everything except the slip */
     .app-layout > *:not(.main-content),
     .main-content > *:not(.page-body),
     .page-header, .search-filter-bar, .card:not(:has(#print-slip)),
     .back-bar, .cancel-section, .pickup-banner,
     nav, aside, header, footer,
     .btn, button, a.btn { display: none !important; }
-    #print-slip { border: 1px solid #000 !important; }
+
+    body { background: white; margin: 0; padding: 0; }
+
+    /* Make the slip fill the page nicely */
+    #slip-wrapper { margin: 0 !important; }
     #slip-wrapper button { display: none !important; }
-    body { background: white; }
+
+    #print-slip {
+        border: 1.5px solid #000 !important;
+        border-radius: 0 !important;
+        padding: 24px 28px !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        page-break-inside: avoid;
+    }
+
+    /* Prevent table cells from wrapping */
+    #print-slip table {
+        width: 100% !important;
+        table-layout: fixed !important;
+    }
+    #print-slip table td:first-child {
+        width: 38% !important;
+        white-space: nowrap !important;
+        font-size: 10pt !important;
+        color: #555 !important;
+        vertical-align: top;
+    }
+    #print-slip table td:last-child {
+        width: 62% !important;
+        word-break: break-word !important;
+        font-size: 10pt !important;
+        font-weight: 700 !important;
+        vertical-align: top;
+    }
+    #print-slip table td {
+        padding: 6px 8px !important;
+    }
+
+    /* Header text */
+    #print-slip strong { font-size: 13pt !important; }
+    #print-slip span   { font-size: 10pt !important; }
+
+    /* Footer note */
+    #print-slip p {
+        font-size: 9pt !important;
+        margin-top: 14px !important;
+        color: #666 !important;
+    }
 }
 </style>
 

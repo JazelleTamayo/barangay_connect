@@ -159,20 +159,35 @@ if ($request_type === 'FacilityReservation') {
         $requestedDate = new DateTime($reservationDate);
 
         if ($requestedDate < $earliest) {
-            header('Location: ../resident/new_request.php'
-                . '?type=FacilityReservation&msg=lead_time_error');
+            $back = ($submitted_by === 'staff')
+                ? '../staff/request_acceptance.php?msg=lead_time_error'
+                : '../resident/new_request.php?type=FacilityReservation&msg=lead_time_error';
+            header('Location: ' . $back);
             exit;
         }
 
         if ($sr->isFacilityBooked($facilityId, $reservationDate)) {
-            header('Location: ../resident/new_request.php'
-                . '?type=FacilityReservation&msg=double_booking');
+            $back = ($submitted_by === 'staff')
+                ? '../staff/request_acceptance.php?msg=double_booking'
+                : '../resident/new_request.php?type=FacilityReservation&msg=double_booking';
+            header('Location: ' . $back);
             exit;
         }
 
-        $pdo  = get_db();
+        // Capacity check — reject if expected attendees exceeds facility capacity
+        $expectedAttendees = (int) ($_POST['expected_attendees'] ?? 0);
+        $stmtCap = $pdo->prepare("SELECT Capacity FROM Facility WHERE FacilityID = ?");
+        $stmtCap->execute([$facilityId]);
+        $facilityCapacity = (int) $stmtCap->fetchColumn();
+        if ($facilityCapacity > 0 && $expectedAttendees > $facilityCapacity) {
+            $back = ($submitted_by === 'staff')
+                ? '../staff/request_acceptance.php?msg=over_capacity'
+                : '../resident/new_request.php?type=FacilityReservation&msg=over_capacity';
+            header('Location: ' . $back);
+            exit;
+        }
+
         $eventName          = trim($_POST['event_name']            ?? '');
-        $expectedAttendees  = (int) ($_POST['expected_attendees']   ?? 0);
         $contactPerson      = trim($_POST['contact_person']         ?? '');
         $contactPersonNo    = trim($_POST['contact_person_number']  ?? '');
         $agreedToRules      = isset($_POST['agreed_to_rules']) ? 1 : 0;

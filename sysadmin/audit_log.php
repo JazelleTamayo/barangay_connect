@@ -3,6 +3,7 @@
 // sysadmin/audit_log.php
 // FIXED: added $pdo = get_db()
 // FIXED: implemented working CSV export
+// FIXED: :search named param used 3x → renamed to :search1/:search2/:search3 to avoid HY093
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -20,8 +21,12 @@ $where  = ['1=1'];
 $params = [];
 
 if ($search !== '') {
-    $where[]           = "(a.Username LIKE :search OR a.Action LIKE :search OR a.RecordAffected LIKE :search)";
-    $params[':search'] = "%$search%";
+    // FIXED: PDO does not allow the same named placeholder more than once.
+    // Use :search1, :search2, :search3 with the same value.
+    $where[]            = "(a.Username LIKE :search1 OR a.Action LIKE :search2 OR a.RecordAffected LIKE :search3)";
+    $params[':search1'] = "%$search%";
+    $params[':search2'] = "%$search%";
+    $params[':search3'] = "%$search%";
 }
 if ($date_from !== '') {
     $where[]              = "DATE(a.LoggedAt) >= :date_from";
@@ -76,6 +81,12 @@ include '../includes/header.php';
         <?php include '../includes/navbar.php'; ?>
 
         <div class="page-body">
+
+            <?php if (isset($_GET['back_id'])): ?>
+                <div style="margin-bottom: 16px;">
+                    <a href="view_account.php?id=<?= (int)$_GET['back_id'] ?>" class="btn btn-secondary btn-small">← Back to Account</a>
+                </div>
+            <?php endif; ?>
 
             <div class="card">
                 <div class="card-header">

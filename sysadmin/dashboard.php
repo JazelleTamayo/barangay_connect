@@ -2,8 +2,8 @@
 // Barangay Connect – Sysadmin Dashboard
 // sysadmin/dashboard.php
 // FIXED: stat cards now exclude residents (admin roles only)
-// FIXED: broken HTML on empty-row (double </td> and stray 
-
+// FIXED: broken HTML on empty-row (double </td> and stray
+// FIXED: added Rejected count so stat cards are consistent with Total
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -13,15 +13,19 @@ require_role('sysadmin');
 $pdo = get_db();
 
 
-$stTotal = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE Role IN ('captain','secretary','staff','sysadmin')");
-$stActive = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE Role IN ('captain','secretary','staff','sysadmin') AND AccountStatus = 'Active'");
-$stPending = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE Role IN ('captain','secretary','staff','sysadmin') AND AccountStatus = 'PendingVerification'");
+$stTotal    = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE Role IN ('captain','secretary','staff','sysadmin')");
+$stActive   = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE Role IN ('captain','secretary','staff','sysadmin') AND AccountStatus = 'Active'");
+$stPending  = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE Role IN ('captain','secretary','staff','sysadmin') AND AccountStatus = 'PendingVerification'");
 $stDisabled = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE Role IN ('captain','secretary','staff','sysadmin') AND AccountStatus = 'Inactive'");
+// FIXED: Rejected accounts exist but were never counted — Total was larger than
+// the sum of the other three cards, which misleads the admin.
+$stRejected = $pdo->query("SELECT COUNT(*) FROM useraccount WHERE Role IN ('captain','secretary','staff','sysadmin') AND AccountStatus = 'Rejected'");
 
-$total = (int) ($stTotal ? $stTotal->fetchColumn() : 0);
-$active = (int) ($stActive ? $stActive->fetchColumn() : 0);
-$pending = (int) ($stPending ? $stPending->fetchColumn() : 0);
+$total    = (int) ($stTotal    ? $stTotal->fetchColumn()    : 0);
+$active   = (int) ($stActive   ? $stActive->fetchColumn()   : 0);
+$pending  = (int) ($stPending  ? $stPending->fetchColumn()  : 0);
 $disabled = (int) ($stDisabled ? $stDisabled->fetchColumn() : 0);
+$rejected = (int) ($stRejected ? $stRejected->fetchColumn() : 0);
 
 // ── Recent activity (last 10 audit log entries) ───────────────────────────────
 $stmt = $pdo->prepare("
@@ -74,6 +78,16 @@ include '../includes/header.php';
                         <span class="stat-label">Disabled Accounts</span>
                     </div>
                 </div>
+                <!-- FIXED: Added Rejected card so all statuses are visible and Total is accounted for -->
+                <?php if ($rejected > 0): ?>
+                <div class="stat-card stat-gray">
+                    <div class="stat-icon">❌</div>
+                    <div class="stat-info">
+                        <span class="stat-value"><?= (int) $rejected ?></span>
+                        <span class="stat-label">Rejected Accounts</span>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
 
             <!-- Quick Actions -->

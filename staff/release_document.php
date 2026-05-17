@@ -29,6 +29,26 @@ function getExpectedAmount($pdo, $request_id, $request_type)
     return 0;
 }
 
+function generateReceiptNo($pdo): string {
+    $prefix = 'REC-' . date('Ymd') . '-';
+    // Find the highest sequence used today
+    $stmt = $pdo->prepare("
+        SELECT ReceiptNo FROM Payment
+        WHERE ReceiptNo LIKE ?
+        ORDER BY ReceiptNo DESC
+        LIMIT 1
+    ");
+    $stmt->execute([$prefix . '%']);
+    $last = $stmt->fetchColumn();
+    if ($last) {
+        $seq = (int) substr($last, strlen($prefix));
+        $next = $seq + 1;
+    } else {
+        $next = 1;
+    }
+    return $prefix . str_pad($next, 3, '0', STR_PAD_LEFT);
+}
+
 // --- Handle release + payment ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['release_document'])) {
     csrf_verify(); // ADDED - CSRF verification
@@ -94,6 +114,7 @@ if (isset($_GET['id'])) {
     $release_request = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($release_request) {
         $release_request['expected_amount'] = getExpectedAmount($pdo, $id, $release_request['RequestType']);
+        $release_request['suggested_receipt_no'] = generateReceiptNo($pdo);
     }
 }
 
@@ -179,7 +200,9 @@ include '../includes/header.php';
                                 <div class="form-group">
                                     <label class="form-label">Receipt Number <span class="req">*</span></label>
                                     <input type="text" name="receipt_no" class="form-input" required
+                                        value="<?= htmlspecialchars($release_request['suggested_receipt_no']) ?>"
                                         placeholder="e.g. REC-20260427-001">
+                                    <span class="field-hint">Auto-generated — you can edit if needed.</span>
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Payment Method</label>
@@ -393,6 +416,14 @@ include '../includes/header.php';
     .card-subtitle {
         font-size: 0.82rem;
         color: #6b7280;
+    }
+
+    /* Auto-generated field hint */
+    .field-hint {
+        font-size: 0.78rem;
+        color: #6b7280;
+        font-style: italic;
+        margin-top: 2px;
     }
 </style>
 

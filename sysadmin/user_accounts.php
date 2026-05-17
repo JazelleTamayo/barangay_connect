@@ -8,6 +8,8 @@
 // FIXED: added View button per account
 // FIXED: JS path corrected
 // FIXED: Added pagination (25 per page).
+// FIXED: :search named param used 2x → renamed to :search1/:search2 to avoid HY093
+// FIXED: Create Account form now includes csrf_token hidden input
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -30,8 +32,11 @@ $where  = ["u.Role IN ('captain', 'secretary', 'staff', 'sysadmin')"];
 $params = [];
 
 if ($search !== '') {
-    $where[]           = "(u.Username LIKE :search OR u.FullName LIKE :search)";
-    $params[':search'] = "%$search%";
+    // FIXED: PDO does not allow the same named placeholder more than once.
+    // Use :search1 and :search2 with the same value.
+    $where[]            = "(u.Username LIKE :search1 OR u.FullName LIKE :search2)";
+    $params[':search1'] = "%$search%";
+    $params[':search2'] = "%$search%";
 }
 if ($role !== '') {
     $where[]          = "u.Role = :role";
@@ -222,6 +227,8 @@ include '../includes/header.php';
                     action="../handlers/user_account_handler.php"
                     class="form-grid validate-form">
                     <input type="hidden" name="action" value="create" />
+                    <!-- FIXED: CSRF token was missing from this form -->
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
                     <div class="form-group">
                         <label>Username *</label>
                         <input type="text" name="username" class="form-input" required />

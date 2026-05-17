@@ -77,7 +77,7 @@ include '../includes/header.php';
     <?php include '../includes/sidebar.php'; ?>
     <main class="main-content">
         <?php include '../includes/navbar.php'; ?>
-                <div class="page-body">
+        <div class="page-body">
 
             <?php if (isset($_GET['msg']) && $_GET['msg'] === 'updated'): ?>
                 <div class="alert alert-success">✅ Complaint updated successfully.</div>
@@ -107,10 +107,10 @@ include '../includes/header.php';
                             value="<?= htmlspecialchars($search) ?>" />
                         <select name="status" class="filter-select">
                             <option value="" <?= $status === '' ? 'selected' : '' ?>>All Active Status</option>
-                            <option value="Pending"     <?= $status === 'Pending'     ? 'selected' : '' ?>>Pending</option>
+                            <option value="Pending" <?= $status === 'Pending'     ? 'selected' : '' ?>>Pending</option>
                             <option value="ForApproval" <?= $status === 'ForApproval' ? 'selected' : '' ?>>For Approval</option>
-                            <option value="Approved"    <?= $status === 'Approved'    ? 'selected' : '' ?>>Approved</option>
-                            <option value="Prepared"    <?= $status === 'Prepared'    ? 'selected' : '' ?>>Prepared</option>
+                            <option value="Approved" <?= $status === 'Approved'    ? 'selected' : '' ?>>Approved</option>
+                            <option value="Prepared" <?= $status === 'Prepared'    ? 'selected' : '' ?>>Prepared</option>
                         </select>
                         <input type="hidden" name="page" value="1">
                         <button type="submit" class="btn btn-primary btn-small">Filter</button>
@@ -134,7 +134,7 @@ include '../includes/header.php';
                             <tr>
                                 <td colspan="7" class="empty-row">No active complaints found.</td>
                             </tr>
-                        <?php else: foreach ($complaints as $c): ?>
+                            <?php else: foreach ($complaints as $c): ?>
                                 <tr>
                                     <td><?= htmlspecialchars($c['ReferenceNo'])     ?></td>
                                     <td><?= htmlspecialchars($c['ComplainantName']) ?></td>
@@ -159,18 +159,18 @@ include '../includes/header.php';
 
                 <!-- Pagination -->
                 <?php if ($total_pages > 1): ?>
-                <div class="pagination">
-                    <?php
-                    $base = '?search=' . urlencode($search) . '&status=' . urlencode($status);
-                    ?>
-                    <?php if ($page > 1): ?>
-                        <a href="<?= $base ?>&page=<?= $page - 1 ?>" class="btn btn-secondary btn-small">← Prev</a>
-                    <?php endif; ?>
-                    <span class="pagination-info">Page <?= $page ?> of <?= $total_pages ?></span>
-                    <?php if ($page < $total_pages): ?>
-                        <a href="<?= $base ?>&page=<?= $page + 1 ?>" class="btn btn-secondary btn-small">Next →</a>
-                    <?php endif; ?>
-                </div>
+                    <div class="pagination">
+                        <?php
+                        $base = '?search=' . urlencode($search) . '&status=' . urlencode($status);
+                        ?>
+                        <?php if ($page > 1): ?>
+                            <a href="<?= $base ?>&page=<?= $page - 1 ?>" class="btn btn-secondary btn-small">← Prev</a>
+                        <?php endif; ?>
+                        <span class="pagination-info">Page <?= $page ?> of <?= $total_pages ?></span>
+                        <?php if ($page < $total_pages): ?>
+                            <a href="<?= $base ?>&page=<?= $page + 1 ?>" class="btn btn-secondary btn-small">Next →</a>
+                        <?php endif; ?>
+                    </div>
                 <?php endif; ?>
 
             </div>
@@ -226,18 +226,23 @@ include '../includes/header.php';
 </div>
 
 <style>
-.btn-link { color: #2563eb; text-decoration: none; }
-.pagination {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 14px 20px;
-    border-top: 1px solid #e2e8f0;
-}
-.pagination-info {
-    font-size: 0.88rem;
-    color: #6b7280;
-}
+    .btn-link {
+        color: #2563eb;
+        text-decoration: none;
+    }
+
+    .pagination {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 20px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .pagination-info {
+        font-size: 0.88rem;
+        color: #6b7280;
+    }
 </style>
 
 <script src="/barangay_connect/assets/js/form_validation.js"></script>

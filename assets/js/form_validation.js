@@ -9,10 +9,15 @@ document.addEventListener('DOMContentLoaded', function () {
         form.addEventListener('submit', function (e) {
             let valid = true;
 
+            // Clear all previous errors first
+            form.querySelectorAll('.field-error').forEach(el => el.remove());
+            form.querySelectorAll('.form-input, .form-select, .form-textarea').forEach(el => {
+                el.style.borderColor = '';
+            });
+
             // Check required fields
             const required = form.querySelectorAll('[required]');
             required.forEach(function (field) {
-                clearError(field);
                 if (!field.value.trim()) {
                     showError(field, 'This field is required.');
                     valid = false;
@@ -59,21 +64,33 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    function getContainer(field) {
+        // Always attach the error to the nearest .form-group ancestor,
+        // so it renders below the full input (even inside .input-wrap).
+        let node = field.parentNode;
+        while (node && !node.classList.contains('form-group')) {
+            node = node.parentNode;
+        }
+        return node || field.parentNode;
+    }
+
     function showError(field, message) {
         field.style.borderColor = '#c0392b';
-        let err = field.parentNode.querySelector('.field-error');
+        const container = getContainer(field);
+        let err = container.querySelector('.field-error');
         if (!err) {
             err = document.createElement('span');
             err.className = 'field-error';
-            err.style.cssText = 'color:#c0392b;font-size:0.78rem;margin-top:4px;display:block;';
-            field.parentNode.appendChild(err);
+            err.style.cssText = 'color:#c0392b;font-size:0.78rem;margin-top:6px;display:block;';
+            container.appendChild(err);
         }
         err.textContent = message;
     }
 
     function clearError(field) {
         field.style.borderColor = '';
-        const err = field.parentNode.querySelector('.field-error');
+        const container = getContainer(field);
+        const err = container.querySelector('.field-error');
         if (err) err.remove();
     }
 

@@ -58,6 +58,12 @@ include '../includes/header.php';
                         Please visit the barangay office for assistance.
                     </div>
 
+                <?php elseif ($msg === 'over_capacity'): ?>
+                    <div class="alert alert-error">
+                        ⚠️ <strong>Number of attendees exceeds the facility's maximum capacity.</strong>
+                        Please reduce the attendee count or choose a different facility.
+                    </div>
+
                 <?php elseif ($msg === 'double_booking'): ?>
                     <div class="alert alert-error">
                         ⚠️ <strong>That facility is already reserved on the selected date.</strong>
@@ -200,6 +206,7 @@ include '../includes/header.php';
                                 <div class="form-group">
                                     <label>Select Facility <span class="req">*</span></label>
                                     <select name="facility_id" class="form-input" required
+                                        id="facility-select"
                                         onchange="updateFacilityInfo(this)">
                                         <option value="">— Choose a facility —</option>
                                         <?php foreach ($facilities as $f): ?>
@@ -249,6 +256,7 @@ include '../includes/header.php';
                                         <label>Expected Number of Attendees <span class="req">*</span></label>
                                         <input type="number" name="expected_attendees" class="form-input" required
                                             min="1" placeholder="e.g. 50">
+                                        <div id="capacity-warning" class="capacity-warning" style="display:none;"></div>
                                     </div>
                                 </div>
 
@@ -368,15 +376,60 @@ include '../includes/header.php';
             document.getElementById('facilityCapacity').textContent =
                 'Capacity: ' + opt.dataset.cap + ' persons';
             info.style.display = 'block';
+            // Update max attribute on attendees field
+            const attendeesInput = document.querySelector('[name="expected_attendees"]');
+            if (attendeesInput) {
+                attendeesInput.max = opt.dataset.cap;
+                validateAttendees(attendeesInput, parseInt(opt.dataset.cap));
+            }
         } else {
             info.style.display = 'none';
+            const attendeesInput = document.querySelector('[name="expected_attendees"]');
+            if (attendeesInput) attendeesInput.removeAttribute('max');
         }
     }
+
+    function validateAttendees(input, capacity) {
+        const warning = document.getElementById('capacity-warning');
+        if (input.value && parseInt(input.value) > capacity) {
+            warning.textContent = '⚠️ Exceeds facility capacity of ' + capacity + ' persons.';
+            warning.style.display = 'block';
+            input.setCustomValidity('Exceeds facility capacity of ' + capacity + ' persons.');
+        } else {
+            warning.textContent = '';
+            warning.style.display = 'none';
+            input.setCustomValidity('');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const attendeesInput = document.querySelector('[name="expected_attendees"]');
+        if (attendeesInput) {
+            attendeesInput.addEventListener('input', function () {
+                const facilitySelect = document.getElementById('facility-select') ||
+                                       document.querySelector('[name="facility_id"]');
+                const opt = facilitySelect ? facilitySelect.options[facilitySelect.selectedIndex] : null;
+                const cap = opt && opt.value ? parseInt(opt.dataset.cap) : Infinity;
+                validateAttendees(this, cap);
+            });
+        }
+    });
 </script>
 
 <style>
     .req {
         color: #e53e3e;
+    }
+
+    .capacity-warning {
+        margin-top: 5px;
+        font-size: 0.82rem;
+        color: #dc2626;
+        font-weight: 600;
+        background: #fee2e2;
+        border: 1px solid #fca5a5;
+        border-radius: 5px;
+        padding: 5px 10px;
     }
 
     .rules-box {

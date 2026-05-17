@@ -1,6 +1,8 @@
-<?php
+﻿<?php
 // Barangay Connect – Database Backup
 // sysadmin/backup.php
+// FIXED: removed stray backslash after <?php if (isset($_GET['msg'])): 
+
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -9,7 +11,7 @@ require_role('sysadmin');
 
 // ── Load backup files from folder ─────────────────────────────────────────────
 $backup_dir = __DIR__ . '/../backups/';
-$backups    = [];
+$backups = [];
 
 if (is_dir($backup_dir)) {
     $files = glob($backup_dir . '*.sql');
@@ -19,8 +21,8 @@ if (is_dir($backup_dir)) {
         foreach ($files as $file) {
             $backups[] = [
                 'filename' => basename($file),
-                'size'     => round(filesize($file) / 1024, 2) . ' KB',
-                'created'  => date('Y-m-d H:i:s', filemtime($file)),
+                'size' => round(filesize($file) / 1024, 2) . ' KB',
+                'created' => date('Y-m-d H:i:s', filemtime($file)),
             ];
         }
     }
@@ -36,7 +38,7 @@ include '../includes/header.php';
 
         <div class="page-body">
 
-            <?php if (isset($_GET['msg'])): ?>\
+            <?php if (isset($_GET['msg'])): ?>
                 <?php if ($_GET['msg'] === 'success'): ?>
                     <div class="alert alert-success">✅ Backup completed successfully.</div>
                 <?php elseif ($_GET['msg'] === 'failed'): ?>
@@ -117,20 +119,20 @@ include '../includes/header.php';
                 </div>
                 <div style="padding: 24px;">
                     <?php
-                        $pdo_count = get_db();
-                        $old_count = $pdo_count->query(
-                            "SELECT COUNT(*) FROM auditlog WHERE LoggedAt < DATE_SUB(NOW(), INTERVAL 1 YEAR)"
-                        )->fetchColumn();
+                    $pdo_count = get_db();
+                    $old_count = $pdo_count->query(
+                        "SELECT COUNT(*) FROM auditlog WHERE LoggedAt < DATE_SUB(NOW(), INTERVAL 1 YEAR)"
+                    )->fetchColumn();
                     ?>
                     <p style="margin-bottom:16px;">
                         Records older than 1 year: <strong><?= number_format((int)$old_count) ?></strong>
                     </p>
                     <form method="POST" action="../handlers/backup_handler.php"
-                          onsubmit="return confirm('Permanently delete <?= (int)$old_count ?> audit log record(s) older than 1 year? This cannot be undone.')">
+                        onsubmit="return confirm('Permanently delete <?= (int)$old_count ?> audit log record(s) older than 1 year? This cannot be undone.')">
                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
                         <input type="hidden" name="action" value="purge_logs">
                         <button type="submit" class="btn btn-danger"
-                                <?= $old_count == 0 ? 'disabled' : '' ?>>
+                            <?= $old_count == 0 ? 'disabled' : '' ?>>
                             🗑 Purge Old Logs (<?= (int)$old_count ?> records)
                         </button>
                     </form>

@@ -4,6 +4,7 @@
 // FIXED: cannot delete/disable own account
 // FIXED: cannot delete last sysadmin
 // FIXED: role whitelist on create (no resident allowed)
+// FIXED: added csrf_verify() for POST create action
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -35,6 +36,10 @@ if ($action === 'create') {
         header('Location: ../sysadmin/user_accounts.php');
         exit;
     }
+
+    // FIXED: CSRF must be verified for all POST actions.
+    // The create form now sends csrf_token; verify it here.
+    csrf_verify();
 
     $username  = trim($_POST['username']         ?? '');
     $full_name = trim($_POST['full_name']        ?? '');

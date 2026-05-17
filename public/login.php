@@ -147,7 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <button type="button" class="input-toggle" onclick="togglePassword(this)" tabindex="-1"><i class="fa fa-eye"></i></button>
                         </div>
                         <div class="form-row-end">
-                            <a href="#">Forgot password?</a>
+                            <a href="forgot_password.php">Forgot password?</a>
                         </div>
                     </div>
                     <button type="submit" class="btn-login">
@@ -167,19 +167,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <script src="../assets/js/main.js"></script>
 
-<script>
-function togglePassword(btn) {
-    const input = btn.closest('.input-wrap').querySelector('input[type="password"], input[type="text"]');
-    const icon  = btn.querySelector('i');
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.replace('fa-eye', 'fa-eye-slash');
-    } else {
-        input.type = 'password';
-        icon.classList.replace('fa-eye-slash', 'fa-eye');
-    }
-}
-</script>
+    <script>
+        function togglePassword(btn) {
+            const input = btn.closest('.input-wrap').querySelector('input[type="password"], input[type="text"]');
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+    </script>
 </body>
 
 </html>

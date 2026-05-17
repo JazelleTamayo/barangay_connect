@@ -179,7 +179,7 @@ include '../includes/header.php';
             <div class="card mt-4">
                 <div class="card-header">
                     <h3>Recent Activity</h3>
-                    <a href="audit_log.php?search=<?= urlencode($acc['username']) ?>" class="btn btn-secondary btn-small">View Full Log</a>
+                    <a href="audit_log.php?search=<?= urlencode($acc['username']) ?>&back_id=<?= $acc['id'] ?>" class="btn btn-secondary btn-small">View Full Log</a>
                 </div>
                 <table class="data-table">
                     <thead>
@@ -210,4 +210,29 @@ include '../includes/header.php';
         </div>
     </main>
 </div>
+<style>
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .detail-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--text-light);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .detail-label::after {
+        content: ":";
+    }
+
+    .detail-value {
+        font-size: 0.95rem;
+        color: var(--text-dark);
+        font-weight: 500;
+    }
+</style>
 <?php include '../includes/footer.php'; ?>

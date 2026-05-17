@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_request'])) {
             CancelledBy        = ?,
             CancelledAt        = NOW(),
             CancellationReason = ?
-        WHERE RequestID = ? AND Status = 'Pending'
+        WHERE RequestID = ? AND Status IN ('Pending', 'Approved')
     ");
     $stmt->execute([$user_id, $cancel_reason, $request_id]);
 

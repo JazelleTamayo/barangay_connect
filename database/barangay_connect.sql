@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 07, 2026 at 10:06 AM
+-- Generation Time: May 17, 2026 at 07:03 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -59,7 +59,11 @@ INSERT INTO `auditlog` (`LogID`, `UserAccountID`, `Username`, `Role`, `Action`, 
 (14, 11, 'EjhiePacquiao', 'resident', 'Created service request: Clearance', 'RequestID: 14', '::1', '2026-04-27 17:22:06'),
 (15, 4, 'sysadmin', 'sysadmin', 'Created user account: Annabelle (Role: staff)', 'UserAccountID: 12', '::1', '2026-05-07 15:48:36'),
 (16, 4, 'sysadmin', 'sysadmin', 'Disabled user account', 'UserAccountID: 12', '::1', '2026-05-07 15:50:29'),
-(17, 4, 'sysadmin', 'sysadmin', 'Updated system settings', '', '::1', '2026-05-07 15:51:19');
+(17, 4, 'sysadmin', 'sysadmin', 'Updated system settings', '', '::1', '2026-05-07 15:51:19'),
+(18, 10, 'jazelletamayo', 'resident', 'Created service request: Clearance', 'RequestID: 15', '::1', '2026-05-17 10:55:40'),
+(19, 10, 'jazelletamayo', 'resident', 'Cancelled request', 'RequestID: 11 | Reason: Taking so Long', '::1', '2026-05-17 10:56:00'),
+(20, 10, 'jazelletamayo', 'resident', 'Created service request: Clearance', 'RequestID: 16', '::1', '2026-05-17 12:41:30'),
+(21, 10, 'jazelletamayo', 'resident', 'Created service request: Clearance', 'RequestID: 17', '::1', '2026-05-17 12:53:11');
 
 -- --------------------------------------------------------
 
@@ -83,6 +87,30 @@ CREATE TABLE `captainprofile` (
 
 INSERT INTO `captainprofile` (`CaptainID`, `UserID`, `FirstName`, `LastName`, `ContactNumber`, `TermStart`, `TermEnd`) VALUES
 (1, 1, 'Hon. Juan', 'dela Cruz', '09123456789', '2024-01-01', '2027-12-31');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `captain_approval_logs`
+--
+
+CREATE TABLE `captain_approval_logs` (
+  `id` int(11) NOT NULL,
+  `request_id` int(11) NOT NULL,
+  `reference_no` varchar(50) NOT NULL,
+  `action` enum('Approved','Rejected','Cancelled') NOT NULL,
+  `captain_id` int(11) NOT NULL,
+  `captain_name` varchar(100) NOT NULL,
+  `remarks` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `captain_approval_logs`
+--
+
+INSERT INTO `captain_approval_logs` (`id`, `request_id`, `reference_no`, `action`, `captain_id`, `captain_name`, `remarks`, `created_at`) VALUES
+(1, 17, 'BRGY-20260517-00003', 'Approved', 1, 'Hon. Juan dela Cruz', 'do this', '2026-05-17 04:54:25');
 
 -- --------------------------------------------------------
 
@@ -149,7 +177,8 @@ CREATE TABLE `facilityreservation` (
   `ExpectedAttendees` int(11) DEFAULT NULL,
   `ContactPerson` varchar(150) DEFAULT NULL,
   `ContactPersonNumber` varchar(20) DEFAULT NULL,
-  `AgreedToRules` tinyint(1) DEFAULT 0
+  `AgreedToRules` tinyint(1) DEFAULT 0,
+  `Priority` enum('Official Barangay Activity','Community Event','Private Event') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -198,7 +227,8 @@ CREATE TABLE `payment` (
 
 INSERT INTO `payment` (`PaymentID`, `RequestID`, `ReceiptNo`, `Amount`, `PaymentMethod`, `RecordedBy`, `RecordedAt`) VALUES
 (1, 4, 'RHFG76678', 50.00, 'Cash', 3, '2026-04-27 14:58:11'),
-(2, 14, 'REC-OOOO1', 50.00, 'Cash', 3, '2026-05-04 11:42:00');
+(2, 14, 'REC-OOOO1', 50.00, 'Cash', 3, '2026-05-04 11:42:00'),
+(6, 15, 'RHFH95333', 50.00, 'Cash', 3, '2026-05-17 12:45:43');
 
 -- --------------------------------------------------------
 
@@ -293,7 +323,7 @@ CREATE TABLE `servicerequest` (
 --
 
 INSERT INTO `servicerequest` (`RequestID`, `ReferenceNo`, `ResidentID`, `RequestType`, `Purpose`, `Status`, `Remarks`, `ProcessedBy`, `ProcessedAt`, `ReleasedBy`, `ReleasedAt`, `CancelledBy`, `CancelledAt`, `CancellationReason`, `CreatedBy`, `CreatedAt`, `UpdatedAt`, `SecretaryNote`, `PreparedBy`, `PreparedAt`) VALUES
-(1, 'BRGY-20260427-00001', 4, 'Clearance', 'I want it for my job application.', 'Approved', '\n[2026-04-27 05:01:31] Staff: I review this request and it is valid for approval.\n[2026-04-27 05:09:01] Secretary Approved: No, I cannot approve this.\n[2026-04-27 05:57:24] Staff: Valid\n[2026-04-27 06:00:44] Secretary Approved: ', 3, '2026-04-27 11:57:24', NULL, NULL, NULL, NULL, NULL, 10, '2026-04-27 10:55:33', '2026-04-27 12:00:44', NULL, 3, '2026-04-27 11:34:55'),
+(1, 'BRGY-20260427-00001', 4, 'Clearance', 'I want it for my job application.', 'Prepared', '\n[2026-04-27 05:01:31] Staff: I review this request and it is valid for approval.\n[2026-04-27 05:09:01] Secretary Approved: No, I cannot approve this.\n[2026-04-27 05:57:24] Staff: Valid\n[2026-04-27 06:00:44] Secretary Approved: ', 3, '2026-04-27 11:57:24', NULL, NULL, NULL, NULL, NULL, 10, '2026-04-27 10:55:33', '2026-05-17 11:05:47', NULL, 3, '2026-05-17 11:05:47'),
 (2, 'BRGY-20260427-00002', 4, 'Clearance', 'nothing', 'Rejected', '\n[2026-04-27 05:10:46] Staff: \n[2026-04-27 05:14:50] Secretary Rejected: ', 3, '2026-04-27 11:10:46', NULL, NULL, NULL, NULL, NULL, 10, '2026-04-27 11:10:28', '2026-04-27 11:14:50', NULL, NULL, NULL),
 (3, 'BRGY-20260427-00003', 4, 'Clearance', 'kladhkhIURYIUWYRE', 'Pending', '\n[2026-04-27 05:15:47] Staff: This is valid!\n[2026-04-27 05:23:22] Secretary Rejected: ', 3, '2026-04-27 11:15:47', NULL, NULL, NULL, NULL, NULL, 10, '2026-04-27 11:15:17', '2026-04-27 11:55:33', NULL, 3, '2026-04-27 11:51:52'),
 (4, 'BRGY-20260427-00004', 4, 'Clearance', 'wejodauifiowyfa', 'Released', '\n[2026-04-27 05:24:19] Staff: Yes\n[2026-04-27 05:28:36] Secretary Approved: ', 3, '2026-04-27 11:24:19', 3, '2026-04-27 14:58:11', NULL, NULL, NULL, 10, '2026-04-27 11:23:48', '2026-04-27 14:58:11', NULL, 3, '2026-04-27 12:04:28'),
@@ -303,10 +333,13 @@ INSERT INTO `servicerequest` (`RequestID`, `ReferenceNo`, `ResidentID`, `Request
 (8, 'BRGY-20260427-00008', 4, 'Clearance', 'sdfwef', 'Pending', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 10, '2026-04-27 15:32:41', '2026-04-27 15:32:41', NULL, NULL, NULL),
 (9, 'BRGY-20260427-00009', 4, 'Indigency', 'ereteqr', 'Pending', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 10, '2026-04-27 15:32:49', '2026-04-27 15:32:49', NULL, NULL, NULL),
 (10, 'BRGY-20260427-00010', 4, 'Indigency', 'ereteqr', 'Pending', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 10, '2026-04-27 15:42:01', '2026-04-27 15:42:01', NULL, NULL, NULL),
-(11, 'BRGY-20260427-00011', 4, 'Indigency', 'ereteqr', 'Pending', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 10, '2026-04-27 15:42:25', '2026-04-27 15:42:25', NULL, NULL, NULL),
+(11, 'BRGY-20260427-00011', 4, 'Indigency', 'ereteqr', 'Cancelled', 'Taking so Long', NULL, NULL, NULL, NULL, 10, '2026-05-17 10:56:00', 'Taking so Long', 10, '2026-04-27 15:42:25', '2026-05-17 10:56:00', NULL, NULL, NULL),
 (12, 'BRGY-20260427-00012', 4, 'Indigency', 'asfdsafgdg', 'Approved', '\n[2026-04-27 10:08:46] Staff: \n[2026-04-27 10:22:50] Secretary Approved: ', 3, '2026-04-27 16:08:46', NULL, NULL, NULL, NULL, NULL, 10, '2026-04-27 16:06:12', '2026-04-27 16:22:50', NULL, NULL, NULL),
-(13, 'BRGY-20260427-00013', 5, 'Indigency', 'for my 4ps', 'ForApproval', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 11, '2026-04-27 17:21:47', '2026-04-27 17:21:47', NULL, NULL, NULL),
-(14, 'BRGY-20260427-00014', 5, 'Clearance', 'for business', 'Released', '\n[2026-05-04 05:34:35] Secretary Approved: ', NULL, NULL, 3, '2026-05-04 11:42:00', NULL, NULL, NULL, 11, '2026-04-27 17:22:06', '2026-05-04 11:42:00', NULL, 3, '2026-05-04 11:40:55');
+(13, 'BRGY-20260427-00013', 5, 'Indigency', 'for my 4ps', 'Approved', '\n[2026-05-17 06:12:19] Captain Approved: Yes prepare It!', 1, '2026-05-17 12:12:19', NULL, NULL, NULL, NULL, NULL, 11, '2026-04-27 17:21:47', '2026-05-17 12:12:19', NULL, NULL, NULL),
+(14, 'BRGY-20260427-00014', 5, 'Clearance', 'for business', 'Released', '\n[2026-05-04 05:34:35] Secretary Approved: ', NULL, NULL, 3, '2026-05-04 11:42:00', NULL, NULL, NULL, 11, '2026-04-27 17:22:06', '2026-05-04 11:42:00', NULL, 3, '2026-05-04 11:40:55'),
+(15, 'BRGY-20260517-00001', 4, 'Clearance', 'For work', 'Released', '\n[2026-05-17 04:57:33] Staff: It is Fine has an Intentional Purpose.\n[2026-05-17 04:58:59] Secretary Approved: Yes, start Preparing the Documents.', 2, '2026-05-17 10:58:59', 3, '2026-05-17 12:45:43', NULL, NULL, NULL, 10, '2026-05-17 10:55:40', '2026-05-17 12:45:43', NULL, 3, '2026-05-17 11:00:15'),
+(16, 'BRGY-20260517-00002', 4, 'Clearance', 'Nuhhhhhhhhhhhhhhhhhhhhh', 'Prepared', '\n[2026-05-17 06:42:42] Staff: Yesss\n[2026-05-17 06:43:28] Captain Approved: prepare the documents.', 1, '2026-05-17 12:43:28', NULL, NULL, NULL, NULL, NULL, 10, '2026-05-17 12:41:30', '2026-05-17 12:45:00', NULL, 3, '2026-05-17 12:45:00'),
+(17, 'BRGY-20260517-00003', 4, 'Clearance', 'sgdfxhhhhhhhhhhhhhhhhhhhhhh', 'Approved', '\n[2026-05-17 06:53:51] Staff: \n[2026-05-17 06:54:25] Captain Approved: do this', 1, '2026-05-17 12:54:25', NULL, NULL, NULL, NULL, NULL, 10, '2026-05-17 12:53:11', '2026-05-17 12:54:25', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -429,6 +462,13 @@ ALTER TABLE `captainprofile`
   ADD KEY `UserID` (`UserID`);
 
 --
+-- Indexes for table `captain_approval_logs`
+--
+ALTER TABLE `captain_approval_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `request_id` (`request_id`);
+
+--
 -- Indexes for table `complaint`
 --
 ALTER TABLE `complaint`
@@ -529,13 +569,19 @@ ALTER TABLE `useraccount`
 -- AUTO_INCREMENT for table `auditlog`
 --
 ALTER TABLE `auditlog`
-  MODIFY `LogID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `LogID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `captainprofile`
 --
 ALTER TABLE `captainprofile`
   MODIFY `CaptainID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `captain_approval_logs`
+--
+ALTER TABLE `captain_approval_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `complaint`
@@ -565,7 +611,7 @@ ALTER TABLE `indigencydetail`
 -- AUTO_INCREMENT for table `payment`
 --
 ALTER TABLE `payment`
-  MODIFY `PaymentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `PaymentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `resident`
@@ -583,7 +629,7 @@ ALTER TABLE `secretaryprofile`
 -- AUTO_INCREMENT for table `servicerequest`
 --
 ALTER TABLE `servicerequest`
-  MODIFY `RequestID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `RequestID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `staffprofile`
@@ -618,6 +664,12 @@ ALTER TABLE `auditlog`
 --
 ALTER TABLE `captainprofile`
   ADD CONSTRAINT `captainprofile_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `useraccount` (`UserAccountID`);
+
+--
+-- Constraints for table `captain_approval_logs`
+--
+ALTER TABLE `captain_approval_logs`
+  ADD CONSTRAINT `captain_approval_logs_ibfk_1` FOREIGN KEY (`request_id`) REFERENCES `servicerequest` (`RequestID`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `complaint`

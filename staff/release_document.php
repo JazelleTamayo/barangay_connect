@@ -36,8 +36,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['release_document'])) 
     $receipt_no     = trim($_POST['receipt_no'] ?? '');
     $payment_method = trim($_POST['payment_method'] ?? 'Cash');
 
-    if ($amount <= 0) {
-        $error = "Amount must be greater than 0.";
+    // Indigency and Complaint are free (Amount = 0 is valid). All others must be > 0.
+    $isFreeType = in_array($release_request['RequestType'] ?? '', ['Indigency', 'Complaint'], true);
+
+    if ($amount < 0) {
+        $error = "Amount cannot be negative.";
+    } elseif (!$isFreeType && $amount == 0) {
+        $error = "Amount must be greater than 0 for this request type.";
     } elseif (empty($receipt_no)) {
         $error = "Receipt number is required.";
     } else {

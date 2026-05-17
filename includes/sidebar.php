@@ -29,8 +29,8 @@ $menus = [
         ['href' => '/BARANGAY_CONNECT/secretary/resident_verification.php', 'icon' => '👤', 'label' => 'Resident Verification'],
         ['href' => '/BARANGAY_CONNECT/secretary/resident_management.php',   'icon' => '👥', 'label' => 'Residents'],
         ['href' => '/BARANGAY_CONNECT/secretary/request_processing.php',    'icon' => '📄', 'label' => 'Process Requests'],
-        ['href' => '/BARANGAY_CONNECT/secretary/approved_requests.php',     'icon' => '✅', 'label' => 'Approved Requests'], // NEW
-        ['href' => '/BARANGAY_CONNECT/secretary/document_release.php',      'icon' => '📬', 'label' => 'Release Documents'],
+        ['href' => '/BARANGAY_CONNECT/secretary/approved_requests.php',     'icon' => '✅', 'label' => 'Approved Requests'],
+        // REMOVED: document_release.php — document release is a Staff-only action (BR-01)
         ['href' => '/BARANGAY_CONNECT/secretary/complaint_management.php',  'icon' => '⚠️', 'label' => 'Complaints'],
         ['href' => '/BARANGAY_CONNECT/secretary/reports.php',               'icon' => '📊', 'label' => 'Reports'],
     ],
@@ -41,7 +41,6 @@ $menus = [
         ['href' => '/BARANGAY_CONNECT/staff/request_status_update.php',  'icon' => '📨', 'label' => 'Review & Forward'],
         ['href' => '/BARANGAY_CONNECT/staff/document_preparation.php',   'icon' => '📄', 'label' => 'Prepare Documents'],
         ['href' => '/BARANGAY_CONNECT/staff/release_document.php',       'icon' => '💰', 'label' => 'Release Document & Payment'],
-        ['href' => '/BARANGAY_CONNECT/staff/request_status_update.php?type=Complaint', 'icon' => '⚠️', 'label' => 'Complaints'],
     ],
     'sysadmin' => [
         ['href' => '/BARANGAY_CONNECT/sysadmin/dashboard.php',       'icon' => '🖥️', 'label' => 'Dashboard'],

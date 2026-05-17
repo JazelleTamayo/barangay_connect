@@ -1,8 +1,7 @@
 <?php
 // Barangay Connect – Captain Dashboard
 // captain/dashboard.php
-// FIXED: Added PHP queries for all 4 stat cards and all 3 data tables
-//        (previously all stat cards were hardcoded "—" and all tables were hardcoded empty)
+// FIXED: Staff Performance table now populated from DB (was hardcoded "No data yet")
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -11,29 +10,29 @@ require_role('captain');
 
 $pdo = get_db();
 
-// FIXED: Stat 1 — total active residents
+// Stat 1 — total active residents
 $totalResidents = $pdo->query(
     "SELECT COUNT(*) FROM Resident WHERE Status = 'Active'"
 )->fetchColumn();
 
-// FIXED: Stat 2 — pending requests (Pending + ForApproval)
+// Stat 2 — pending requests (Pending + ForApproval)
 $pendingRequests = $pdo->query(
     "SELECT COUNT(*) FROM ServiceRequest WHERE Status IN ('Pending','ForApproval')"
 )->fetchColumn();
 
-// FIXED: Stat 3 — open complaints (not yet resolved/cancelled)
+// Stat 3 — open complaints
 $openComplaints = $pdo->query(
     "SELECT COUNT(*) FROM ServiceRequest
      WHERE RequestType = 'Complaint'
        AND Status NOT IN ('Rejected','Cancelled','Released')"
 )->fetchColumn();
 
-// FIXED: Stat 4 — active facilities
+// Stat 4 — active facilities
 $activeFacilities = $pdo->query(
     "SELECT COUNT(*) FROM Facility WHERE Status = 'Active'"
 )->fetchColumn();
 
-// FIXED: Approvals table — load ForApproval requests for captain to review
+// Approvals table — ForApproval requests
 $forApprovalRequests = $pdo->query(
     "SELECT sr.RequestID, sr.ReferenceNo, sr.RequestType,
             sr.CreatedAt, sr.Remarks,
@@ -45,7 +44,24 @@ $forApprovalRequests = $pdo->query(
      LIMIT 10"
 )->fetchAll(PDO::FETCH_ASSOC);
 
-// FIXED: Activity table — load last 10 entries from AuditLog
+// FIXED: Staff Performance — last 7 days, query DB instead of hardcoded empty
+$staffPerformance = $pdo->query(
+    "SELECT ua.FullName,
+            ua.Role,
+            COUNT(sr.RequestID)                              AS Processed,
+            AVG(TIMESTAMPDIFF(HOUR, sr.CreatedAt, sr.ProcessedAt)) AS AvgHours
+     FROM UserAccount ua
+     LEFT JOIN ServiceRequest sr
+            ON ua.UserAccountID = sr.ProcessedBy
+           AND sr.ProcessedAt >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+     WHERE ua.Role IN ('secretary', 'staff')
+       AND ua.AccountStatus = 'Active'
+     GROUP BY ua.UserAccountID, ua.FullName, ua.Role
+     ORDER BY Processed DESC
+     LIMIT 10"
+)->fetchAll(PDO::FETCH_ASSOC);
+
+// Recent Activity — last 10 AuditLog entries
 $recentActivity = $pdo->query(
     "SELECT LogID, Username, Role, Action, RecordAffected, LoggedAt
      FROM AuditLog
@@ -63,7 +79,6 @@ include '../includes/header.php';
         <div class="page-body">
 
             <!-- Stats -->
-            <!-- FIXED: Values now populated from PHP queries, no longer hardcoded "—" -->
             <div class="stats-grid">
                 <div class="stat-card stat-blue">
                     <div class="stat-icon">👥</div>
@@ -96,7 +111,6 @@ include '../includes/header.php';
             </div>
 
             <!-- Escalated Requests -->
-            <!-- FIXED: Table now populated from DB query for ForApproval requests -->
             <div class="card">
                 <div class="card-header">
                     <h3>Requests Awaiting Final Approval</h3>
@@ -135,7 +149,7 @@ include '../includes/header.php';
                 </table>
             </div>
 
-            <!-- Staff Performance -->
+            <!-- FIXED: Staff Performance — now populated from DB (last 7 days) -->
             <div class="card">
                 <div class="card-header">
                     <h3>Staff Performance (This Week)</h3>
@@ -145,21 +159,31 @@ include '../includes/header.php';
                     <thead>
                         <tr>
                             <th>Staff</th>
+                            <th>Role</th>
                             <th>Requests Processed</th>
-                            <th>Avg. Time</th>
-                            <th>Errors</th>
+                            <th>Avg. Processing Time</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td colspan="4" class="empty-row">No data yet.</td>
-                        </tr>
+                        <?php if (empty($staffPerformance)): ?>
+                            <tr>
+                                <td colspan="4" class="empty-row">No staff activity this week.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($staffPerformance as $s): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($s['FullName'] ?? 'Unnamed') ?></td>
+                                    <td><?= htmlspecialchars(ucfirst($s['Role'])) ?></td>
+                                    <td><?= (int)$s['Processed'] ?></td>
+                                    <td><?= $s['AvgHours'] !== null ? number_format((float)$s['AvgHours'], 1) . 'h' : '—' ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
 
             <!-- Recent Activity -->
-            <!-- FIXED: Table now populated from AuditLog DB query -->
             <div class="card">
                 <div class="card-header">
                     <h3>Recent System Activity</h3>

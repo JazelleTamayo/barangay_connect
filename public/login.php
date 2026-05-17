@@ -1,7 +1,6 @@
 <?php
 // Barangay Connect – Login Page (database only – no hardcoded users)
 require_once '../config/session.php';
-require_once '../classes/AuditLog.php';
 require_once '../config/db.php';
 require_once '../config/constants.php';
 
@@ -34,8 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['role']           = strtolower($user['Role']);
                     $_SESSION['account_status'] = $user['AccountStatus'];
                     session_regenerate_id(true);
-                    $audit = new AuditLog();
-                    $audit->log('User logged in', 'UserAccountID: ' . $user['UserAccountID']);
                     redirect_to_dashboard();
                 }
             } else {

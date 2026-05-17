@@ -45,10 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['release_document'])) 
         $error = "Amount must be greater than 0 for this request type.";
     } elseif (empty($receipt_no)) {
         $error = "Receipt number is required.";
-    } elseif (!preg_match('/^OR-[0-9]{4}-[0-9]{5}$/', $receipt_no)) {
-        $error = "Invalid receipt format. Use OR-YYYY-NNNNN (e.g. OR-2026-00001).";
-    } elseif ((function() use ($pdo, $receipt_no) { $chk = $pdo->prepare('SELECT COUNT(*) FROM Payment WHERE ReceiptNo = ?'); $chk->execute([$receipt_no]); return (int)$chk->fetchColumn() > 0; })()) {
-        $error = "Receipt number already exists. Please use a different receipt number.";
     } else {
         try {
             $pdo->beginTransaction();
@@ -95,24 +91,6 @@ if (isset($_GET['id'])) {
         $release_request['expected_amount'] = getExpectedAmount($pdo, $id, $release_request['RequestType']);
     }
 }
-
-// --- Generate next receipt number ---
-$next_receipt = (function() use ($pdo) {
-    $year = date('Y');
-    $stmt = $pdo->prepare(
-        "SELECT ReceiptNo FROM Payment
-         WHERE ReceiptNo LIKE ?
-         ORDER BY ReceiptNo DESC LIMIT 1"
-    );
-    $stmt->execute(["OR-$year-%"]);
-    $last = $stmt->fetchColumn();
-    if ($last) {
-        $num = (int) substr($last, -5) + 1;
-    } else {
-        $num = 1;
-    }
-    return sprintf("OR-%s-%05d", $year, $num);
-})();
 
 // --- List all prepared requests ---
 $preparedRequests = $pdo->query("
@@ -195,9 +173,7 @@ include '../includes/header.php';
                                 <div class="form-group">
                                     <label class="form-label">Receipt Number <span class="req">*</span></label>
                                     <input type="text" name="receipt_no" class="form-input" required
-                                        value="<?= htmlspecialchars($next_receipt) ?>"
-                                        placeholder="OR-YYYY-NNNNN">
-                                    <small style="color:#6b7280;margin-top:4px;display:block;">Auto-generated. You may edit if needed.</small>
+                                        placeholder="e.g. REC-20260427-001">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Payment Method</label>

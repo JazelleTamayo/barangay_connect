@@ -117,11 +117,11 @@ include '../includes/header.php';
                                         <small style="color:var(--text-light)">
                                             @<?= htmlspecialchars($p['Username']) ?>
                                         </small>
-                                    </td>
-                                    <td><?= htmlspecialchars($p['Birthdate']) ?></td>
-                                    <td><?= htmlspecialchars($p['Address']) ?></td>
-                                    <td><?= htmlspecialchars($p['ContactNumber'] ?? '—') ?></td>
-                                    <td><?= date('M d, Y', strtotime($p['CreatedAt'])) ?></td>
+                                    </span>
+                                    <td><?= htmlspecialchars($p['Birthdate']) ?></span>
+                                    <td><?= htmlspecialchars($p['Address']) ?></span>
+                                    <td><?= htmlspecialchars($p['ContactNumber'] ?? '—') ?></span>
+                                    <td><?= date('M d, Y', strtotime($p['CreatedAt'])) ?></span>
                                     <td>
                                         <?php if ($p['GovIDImagePath']): ?>
                                             <a href="/BARANGAY_CONNECT/<?= htmlspecialchars(
@@ -136,7 +136,7 @@ include '../includes/header.php';
                                                 No image
                                             </span>
                                         <?php endif; ?>
-                                    </td>
+                                    </span>
                                     <td>
                                         <div style="display:flex; gap:6px;">
                                             <!-- Approve -->
@@ -148,6 +148,7 @@ include '../includes/header.php';
                                                 <input type="hidden"
                                                     name="action"
                                                     value="approve" />
+                                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
                                                 <button type="submit"
                                                     class="btn btn-primary btn-small">
                                                     ✅ Approve
@@ -166,13 +167,14 @@ include '../includes/header.php';
                                                 <input type="hidden"
                                                     name="reason"
                                                     class="reject-reason" />
+                                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
                                                 <button type="submit"
                                                     class="btn btn-danger btn-small">
                                                     ❌ Reject
                                                 </button>
                                             </form>
                                         </div>
-                                    </td>
+                                    </span>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -216,7 +218,7 @@ include '../includes/header.php';
                                         <?= htmlspecialchars(
                                             $v['FirstName'] . ' ' . $v['LastName']
                                         ) ?>
-                                    </td>
+                                    </span>
                                     <td>
                                         <span class="status-badge
                                     <?= $v['AccountStatus'] === 'Active'
@@ -225,12 +227,12 @@ include '../includes/header.php';
                                             <?= $v['AccountStatus'] === 'Active'
                                                 ? 'Approved' : 'Rejected' ?>
                                         </span>
-                                    </td>
+                                    </span>
                                     <td>
                                         <?= htmlspecialchars(
                                             $v['VerifiedByName'] ?? '—'
                                         ) ?>
-                                    </td>
+                                    </span>
                                     <td>
                                         <?= $v['VerifiedAt']
                                             ? date(
@@ -238,12 +240,12 @@ include '../includes/header.php';
                                                 strtotime($v['VerifiedAt'])
                                             )
                                             : '—' ?>
-                                    </td>
+                                    </span>
                                     <td>
                                         <?= htmlspecialchars(
                                             $v['RejectionReason'] ?? '—'
                                         ) ?>
-                                    </td>
+                                    </span>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>

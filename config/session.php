@@ -102,3 +102,28 @@ function current_role(): string
 {
     return $_SESSION['role'] ?? '';
 }
+
+// ── CSRF helpers ──────────────────────────────────────────────────────────────
+/**
+ * Generate or retrieve existing CSRF token for forms.
+ * Returns the token as a string to be used in hidden input fields.
+ */
+function csrf_generate(): string {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+/**
+ * Verify the CSRF token from a POST request.
+ * Call this at the top of every POST handler.
+ * Dies with 403 error if token is invalid.
+ */
+function csrf_verify(): void {
+    $token = $_POST['csrf_token'] ?? '';
+    if (!hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
+        http_response_code(403);
+        die('Invalid request token. Please go back and try again.');
+    }
+}

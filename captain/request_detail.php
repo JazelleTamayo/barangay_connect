@@ -1,15 +1,15 @@
 <?php
-// Barangay Connect – Captain Request Detail (with logging)
+// Barangay Connect – Captain Request Detail
 // captain/request_detail.php
 
 require_once '../config/session.php';
 require_once '../config/db.php';
 require_once '../config/constants.php';
+require_once '../classes/AuditLog.php';
 require_role('captain');
 
 $pdo = get_db();
 $user_id = $_SESSION['user_id'];
-$captain_name = $_SESSION['full_name'] ?? 'Captain (name missing)';
 
 $request_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if (!$request_id) {
@@ -50,6 +50,7 @@ if ($request['RequestType'] === 'Indigency') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     $remarks = trim($_POST['remarks'] ?? '');
+    $audit = new AuditLog();
 
     if (($request['Status'] ?? '') !== 'ForApproval') {
         header("Location: request_detail.php?id=$request_id&msg=not_actionable");
@@ -93,13 +94,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        try {
-            $logStmt = $pdo->prepare("INSERT INTO captain_approval_logs (request_id, reference_no, action, captain_id, captain_name, remarks) VALUES (?, ?, 'Approved', ?, ?, ?)");
-            $logStmt->execute([$request_id, $request['ReferenceNo'], $user_id, $captain_name, $remarks]);
-        } catch (PDOException $e) {
-            header("Location: final_approvals.php?msg=log_missing");
-            exit;
-        }
+        $audit->log(
+            "Captain approved " . $request['RequestType'] . " request" . ($remarks ? ": $remarks" : ''),
+            "RequestID: $request_id | RefNo: " . ($request['ReferenceNo'] ?? '')
+        );
         $msg = 'approved';
 
     } elseif ($action === 'reject') {
@@ -122,13 +120,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        try {
-            $logStmt = $pdo->prepare("INSERT INTO captain_approval_logs (request_id, reference_no, action, captain_id, captain_name, remarks) VALUES (?, ?, 'Rejected', ?, ?, ?)");
-            $logStmt->execute([$request_id, $request['ReferenceNo'], $user_id, $captain_name, $remarks]);
-        } catch (PDOException $e) {
-            header("Location: final_approvals.php?msg=log_missing");
-            exit;
-        }
+        $audit->log(
+            "Captain rejected " . $request['RequestType'] . " request: $remarks",
+            "RequestID: $request_id | RefNo: " . ($request['ReferenceNo'] ?? '')
+        );
         $msg = 'rejected';
 
     } elseif ($action === 'cancel') {
@@ -151,13 +146,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        try {
-            $logStmt = $pdo->prepare("INSERT INTO captain_approval_logs (request_id, reference_no, action, captain_id, captain_name, remarks) VALUES (?, ?, 'Cancelled', ?, ?, ?)");
-            $logStmt->execute([$request_id, $request['ReferenceNo'], $user_id, $captain_name, $cancel_reason]);
-        } catch (PDOException $e) {
-            header("Location: final_approvals.php?msg=log_missing");
-            exit;
-        }
+        $audit->log(
+            "Captain cancelled " . $request['RequestType'] . " request: $cancel_reason",
+            "RequestID: $request_id | RefNo: " . ($request['ReferenceNo'] ?? '')
+        );
         $msg = 'cancelled';
 
     } else {

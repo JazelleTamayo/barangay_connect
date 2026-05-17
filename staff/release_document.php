@@ -31,13 +31,18 @@ function getExpectedAmount($pdo, $request_id, $request_type)
 
 // --- Handle release + payment ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['release_document'])) {
+    csrf_verify(); // ADDED - CSRF verification
+    
     $request_id     = intval($_POST['request_id']);
     $amount         = floatval($_POST['amount'] ?? 0);
     $receipt_no     = trim($_POST['receipt_no'] ?? '');
     $payment_method = trim($_POST['payment_method'] ?? 'Cash');
 
-    // Indigency and Complaint are free (Amount = 0 is valid). All others must be > 0.
-    $isFreeType = in_array($release_request['RequestType'] ?? '', ['Indigency', 'Complaint'], true);
+    // Need to fetch request type for validation
+    $stmt = $pdo->prepare("SELECT RequestType FROM ServiceRequest WHERE RequestID = ?");
+    $stmt->execute([$request_id]);
+    $req_type = $stmt->fetchColumn();
+    $isFreeType = in_array($req_type, ['Indigency', 'Complaint'], true);
 
     if ($amount < 0) {
         $error = "Amount cannot be negative.";
@@ -159,6 +164,7 @@ include '../includes/header.php';
                         <form method="POST" class="payment-form">
                             <input type="hidden" name="release_document" value="1">
                             <input type="hidden" name="request_id" value="<?= $release_request['RequestID'] ?>">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
 
                             <div class="form-row">
                                 <div class="form-group">

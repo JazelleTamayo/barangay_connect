@@ -16,6 +16,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// ===== CSRF VERIFICATION (ADDED) =====
+csrf_verify();
+// ======================================
+
 $first_name    = trim($_POST['first_name']    ?? '');
 $middle_name   = trim($_POST['middle_name']   ?? '');
 $last_name     = trim($_POST['last_name']     ?? '');

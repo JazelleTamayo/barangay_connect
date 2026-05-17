@@ -52,6 +52,8 @@ if ($request['RequestType'] === 'Indigency') {
 
 // Handle approval or rejection
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify(); // ADDED - CSRF verification
+    
     $action = $_POST['action'] ?? '';
     $remarks = trim($_POST['remarks'] ?? '');
     $audit = new AuditLog(); // ADDED
@@ -226,73 +228,79 @@ include '../includes/header.php';
                                 <span class="badge badge-<?= strtolower($request['Status'] ?? '') ?>">
                                     <?= htmlspecialchars($request['Status'] ?? '—') ?>
                                 </span>
+                            </span>
                             </td>
                         </tr>
                         <tr>
                             <th>Submitted</th>
-                            <td><?= isset($request['CreatedAt']) ? date('M d, Y h:i A', strtotime($request['CreatedAt'])) : '—' ?></td>
+                            <td><?= isset($request['CreatedAt']) ? date('M d, Y h:i A', strtotime($request['CreatedAt'])) : '—' ?></span>
+                            </td>
                         </tr>
                         <?php if (($request['RequestType'] ?? '') == 'FacilityReservation'): ?>
                             <tr>
                                 <th>Facility</th>
-                                <td><?= htmlspecialchars($request['FacilityName'] ?? '—') ?></td>
-                            </tr>
+                                <td><?= htmlspecialchars($request['FacilityName'] ?? '—') ?></span>
+                            </td>
                             <tr>
                                 <th>Reservation Date</th>
-                                <td><?= htmlspecialchars($request['ReservationDate'] ?? '—') ?></td>
-                            </tr>
+                                <td><?= htmlspecialchars($request['ReservationDate'] ?? '—') ?></span>
+                            </td>
                             <tr>
                                 <th>Time Slot</th>
-                                <td><?= htmlspecialchars($request['TimeSlot'] ?? '—') ?></td>
-                            </tr>
+                                <td><?= htmlspecialchars($request['TimeSlot'] ?? '—') ?></span>
+                            </td>
                             <tr>
                                 <th>Event / Activity Name</th>
-                                <td><?= htmlspecialchars($request['EventName'] ?? '—') ?></td>
-                            </tr>
+                                <td><?= htmlspecialchars($request['EventName'] ?? '—') ?></span>
+                            </td>
                             <tr>
                                 <th>Expected Attendees</th>
-                                <td><?= htmlspecialchars($request['ExpectedAttendees'] ?? '—') ?></td>
-                            </tr>
+                                <td><?= htmlspecialchars($request['ExpectedAttendees'] ?? '—') ?></span>
+                            </td>
                             <tr>
                                 <th>Contact Person</th>
-                                <td><?= htmlspecialchars($request['ContactPerson'] ?? '—') ?></td>
-                            </tr>
+                                <td><?= htmlspecialchars($request['ContactPerson'] ?? '—') ?></span>
+                            </td>
                             <tr>
                                 <th>Contact Person No.</th>
-                                <td><?= htmlspecialchars($request['ContactPersonNumber'] ?? '—') ?></td>
-                            </tr>
+                                <td><?= htmlspecialchars($request['ContactPersonNumber'] ?? '—') ?></span>
+                            </td>
                         <?php elseif (($request['RequestType'] ?? '') == 'Complaint'): ?>
                             <tr>
                                 <th>Respondent</th>
-                                <td><?= htmlspecialchars($request['RespondentName'] ?? '—') ?></td>
-                            </tr>
+                                <td><?= htmlspecialchars($request['RespondentName'] ?? '—') ?></span>
+                            </td>
                             <tr>
                                 <th>Respondent Contact</th>
-                                <td><?= htmlspecialchars($request['RespondentContact'] ?? '—') ?></td>
-                            </tr>
+                                <td><?= htmlspecialchars($request['RespondentContact'] ?? '—') ?></span>
+                            </td>
                             <tr>
                                 <th>Relationship</th>
-                                <td><?= htmlspecialchars($request['RespondentRelationship'] ?? '—') ?></td>
-                            </tr>
+                                <td><?= htmlspecialchars($request['RespondentRelationship'] ?? '—') ?></span>
+                            </td>
                             <tr>
                                 <th>Incident Date</th>
-                                <td><?= htmlspecialchars($request['IncidentDate'] ?? '—') ?></td>
-                            </tr>
+                                <td><?= htmlspecialchars($request['IncidentDate'] ?? '—') ?></span>
+                            </td>
                             <tr>
                                 <th>Location</th>
-                                <td><?= htmlspecialchars($request['IncidentLocation'] ?? '—') ?></td>
+                                <td><?= htmlspecialchars($request['IncidentLocation'] ?? '—') ?></span>
+                            </span>
                             </tr>
                             <tr>
                                 <th>Witnesses</th>
-                                <td><?= htmlspecialchars($request['Witnesses'] ?? '—') ?></td>
+                                <td><?= htmlspecialchars($request['Witnesses'] ?? '—') ?></span>
+                            </span>
                             </tr>
                             <tr>
                                 <th>Relief Sought</th>
-                                <td><?= htmlspecialchars($request['ReliefSought'] ?? '—') ?></td>
+                                <td><?= htmlspecialchars($request['ReliefSought'] ?? '—') ?></span>
+                            </span>
                             </tr>
                             <tr>
                                 <th>Mediation Date</th>
-                                <td><?= htmlspecialchars($request['MediationDate'] ?? 'Pending') ?></td>
+                                <td><?= htmlspecialchars($request['MediationDate'] ?? 'Pending') ?></span>
+                            </span>
                             </tr>
                         <?php endif; ?>
                     </table>
@@ -338,23 +346,28 @@ include '../includes/header.php';
                         <table class="info-table">
                             <tr>
                                 <th>Monthly Income</th>
-                                <td>₱<?= number_format($indigency['MonthlyIncome'] ?? 0, 2) ?></td>
+                                <td>₱<?= number_format($indigency['MonthlyIncome'] ?? 0, 2) ?></span>
+                            </span>
                             </tr>
                             <tr>
                                 <th>Household Size</th>
-                                <td><?= htmlspecialchars($indigency['HouseholdSize'] ?? '—') ?></td>
+                                <td><?= htmlspecialchars($indigency['HouseholdSize'] ?? '—') ?></span>
+                            </span>
                             </tr>
                             <tr>
                                 <th>Employment Status</th>
-                                <td><?= htmlspecialchars($indigency['EmploymentStatus'] ?? '—') ?></td>
+                                <td><?= htmlspecialchars($indigency['EmploymentStatus'] ?? '—') ?></span>
+                            </span>
                             </tr>
                             <tr>
                                 <th>Source of Income</th>
-                                <td><?= nl2br(htmlspecialchars($indigency['IncomeSource'] ?? '—')) ?></td>
+                                <td><?= nl2br(htmlspecialchars($indigency['IncomeSource'] ?? '—')) ?></span>
+                            </span>
                             </tr>
                             <tr>
                                 <th>Government Assistance</th>
-                                <td><?= nl2br(htmlspecialchars($indigency['AssistanceReceived'] ?? '—')) ?></td>
+                                <td><?= nl2br(htmlspecialchars($indigency['AssistanceReceived'] ?? '—')) ?></span>
+                            </span>
                             </tr>
                         </table>
                     </div>
@@ -387,6 +400,7 @@ include '../includes/header.php';
                         <?php if (($request['Status'] ?? '') === 'ForApproval'): ?>
                         <form method="POST" id="actionForm">
                             <input type="hidden" name="action" id="actionInput" value="">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
 
                             <?php if (($request['RequestType'] ?? '') === 'FacilityReservation'): ?>
                             <div class="form-group">
@@ -431,6 +445,7 @@ include '../includes/header.php';
                     <div class="action-box">
                         <form method="POST" id="cancelForm">
                             <input type="hidden" name="action" value="cancel">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
                             <div class="form-group">
                                 <label class="form-label">Cancellation Reason <span style="color:#dc2626;">*</span></label>
                                 <textarea name="cancel_reason" class="form-textarea" rows="3" required

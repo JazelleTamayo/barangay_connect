@@ -13,6 +13,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// ===== CSRF VERIFICATION (ADDED) =====
+csrf_verify();
+// ======================================
+
 $account_id = (int) ($_POST['account_id'] ?? 0);
 $action     = trim($_POST['action']       ?? '');
 $reason     = trim($_POST['reason']       ?? '');

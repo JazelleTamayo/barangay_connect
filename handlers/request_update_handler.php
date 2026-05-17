@@ -13,6 +13,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// ===== CSRF VERIFICATION (ADDED) =====
+csrf_verify();
+// ======================================
+
 $request_id = (int) ($_POST['request_id'] ?? 0);
 $new_status = trim($_POST['new_status']   ?? '');
 $remarks    = trim($_POST['remarks']      ?? '');

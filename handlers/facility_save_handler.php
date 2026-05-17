@@ -9,9 +9,11 @@ require_once '../classes/AuditLog.php';
 require_role('secretary');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../secretary/dashboard.php');
+    header('Location: ../secretary/facility_management.php'); // CHANGED: was dashboard.php
     exit;
 }
+
+csrf_verify(); // ADDED: CSRF protection
 
 $facility_id     = (int)   ($_POST['facility_id']     ?? 0);
 $facility_name   = trim($_POST['facility_name']       ?? '');
@@ -21,7 +23,7 @@ $description     = trim($_POST['description']         ?? '');
 $status          = trim($_POST['status']              ?? 'Active');
 
 if (empty($facility_name)) {
-    header('Location: ../secretary/dashboard.php?msg=missing_fields');
+    header('Location: ../secretary/facility_management.php?msg=missing_fields'); // CHANGED: was dashboard.php
     exit;
 }
 
@@ -55,5 +57,12 @@ if ($facility_id) {
     );
 }
 
-header('Location: ../secretary/dashboard.php?msg=facility_saved');
+// CHANGED: redirect to facility_management with correct msg (deactivated/activated/facility_saved)
+$redirect_msg = trim($_POST['redirect_msg'] ?? 'facility_saved');
+$allowed_msgs = ['facility_saved', 'deactivated', 'activated'];
+if (!in_array($redirect_msg, $allowed_msgs, true)) {
+    $redirect_msg = 'facility_saved';
+}
+
+header('Location: ../secretary/facility_management.php?msg=' . $redirect_msg);
 exit;

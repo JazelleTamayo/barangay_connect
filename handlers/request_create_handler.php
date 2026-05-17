@@ -21,6 +21,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// ===== CSRF VERIFICATION (ADDED) =====
+csrf_verify();
+// ======================================
+
 $request_type  = trim($_POST['request_type']  ?? '');
 $purpose       = trim($_POST['purpose']       ?? '');
 $resident_id   = (int) ($_POST['resident_id'] ?? 0);

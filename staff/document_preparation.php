@@ -12,6 +12,8 @@ $user_id = $_SESSION['user_id'];
 
 // --- Handle "Mark as Prepared" action ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['prepare_document'])) {
+    csrf_verify(); // ADDED - CSRF verification
+    
     $request_id = intval($_POST['request_id']);
 
     $stmt = $pdo->prepare("
@@ -87,31 +89,38 @@ include '../includes/header.php';
                         <form method="POST" id="prepareForm">
                             <input type="hidden" name="prepare_document" value="1">
                             <input type="hidden" name="request_id" value="<?= $prepare_request['RequestID'] ?>">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
 
                             <table class="info-table">
                                 <tr>
                                     <th>Reference No.</th>
-                                    <td><?= htmlspecialchars($prepare_request['ReferenceNo']) ?></td>
+                                    <td><?= htmlspecialchars($prepare_request['ReferenceNo']) ?></span>
+                                </span>
                                 </tr>
                                 <tr>
                                     <th>Resident</th>
-                                    <td><?= htmlspecialchars($prepare_request['ResidentName']) ?></td>
+                                    <td><?= htmlspecialchars($prepare_request['ResidentName']) ?></span>
+                                </span>
                                 </tr>
                                 <tr>
                                     <th>Address</th>
-                                    <td><?= nl2br(htmlspecialchars($prepare_request['Address'] ?? '—')) ?></td>
+                                    <td><?= nl2br(htmlspecialchars($prepare_request['Address'] ?? '—')) ?></span>
+                                </span>
                                 </tr>
                                 <tr>
                                     <th>Contact</th>
-                                    <td><?= htmlspecialchars($prepare_request['ContactNumber'] ?? '—') ?></td>
+                                    <td><?= htmlspecialchars($prepare_request['ContactNumber'] ?? '—') ?></span>
+                                </span>
                                 </tr>
                                 <tr>
                                     <th>Request Type</th>
-                                    <td><?= htmlspecialchars($prepare_request['RequestType']) ?></td>
+                                    <td><?= htmlspecialchars($prepare_request['RequestType']) ?></span>
+                                </span>
                                 </tr>
                                 <tr>
                                     <th>Purpose</th>
-                                    <td><?= nl2br(htmlspecialchars($prepare_request['Purpose'] ?? '—')) ?></td>
+                                    <td><?= nl2br(htmlspecialchars($prepare_request['Purpose'] ?? '—')) ?></span>
+                                </span>
                                 </tr>
                             </table>
 
@@ -152,23 +161,23 @@ include '../includes/header.php';
                                                 <span class="empty-icon">📄</span>
                                                 <p>No approved requests waiting for preparation.</p>
                                             </div>
-                                        </td>
-                                    </tr>
+                                        </span>
+                                    </span>
                                 <?php else: ?>
                                     <?php foreach ($approvedRequests as $doc): ?>
                                         <tr>
-                                            <td class="ref-no"><?= htmlspecialchars($doc['ReferenceNo']) ?></td>
-                                            <td><?= htmlspecialchars($doc['ResidentName']) ?></td>
+                                            <td class="ref-no"><?= htmlspecialchars($doc['ReferenceNo']) ?></span>
+                                            <td><?= htmlspecialchars($doc['ResidentName']) ?></span>
                                             <td>
                                                 <span class="type-badge"><?= htmlspecialchars($doc['RequestType']) ?></span>
-                                            </td>
-                                            <td><?= $doc['ProcessedAt'] ? date('M d, Y', strtotime($doc['ProcessedAt'])) : '—' ?></td>
+                                            </span>
+                                            <td><?= $doc['ProcessedAt'] ? date('M d, Y', strtotime($doc['ProcessedAt'])) : '—' ?></span>
                                             <td>
                                                 <a href="document_preparation.php?id=<?= $doc['RequestID'] ?>" class="btn btn-small btn-primary">
                                                     📋 Prepare
                                                 </a>
-                                            </td>
-                                        </tr>
+                                            </span>
+                                        </span>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </tbody>

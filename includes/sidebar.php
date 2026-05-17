@@ -32,6 +32,7 @@ $menus = [
         ['href' => '/BARANGAY_CONNECT/secretary/approved_requests.php',     'icon' => '✅', 'label' => 'Approved Requests'],
         // REMOVED: document_release.php — document release is a Staff-only action (BR-01)
         ['href' => '/BARANGAY_CONNECT/secretary/complaint_management.php',  'icon' => '⚠️', 'label' => 'Complaints'],
+        ['href' => '/BARANGAY_CONNECT/secretary/facility_management.php',   'icon' => '🏟️', 'label' => 'Facilities'],
         ['href' => '/BARANGAY_CONNECT/secretary/reports.php',               'icon' => '📊', 'label' => 'Reports'],
     ],
     'staff' => [

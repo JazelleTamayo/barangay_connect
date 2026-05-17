@@ -52,6 +52,8 @@ include '../includes/header.php';
                 <form method="POST"
                       action="../handlers/override_handler.php"
                       class="form-vertical">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
+                    
                     <div class="form-group">
                         <label>Reference Number *</label>
                         <input type="text"
@@ -106,15 +108,15 @@ include '../includes/header.php';
                     <tbody>
                         <?php if (empty($overrideHistory)): ?>
                             <tr>
-                                <td colspan="4" class="empty-row">No overrides recorded yet.</td>
+                                <td colspan="4" class="empty-row">No overrides recorded yet.</table>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($overrideHistory as $oh): ?>
                                 <tr>
                                     <td><?= date('M d, Y h:i A', strtotime($oh['LoggedAt'])) ?></td>
-                                    <td><?= htmlspecialchars($oh['RecordAffected'] ?? '—') ?></td>
-                                    <td><?= htmlspecialchars($oh['Action']) ?></td>
-                                    <td><?= htmlspecialchars($oh['Username']) ?></td>
+                                    <td><?= htmlspecialchars($oh['RecordAffected'] ?? '—') ?>NonNull
+                                    <td><?= htmlspecialchars($oh['Action']) ?>NonNull
+                                    <td><?= htmlspecialchars($oh['Username']) ?>NonNull
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>

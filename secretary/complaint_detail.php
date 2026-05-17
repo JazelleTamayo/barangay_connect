@@ -39,6 +39,8 @@ if (!$complaint) {
 
 // Handle POST actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify(); // ADDED - CSRF verification
+    
     $action  = $_POST['action'] ?? '';
     $remarks = trim($_POST['remarks'] ?? '');
 
@@ -126,29 +128,29 @@ include '../includes/header.php';
             <div class="card">
                 <div class="card-header"><h3>Complaint Information</h3></div>
                 <table class="info-table">
-                    <tr><th>Reference No.</th>     <td><?= htmlspecialchars($complaint['ReferenceNo'] ?? '—') ?></td></tr>
-                    <tr><th>Complainant</th>        <td><?= htmlspecialchars($complaint['ResidentName'] ?? '—') ?></td></tr>
-                    <tr><th>Address</th>            <td><?= nl2br(htmlspecialchars($complaint['Address'] ?? '—')) ?></td></tr>
-                    <tr><th>Contact</th>            <td><?= htmlspecialchars($complaint['ContactNumber'] ?? '—') ?></td></tr>
-                    <tr><th>Email</th>              <td><?= htmlspecialchars($complaint['ResidentEmail'] ?? '—') ?></td></tr>
+                    <tr><th>Reference No.</th>      <td><?= htmlspecialchars($complaint['ReferenceNo'] ?? '—') ?></td></tr>
+                    <tr><th>Complainant</th>         <td><?= htmlspecialchars($complaint['ResidentName'] ?? '—') ?></td></tr>
+                    <tr><th>Address</th>             <td><?= nl2br(htmlspecialchars($complaint['Address'] ?? '—')) ?></td></tr>
+                    <tr><th>Contact</th>             <td><?= htmlspecialchars($complaint['ContactNumber'] ?? '—') ?></td></tr>
+                    <tr><th>Email</th>               <td><?= htmlspecialchars($complaint['ResidentEmail'] ?? '—') ?></td></tr>
                     <tr><th>Status</th>
                         <td>
                             <span class="badge badge-<?= strtolower($complaint['Status'] ?? '') ?>">
                                 <?= htmlspecialchars($complaint['Status'] ?? '—') ?>
                             </span>
-                        </td>
-                    </tr>
-                    <tr><th>Submitted</th>          <td><?= isset($complaint['CreatedAt']) ? date('M d, Y h:i A', strtotime($complaint['CreatedAt'])) : '—' ?></td></tr>
-                    <tr><th>Respondent</th>         <td><?= htmlspecialchars($complaint['RespondentName'] ?? '—') ?></td></tr>
-                    <tr><th>Respondent Contact</th> <td><?= htmlspecialchars($complaint['RespondentContact'] ?? '—') ?></td></tr>
-                    <tr><th>Relationship</th>       <td><?= htmlspecialchars($complaint['RespondentRelationship'] ?? '—') ?></td></tr>
-                    <tr><th>Incident Date</th>      <td><?= htmlspecialchars($complaint['IncidentDate'] ?? '—') ?></td></tr>
-                    <tr><th>Incident Location</th>  <td><?= htmlspecialchars($complaint['IncidentLocation'] ?? '—') ?></td></tr>
-                    <tr><th>Witnesses</th>          <td><?= nl2br(htmlspecialchars($complaint['Witnesses'] ?? '—')) ?></td></tr>
-                    <tr><th>Relief Sought</th>      <td><?= nl2br(htmlspecialchars($complaint['ReliefSought'] ?? '—')) ?></td></tr>
-                    <tr><th>Mediation Date</th>     <td><?= htmlspecialchars($complaint['MediationDate'] ?? 'Not yet scheduled') ?></td></tr>
-                    <tr><th>Complaint Details</th>  <td><?= nl2br(htmlspecialchars($complaint['Description'] ?? '—')) ?></td></tr>
-                    <tr><th>Purpose</th>            <td><?= nl2br(htmlspecialchars($complaint['Purpose'] ?? '—')) ?></td></tr>
+                        </span>
+                    </span>
+                    <tr><th>Submitted</th>           <td><?= isset($complaint['CreatedAt']) ? date('M d, Y h:i A', strtotime($complaint['CreatedAt'])) : '—' ?></td></tr>
+                    <tr><th>Respondent</th>          <td><?= htmlspecialchars($complaint['RespondentName'] ?? '—') ?></td></tr>
+                    <tr><th>Respondent Contact</th>  <td><?= htmlspecialchars($complaint['RespondentContact'] ?? '—') ?></td></tr>
+                    <tr><th>Relationship</th>        <td><?= htmlspecialchars($complaint['RespondentRelationship'] ?? '—') ?></td></tr>
+                    <tr><th>Incident Date</th>       <td><?= htmlspecialchars($complaint['IncidentDate'] ?? '—') ?></td></tr>
+                    <tr><th>Incident Location</th>   <td><?= htmlspecialchars($complaint['IncidentLocation'] ?? '—') ?></td></tr>
+                    <tr><th>Witnesses</th>           <td><?= nl2br(htmlspecialchars($complaint['Witnesses'] ?? '—')) ?></td></tr>
+                    <tr><th>Relief Sought</th>       <td><?= nl2br(htmlspecialchars($complaint['ReliefSought'] ?? '—')) ?></td></tr>
+                    <tr><th>Mediation Date</th>      <td><?= htmlspecialchars($complaint['MediationDate'] ?? 'Not yet scheduled') ?></td></tr>
+                    <tr><th>Complaint Details</th>   <td><?= nl2br(htmlspecialchars($complaint['Description'] ?? '—')) ?></td></tr>
+                    <tr><th>Purpose</th>             <td><?= nl2br(htmlspecialchars($complaint['Purpose'] ?? '—')) ?></td></tr>
                 </table>
             </div>
 
@@ -181,6 +183,7 @@ include '../includes/header.php';
                     <div class="action-box">
                         <form method="POST" id="actionForm">
                             <input type="hidden" name="action" id="actionInput" value="">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
                             <div class="form-group">
                                 <label class="form-label">Remarks <span style="color:#6b7280;font-weight:400;">(optional)</span></label>
                                 <textarea name="remarks" class="form-textarea" rows="3"
@@ -207,6 +210,7 @@ include '../includes/header.php';
                     <div class="action-box">
                         <form method="POST" id="cancelForm">
                             <input type="hidden" name="action" value="cancel">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
                             <div class="form-group">
                                 <label class="form-label">Cancellation Reason <span style="color:#dc2626;">*</span></label>
                                 <textarea name="cancel_reason" class="form-textarea" rows="3" required

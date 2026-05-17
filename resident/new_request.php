@@ -1,31 +1,6 @@
 <?php
 // Barangay Connect – New Request
 // resident/new_request.php
-//
-// FIXED Bug #1 (double_booking): The redirect from request_create_handler.php
-//   sends ?type=FacilityReservation&msg=double_booking, so $type is correctly
-//   read from $_GET — the form DOES re-open. However the error alert was
-//   rendering ABOVE the type cards and disappearing before the user scrolled
-//   down to the form. Fix: also pass ?type= when displaying errors so the
-//   Facility Reservation card is highlighted and the form is visible alongside
-//   the alert. Also added a link to the facility schedule so the resident can
-//   check available dates without leaving the page.
-//
-// FIXED Bug #2 (not_good_standing message): The message said "You have an
-//   existing active request. Please wait for it to be resolved." This is WRONG.
-//   Good standing for Clearance means no unresolved COMPLAINT as respondent and
-//   no ordinance violation — it has nothing to do with existing requests.
-//   Corrected the message to accurately reflect BR-03.
-//
-// FIXED Bug #3 (date min attribute): The date input's min was calculated as
-//   today + RESERVATION_LEAD_DAYS calendar days using strtotime('+3 days').
-//   But BR-08 requires 3 WORKING days (Mon–Fri), not calendar days. If today
-//   is Thursday, +3 calendar days = Sunday, but the correct earliest date is
-//   Tuesday (3 working days forward). The min attribute now uses the same
-//   working-day calculation logic as the backend handler.
-//
-// FIXED Bug #4 (account_inactive): Added missing message handler for the
-//   account_inactive redirect added in request_create_handler.php (Bug #6 fix).
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -45,15 +20,14 @@ $facilities = $pdo->query("
     ORDER BY FacilityName ASC
 ")->fetchAll(PDO::FETCH_ASSOC);
 
-// FIXED Bug #3: Calculate the correct earliest reservation date using
-// working days (Mon–Fri), matching the backend logic in request_create_handler.php.
+// Calculate the correct earliest reservation date using working days
 $today       = new DateTime('today');
 $workingDays = 0;
 $check       = clone $today;
 while ($workingDays < RESERVATION_LEAD_DAYS) {
     $check->modify('+1 day');
-    $dow = (int) $check->format('N'); // 1=Mon … 7=Sun
-    if ($dow < 6) {                   // Mon–Fri only
+    $dow = (int) $check->format('N');
+    if ($dow < 6) {
         $workingDays++;
     }
 }
@@ -76,7 +50,6 @@ include '../includes/header.php';
                     <div class="alert alert-error">⚠️ Please fill in all required fields.</div>
 
                 <?php elseif ($msg === 'not_good_standing'): ?>
-                    <!-- FIXED Bug #2: Corrected message to accurately reflect BR-03 good standing rules. -->
                     <div class="alert alert-error">
                         ⚠️ <strong>Cannot submit Barangay Clearance.</strong>
                         You do not currently meet the good standing requirement.<br>
@@ -86,7 +59,6 @@ include '../includes/header.php';
                     </div>
 
                 <?php elseif ($msg === 'double_booking'): ?>
-                    <!-- FIXED Bug #1: Added facility schedule link so resident can check available dates. -->
                     <div class="alert alert-error">
                         ⚠️ <strong>That facility is already reserved on the selected date.</strong>
                         Please choose a different date or facility.<br>
@@ -104,7 +76,6 @@ include '../includes/header.php';
                     </div>
 
                 <?php elseif ($msg === 'account_inactive'): ?>
-                    <!-- FIXED Bug #4: Added handler for account_inactive redirect. -->
                     <div class="alert alert-error">
                         ⚠️ Your account is currently inactive. You cannot submit service requests.
                         Please visit the barangay office for assistance.
@@ -169,6 +140,7 @@ include '../includes/header.php';
                             class="form-vertical validate-form">
                             <input type="hidden" name="request_type" value="<?= htmlspecialchars($type) ?>">
                             <input type="hidden" name="submitted_by" value="resident">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_generate()) ?>">
 
                             <!-- Purpose — all types -->
                             <div class="form-group">
@@ -247,8 +219,6 @@ include '../includes/header.php';
                                 <div class="form-row-2">
                                     <div class="form-group">
                                         <label>Preferred Date <span class="req">*</span></label>
-                                        <!-- FIXED Bug #3: min is now the correct working-day earliest date,
-                                             not just +LEAD_DAYS calendar days. -->
                                         <input type="date" name="reservation_date" class="form-input" required
                                             min="<?= $minReservationDate ?>">
                                         <small class="form-hint">

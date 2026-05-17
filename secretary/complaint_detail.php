@@ -225,9 +225,38 @@ include '../includes/header.php';
 
             <?php else: ?>
                 <div class="alert alert-info" style="margin-top:1rem;">
-                    This complaint is <strong><?= htmlspecialchars($complaint['Status'] ?? 'Unknown') ?></strong> and cannot be modified.
+                    This complaint is <strong><?= htmlspecialchars($complaint['Status'] ?? 'Unknown') ?></strong> and cannot be approved or rejected.
                     <a href="complaint_management.php" style="margin-left:8px;">← Back to list</a>
                 </div>
+            <?php endif; ?>
+
+            <!-- Schedule Mediation / Record Actions — available for Approved complaints -->
+            <?php if (in_array($complaint['Status'] ?? '', ['Approved', 'ForApproval', 'Pending'])): ?>
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h3>📅 Schedule Mediation & Record Actions</h3>
+                </div>
+                <div class="action-box">
+                    <form method="POST" action="../handlers/complaint_update_handler.php">
+                        <input type="hidden" name="reference_no" value="<?= htmlspecialchars($complaint['ReferenceNo'] ?? '') ?>">
+                        <div class="form-group">
+                            <label class="form-label">Mediation Date</label>
+                            <input type="date" name="mediation_date" class="form-textarea"
+                                style="resize:none;padding:8px 12px;"
+                                value="<?= htmlspecialchars($complaint['MediationDate'] ?? '') ?>">
+                        </div>
+                        <div class="form-group" style="margin-top:12px;">
+                            <label class="form-label">Actions Taken / Notes</label>
+                            <textarea name="actions_taken" rows="4" class="form-textarea"
+                                placeholder="Describe actions taken or notes for this complaint..."></textarea>
+                        </div>
+                        <div class="form-actions" style="margin-top:16px;">
+                            <button type="submit" class="btn btn-success">💾 Save Mediation Details</button>
+                            <a href="complaint_management.php" class="btn btn-secondary">Back to List</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
             <?php endif; ?>
 
         </div>

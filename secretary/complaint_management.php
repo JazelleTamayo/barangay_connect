@@ -193,5 +193,5 @@ include '../includes/header.php';
 <style>
 .btn-link { color: #2563eb; text-decoration: none; }
 </style>
-<script src="/barangay_connect/assets/css/js/form_validation.js"></script>
+<script src="/barangay_connect/assets/js/form_validation.js"></script>
 <?php include '../includes/footer.php'; ?>

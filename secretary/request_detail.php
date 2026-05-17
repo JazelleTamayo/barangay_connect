@@ -5,7 +5,6 @@
 require_once '../config/session.php';
 require_once '../config/db.php';
 require_once '../config/constants.php';
-require_once '../classes/AuditLog.php'; // ADDED
 require_role('secretary');
 
 $pdo = get_db();
@@ -54,7 +53,6 @@ if ($request['RequestType'] === 'Indigency') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     $remarks = trim($_POST['remarks'] ?? '');
-    $audit = new AuditLog(); // ADDED
 
     if (($request['Status'] ?? '') !== 'ForApproval') {
         header("Location: request_detail.php?id=$request_id&msg=not_actionable");
@@ -62,52 +60,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'approve') {
-        // Re-check good standing for Clearance requests at approval time (BR-03)
-        if (($request['RequestType'] ?? '') === 'Clearance') {
-            require_once '../classes/Resident.php';
-            $residentClass = new Resident();
-            if (!$residentClass->isInGoodStanding((int)$request['ResidentID'])) {
-                header("Location: request_detail.php?id=$request_id&msg=not_good_standing");
-                exit;
-            }
-        }
-
-        // For FacilityReservation, save the priority level (BR-08)
-        if (($request['RequestType'] ?? '') === 'FacilityReservation') {
-            $priority = trim($_POST['reservation_priority'] ?? '');
-            $validPriorities = ['Official Barangay Activity', 'Community Event', 'Private Event'];
-            if (!in_array($priority, $validPriorities, true)) {
-                header("Location: request_detail.php?id=$request_id&msg=priority_required");
-                exit;
-            }
-            $pdo->prepare("UPDATE FacilityReservation SET Priority = ? WHERE RequestID = ?")
-                ->execute([$priority, $request_id]);
-        }
-
         $new_status = 'Approved';
         $log = "\n[" . date('Y-m-d H:i:s') . "] Secretary Approved: " . $remarks;
         $update = $pdo->prepare("
             UPDATE ServiceRequest 
-            SET Status      = ?,
-                ProcessedBy = ?,
-                ProcessedAt = NOW(),
-                Remarks     = CONCAT(IFNULL(Remarks, ''), ?)
+            SET Status = ?, 
+                Remarks = CONCAT(IFNULL(Remarks, ''), ?)
             WHERE RequestID = ? AND Status = 'ForApproval'
         ");
-        $update->execute([$new_status, $user_id, $log, $request_id]);
+        $update->execute([$new_status, $log, $request_id]);
         if ($update->rowCount() === 0) {
             header("Location: request_detail.php?id=$request_id&msg=not_actionable");
             exit;
         }
-
-        // ADDED
-        $audit->log(
-            "Approved " . $request['RequestType'] . " request" . ($remarks ? ": $remarks" : ''),
-            "RequestID: $request_id | RefNo: " . ($request['ReferenceNo'] ?? '')
-        );
-
         $msg = 'approved';
-
     } elseif ($action === 'reject') {
         if ($remarks === '') {
             header("Location: request_detail.php?id=$request_id&msg=reason_required");
@@ -128,15 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header("Location: request_detail.php?id=$request_id&msg=not_actionable");
             exit;
         }
-
-        // ADDED
-        $audit->log(
-            "Rejected " . $request['RequestType'] . " request: $remarks",
-            "RequestID: $request_id | RefNo: " . ($request['ReferenceNo'] ?? '')
-        );
-
         $msg = 'rejected';
-
     } elseif ($action === 'cancel') {
         $cancel_reason = trim($_POST['cancel_reason'] ?? '');
         if ($cancel_reason === '') {
@@ -149,22 +107,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 CancelledBy        = ?,
                 CancelledAt        = NOW(),
                 CancellationReason = ?
-            WHERE RequestID = ? AND Status IN ('ForApproval', 'Approved', 'Pending')
+            WHERE RequestID = ? AND Status = 'ForApproval'
         ");
         $update->execute([$user_id, $cancel_reason, $request_id]);
         if ($update->rowCount() === 0) {
             header("Location: request_detail.php?id=$request_id&msg=not_actionable");
             exit;
         }
-
-        // ADDED
-        $audit->log(
-            "Cancelled " . $request['RequestType'] . " request: $cancel_reason",
-            "RequestID: $request_id | RefNo: " . ($request['ReferenceNo'] ?? '')
-        );
-
         $msg = 'cancelled';
-
     } else {
         header("Location: request_detail.php?id=$request_id&msg=error");
         exit;
@@ -362,44 +312,14 @@ include '../includes/header.php';
             <?php endif; ?>
 
             <!-- Approval/Rejection Form -->
-            <?php if (isset($_GET['msg']) && $_GET['msg'] === 'not_good_standing'): ?>
-                <div class="alert alert-error" style="margin-top:1rem;">
-                    ⚠️ This resident has an unresolved complaint as respondent and cannot be issued a Clearance.
-                </div>
-            <?php endif; ?>
-            <?php if (isset($_GET['msg']) && $_GET['msg'] === 'priority_required'): ?>
-                <div class="alert alert-error" style="margin-top:1rem;">
-                    ⚠️ Please select a reservation priority level before approving.
-                </div>
-            <?php endif; ?>
-            <?php if (isset($_GET['msg']) && $_GET['msg'] === 'reason_required'): ?>
-                <div class="alert alert-error" style="margin-top:1rem;">
-                    ⚠️ A reason is required for rejection or cancellation.
-                </div>
-            <?php endif; ?>
-
-            <?php if (in_array($request['Status'] ?? '', ['ForApproval', 'Approved', 'Pending'])): ?>
+            <?php if (($request['Status'] ?? '') === 'ForApproval'): ?>
                 <div class="card mt-4">
                     <div class="card-header">
                         <h3>Take Action</h3>
                     </div>
                     <div class="action-box">
-                        <?php if (($request['Status'] ?? '') === 'ForApproval'): ?>
                         <form method="POST" id="actionForm">
                             <input type="hidden" name="action" id="actionInput" value="">
-
-                            <?php if (($request['RequestType'] ?? '') === 'FacilityReservation'): ?>
-                            <div class="form-group">
-                                <label class="form-label">Reservation Priority <span style="color:#dc2626;">*</span></label>
-                                <select name="reservation_priority" class="form-textarea" style="resize:none;padding:8px 12px;" required>
-                                    <option value="">-- Select Priority Level --</option>
-                                    <option value="Official Barangay Activity">Official Barangay Activity</option>
-                                    <option value="Community Event">Community Event</option>
-                                    <option value="Private Event">Private Event</option>
-                                </select>
-                                <small class="form-hint">BR-08: Priority determines scheduling preference for the facility.</small>
-                            </div>
-                            <?php endif; ?>
                             <div class="form-group">
                                 <label class="form-label">Remarks <span style="color:#6b7280;font-weight:400;">(optional)</span></label>
                                 <textarea name="remarks" class="form-textarea" rows="3"
@@ -419,7 +339,6 @@ include '../includes/header.php';
                                 <a href="request_processing.php" class="btn btn-secondary">Cancel</a>
                             </div>
                         </form>
-                        <?php endif; /* end ForApproval-only approve/reject */ ?>
                     </div>
                 </div>
                 <!-- Cancel Request -->
@@ -618,12 +537,6 @@ include '../includes/header.php';
 
     .mt-4 {
         margin-top: 1rem;
-    }
-
-    .card-subtitle {
-        font-size: 0.82rem;
-        color: #6b7280;
-        font-weight: 400;
     }
 </style>
 

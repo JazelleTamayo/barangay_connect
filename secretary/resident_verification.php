@@ -32,18 +32,10 @@ $verifiedSql = "
     SELECT ua.UserAccountID, ua.AccountStatus,
            ua.VerifiedAt, ua.RejectionReason,
            r.FirstName, r.LastName,
-           COALESCE(
-               CONCAT(sp.FirstName, ' ', sp.LastName),
-               CONCAT(stf.FirstName, ' ', stf.LastName),
-               CONCAT(cp.FirstName, ' ', cp.LastName),
-               '—'
-           ) AS VerifiedByName
+           v.FullName AS VerifiedByName
     FROM UserAccount ua
     JOIN Resident r ON ua.ResidentID = r.ResidentID
-    LEFT JOIN UserAccount verifier ON ua.VerifiedBy = verifier.UserAccountID
-    LEFT JOIN SecretaryProfile sp  ON verifier.UserAccountID = sp.UserID
-    LEFT JOIN StaffProfile     stf ON verifier.UserAccountID = stf.UserID
-    LEFT JOIN CaptainProfile   cp  ON verifier.UserAccountID = cp.UserID
+    LEFT JOIN UserAccount v ON ua.VerifiedBy = v.UserAccountID
     WHERE ua.AccountStatus IN ('Active','Rejected')
       AND ua.Role = 'resident'
       AND ua.VerifiedAt IS NOT NULL

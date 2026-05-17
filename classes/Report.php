@@ -71,10 +71,13 @@ class Report
         return $this->db->fetchAll(
             "SELECT RequestType,
                     COUNT(*) AS Total,
+                    SUM(CASE WHEN Status = 'Approved'  THEN 1 ELSE 0 END) AS Approved,
                     SUM(CASE WHEN Status = 'Released'  THEN 1 ELSE 0 END) AS Released,
                     SUM(CASE WHEN Status = 'Rejected'  THEN 1 ELSE 0 END) AS Rejected,
                     SUM(CASE WHEN Status = 'Cancelled' THEN 1 ELSE 0 END) AS Cancelled,
-                    AVG(TIMESTAMPDIFF(HOUR, CreatedAt, UpdatedAt)) AS AvgHours
+                    AVG(CASE WHEN Status IN ('Released','Rejected','Cancelled')
+                        THEN TIMESTAMPDIFF(HOUR, CreatedAt, UpdatedAt)
+                        ELSE NULL END) AS AvgHours
              FROM ServiceRequest
              WHERE YEAR(CreatedAt)  = ?
                AND MONTH(CreatedAt) = ?

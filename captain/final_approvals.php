@@ -1,5 +1,6 @@
 <?php
-// captain/final_approvals.php – final version with correct heading and logs
+// Barangay Connect – Captain Final Approvals
+// captain/final_approvals.php
 
 require_once '../config/session.php';
 require_once '../config/db.php';
@@ -7,9 +8,7 @@ require_once '../config/constants.php';
 require_role('captain');
 
 $pdo = get_db();
-
-// Pending captain approval (was "Escalated Requests")
-$pendingRequests = $pdo->query(
+$escalatedRequests = $pdo->query(
     "SELECT sr.RequestID, sr.ReferenceNo, sr.RequestType,
             sr.CreatedAt, sr.Remarks,
             CONCAT(r.FirstName,' ',r.LastName) AS ResidentName
@@ -17,15 +16,6 @@ $pendingRequests = $pdo->query(
      JOIN Resident r ON sr.ResidentID = r.ResidentID
      WHERE sr.Status = 'ForApproval'
      ORDER BY sr.CreatedAt ASC"
-)->fetchAll(PDO::FETCH_ASSOC);
-
-// Captain approval logs (last 20)
-$logs = $pdo->query(
-    "SELECT log.*, sr.RequestType 
-     FROM captain_approval_logs log
-     LEFT JOIN ServiceRequest sr ON log.request_id = sr.RequestID
-     ORDER BY log.created_at DESC
-     LIMIT 20"
 )->fetchAll(PDO::FETCH_ASSOC);
 
 $page_title = 'Final Approvals';
@@ -37,23 +27,20 @@ include '../includes/header.php';
         <?php include '../includes/navbar.php'; ?>
         <div class="page-body">
 
-            <?php if (isset($_GET['msg'])): ?>
-                <?php if ($_GET['msg'] === 'approved'): ?>
-                    <div class="alert alert-success">✅ Request approved successfully.</div>
-                <?php elseif ($_GET['msg'] === 'rejected'): ?>
-                    <div class="alert alert-error">❌ Request rejected.</div>
-                <?php elseif ($_GET['msg'] === 'cancelled'): ?>
-                    <div class="alert alert-error">🚫 Request cancelled.</div>
-                <?php elseif ($_GET['msg'] === 'log_missing'): ?>
-                    <div class="alert alert-warning">⚠️ Log table missing – run the SQL script.</div>
-                <?php endif; ?>
+            <?php if (isset($_GET['msg']) && $_GET['msg'] === 'approved'): ?>
+                <div class="alert alert-success">✅ Request has been approved successfully.</div>
+            <?php elseif (isset($_GET['msg']) && $_GET['msg'] === 'rejected'): ?>
+                <div class="alert alert-error">❌ Request has been rejected.</div>
+            <?php elseif (isset($_GET['msg']) && $_GET['msg'] === 'not_found'): ?>
+                <div class="alert alert-error">❌ Request not found.</div>
+            <?php elseif (isset($_GET['msg']) && $_GET['msg'] === 'invalid'): ?>
+                <div class="alert alert-error">❌ Invalid action or request is no longer pending.</div>
             <?php endif; ?>
 
-            <!-- PENDING CAPTAIN APPROVAL (renamed) -->
             <div class="card">
                 <div class="card-header">
-                    <h3>📋 Pending Captain Approval</h3>
-                    <p class="card-desc">Requests that need your decision. Click <strong>Review</strong>.</p>
+                    <h3>Escalated Requests</h3>
+                    <p class="card-desc">These requests have been forwarded for your final approval.</p>
                 </div>
                 <table class="data-table">
                     <thead>
@@ -62,86 +49,147 @@ include '../includes/header.php';
                             <th>Resident</th>
                             <th>Type</th>
                             <th>Submitted</th>
-                            <th>Staff Note</th>
+                            <th>Secretary Note</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (empty($pendingRequests)): ?>
-                            <tr><td colspan="6" class="empty-row">No pending requests. 👍</div></tr>
-                        <?php else: foreach ($pendingRequests as $req): ?>
+                        <?php if (empty($escalatedRequests)): ?>
                             <tr>
-                                <td><strong><?= htmlspecialchars($req['ReferenceNo']) ?></strong></div>
-                                <td><?= htmlspecialchars($req['ResidentName']) ?></div>
-                                <td><?= htmlspecialchars($req['RequestType']) ?></div>
-                                <td><?= date('M d, Y h:i A', strtotime($req['CreatedAt'])) ?></div>
-                                <td class="text-muted"><?= htmlspecialchars($req['Remarks'] ?? '—') ?></div>
-                                <td>
-                                    <a href="request_detail.php?id=<?= $req['RequestID'] ?>" class="btn btn-small btn-primary">Review</a>
-                                </div>
+                                <td colspan="6" class="empty-row">No escalated requests pending.</td>
                             </tr>
-                        <?php endforeach; endif; ?>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- CAPTAIN APPROVAL LOGS -->
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h3>📜 Captain Approval Logs</h3>
-                    <p class="card-desc">Last 20 actions taken by captains</p>
-                </div>
-                <?php if (empty($logs)): ?>
-                    <div class="alert alert-info" style="margin: 16px;">📭 No logs yet. Approve a request to see it here.</div>
-                <?php else: ?>
-                    <table class="data-table compact-table">
-                        <thead>
-                            <tr>
-                                <th>Reference No.</th>
-                                <th>Type</th>
-                                <th>Action</th>
-                                <th>Captain</th>
-                                <th>Remarks</th>
-                                <th>Date & Time</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($logs as $log): ?>
+                        <?php else: ?>
+                            <?php foreach ($escalatedRequests as $req): ?>
                                 <tr>
-                                    <td><strong><?= htmlspecialchars($log['reference_no'] ?? 'N/A') ?></strong></div>
-                                    <td><?= htmlspecialchars($log['RequestType'] ?? 'Deleted') ?></div>
+                                    <td><?= htmlspecialchars($req['ReferenceNo']) ?></td>
+                                    <td><?= htmlspecialchars($req['ResidentName']) ?></td>
+                                    <td><?= htmlspecialchars($req['RequestType']) ?></td>
+                                    <td><?= date('M d, Y h:i A', strtotime($req['CreatedAt'])) ?></td>
+                                    <td><?= htmlspecialchars($req['Remarks'] ?? '—') ?></td>
                                     <td>
-                                        <?php
-                                        $badgeClass = match($log['action']) {
-                                            'Approved' => 'badge-success',
-                                            'Rejected' => 'badge-error',
-                                            'Cancelled' => 'badge-warning',
-                                            default => ''
-                                        };
-                                        ?>
-                                        <span class="badge <?= $badgeClass ?>"><?= $log['action'] ?></span>
-                                    </div>
-                                    <td><?= htmlspecialchars($log['captain_name'] ?? 'Unknown') ?></div>
-                                    <td><?= htmlspecialchars($log['remarks'] ?? '—') ?></div>
-                                    <td><?= date('M d, Y h:i A', strtotime($log['created_at'])) ?></div>
+                                        <button type="button"
+                                            class="btn btn-small btn-primary"
+                                            onclick="openModal(<?= $req['RequestID'] ?>, '<?= htmlspecialchars($req['ReferenceNo']) ?>', 'approve')">
+                                            Approve
+                                        </button>
+                                        <button type="button"
+                                            class="btn btn-small btn-danger"
+                                            onclick="openModal(<?= $req['RequestID'] ?>, '<?= htmlspecialchars($req['ReferenceNo']) ?>', 'reject')">
+                                            Reject
+                                        </button>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                <?php endif; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
             </div>
 
         </div>
     </main>
 </div>
 
+<!-- Approval/Rejection Modal -->
+<div id="approvalModal" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+        <div class="modal-header" id="modalHeader">
+            <h3 id="modalTitle">Confirm Action</h3>
+            <button type="button" class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <p id="modalDesc" style="margin-bottom:12px; color:#4b5563;"></p>
+            <form method="POST" action="../handlers/approval_action_handler.php">
+                <input type="hidden" name="request_id" id="modalRequestId" />
+                <input type="hidden" name="action"     id="modalAction" />
+                <div class="form-group">
+                    <label for="modalRemarks" id="modalRemarksLabel">Remarks <span style="color:#e53e3e;">*</span></label>
+                    <textarea name="remarks"
+                        id="modalRemarks"
+                        rows="4"
+                        class="form-textarea"
+                        placeholder="State your reason..."
+                        required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="modalSubmitBtn">Confirm</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <style>
-.text-muted { color: #9ca3af; font-size: 0.85rem; }
-.card-desc  { color: #6b7280; font-size: 0.82rem; margin: 4px 0 0; }
-.mt-4       { margin-top: 1rem; }
-.compact-table td, .compact-table th { padding: 8px 12px; }
-.badge-success { background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-.badge-error   { background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-.badge-warning { background: #fed7aa; color: #92400e; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+.modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.modal-box {
+    background: #fff;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    overflow: hidden;
+}
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.modal-header h3 { margin: 0; font-size: 1.05rem; }
+.modal-close {
+    background: none; border: none;
+    font-size: 1.1rem; cursor: pointer; color: #9ca3af;
+}
+.modal-close:hover { color: #374151; }
+.modal-body { padding: 20px 24px 24px; }
+.modal-header.approve-header { background: #f0fdf4; }
+.modal-header.reject-header  { background: #fff1f2; }
 </style>
+
+<script>
+function openModal(id, refNo, action) {
+    document.getElementById('modalRequestId').value = id;
+    document.getElementById('modalAction').value    = action;
+    document.getElementById('modalRemarks').value   = '';
+
+    const header = document.getElementById('modalHeader');
+    const title  = document.getElementById('modalTitle');
+    const desc   = document.getElementById('modalDesc');
+    const btn    = document.getElementById('modalSubmitBtn');
+
+    if (action === 'approve') {
+        header.className = 'modal-header approve-header';
+        title.textContent = '✅ Approve Request';
+        desc.textContent  = 'You are about to approve ' + refNo + '. Please provide your remarks.';
+        btn.className     = 'btn btn-primary';
+        btn.textContent   = 'Approve';
+    } else {
+        header.className = 'modal-header reject-header';
+        title.textContent = '❌ Reject Request';
+        desc.textContent  = 'You are about to reject ' + refNo + '. Please state the reason for rejection.';
+        btn.className     = 'btn btn-danger';
+        btn.textContent   = 'Reject';
+    }
+
+    document.getElementById('approvalModal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('approvalModal').style.display = 'none';
+}
+
+// Close on backdrop click
+document.getElementById('approvalModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+</script>
+
 <?php include '../includes/footer.php'; ?>

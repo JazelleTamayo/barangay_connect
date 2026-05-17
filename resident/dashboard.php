@@ -16,33 +16,21 @@ $pdo = get_db();
 
 $stmt = $pdo->prepare("SELECT ResidentID FROM UserAccount WHERE UserAccountID = ?");
 $stmt->execute([$user_id]);
-$resident    = $stmt->fetch();
+$resident = $stmt->fetch();
 $resident_id = $resident ? $resident['ResidentID'] : null;
 
 // Initialize variables
-$total_requests    = 0;
-$pending_requests  = 0;
+$total_requests = 0;
+$pending_requests = 0;
 $released_requests = 0;
-$complaints_filed  = 0;
-$recent_requests   = [];
-$my_complaints     = [];
-$my_reservations   = [];
-
-// ── Status label helper (mirrors track_request.php) ──────────────────────────
-function statusLabel(string $status): string {
-    return [
-        'Pending'     => 'Pending',
-        'ForApproval' => 'For Approval',
-        'Approved'    => 'Approved',
-        'Prepared'    => '📦 Ready for Pickup',
-        'Released'    => 'Released',
-        'Rejected'    => 'Rejected',
-        'Cancelled'   => 'Cancelled',
-    ][$status] ?? $status;
-}
+$complaints_filed = 0;
+$recent_requests = [];
+$my_complaints = [];
+$my_reservations = [];
 
 if ($resident_id) {
     // --- Stats ---
+    // Total requests
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM ServiceRequest WHERE ResidentID = ?");
     $stmt->execute([$resident_id]);
     $total_requests = $stmt->fetchColumn();
@@ -57,7 +45,7 @@ if ($resident_id) {
     $stmt->execute([$resident_id]);
     $released_requests = $stmt->fetchColumn();
 
-    // Complaints filed
+    // Complaints filed (RequestType = 'Complaint')
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM ServiceRequest WHERE ResidentID = ? AND RequestType = 'Complaint'");
     $stmt->execute([$resident_id]);
     $complaints_filed = $stmt->fetchColumn();
@@ -73,7 +61,7 @@ if ($resident_id) {
     $stmt->execute([$resident_id]);
     $recent_requests = $stmt->fetchAll();
 
-    // --- My Complaints ---
+    // --- My Complaints (join with Complaint table) ---
     $stmt = $pdo->prepare("
         SELECT sr.ReferenceNo, c.RespondentName, c.IncidentDate, c.MediationDate, sr.Status
         FROM ServiceRequest sr
@@ -147,36 +135,19 @@ if ($resident_id) {
                 </div>
                 <table class="data-table">
                     <thead>
-                        <tr>
-                            <th>Reference No.</th>
-                            <th>Type</th>
-                            <th>Submitted</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
+                        <tr><th>Reference No.</th><th>Type</th><th>Submitted</th><th>Status</th><th>Action</th></tr>
                     </thead>
                     <tbody>
                         <?php if (empty($recent_requests)): ?>
-                            <tr>
-                                <td colspan="5" class="empty-row">
-                                    You have no requests yet. <a href="new_request.php">Create one now.</a>
-                                </td>
-                            </tr>
+                            <tr><td colspan="5" class="empty-row">You have no requests yet. <a href="new_request.php">Create one now.</a></td></tr>
                         <?php else: ?>
                             <?php foreach ($recent_requests as $req): ?>
                                 <tr>
                                     <td><?= htmlspecialchars($req['ReferenceNo']) ?></td>
                                     <td><?= htmlspecialchars($req['RequestType']) ?></td>
                                     <td><?= date('M d, Y', strtotime($req['CreatedAt'])) ?></td>
-                                    <td>
-                                        <span class="status-badge status-<?= strtolower($req['Status']) ?>">
-                                            <?= statusLabel($req['Status']) ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <a href="track_request.php?ref=<?= urlencode($req['ReferenceNo']) ?>"
-                                           class="btn btn-small btn-primary">Track</a>
-                                    </td>
+                                    <td><span class="status-badge status-<?= strtolower($req['Status']) ?>"><?= $req['Status'] ?></span></td>
+                                    <td><a href="track_request.php?ref=<?= urlencode($req['ReferenceNo']) ?>" class="btn btn-small btn-primary">Track</a></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -191,13 +162,7 @@ if ($resident_id) {
                 </div>
                 <table class="data-table">
                     <thead>
-                        <tr>
-                            <th>Reference No.</th>
-                            <th>Respondent</th>
-                            <th>Incident Date</th>
-                            <th>Status</th>
-                            <th>Mediation Date</th>
-                        </tr>
+                        <tr><th>Reference No.</th><th>Respondent</th><th>Incident Date</th><th>Status</th><th>Mediation Date</th></tr>
                     </thead>
                     <tbody>
                         <?php if (empty($my_complaints)): ?>
@@ -208,11 +173,7 @@ if ($resident_id) {
                                     <td><?= htmlspecialchars($comp['ReferenceNo']) ?></td>
                                     <td><?= htmlspecialchars($comp['RespondentName'] ?? 'N/A') ?></td>
                                     <td><?= $comp['IncidentDate'] ? date('M d, Y', strtotime($comp['IncidentDate'])) : '—' ?></td>
-                                    <td>
-                                        <span class="status-badge status-<?= strtolower($comp['Status']) ?>">
-                                            <?= statusLabel($comp['Status']) ?>
-                                        </span>
-                                    </td>
+                                    <td><span class="status-badge status-<?= strtolower($comp['Status']) ?>"><?= $comp['Status'] ?></span></td>
                                     <td><?= $comp['MediationDate'] ? date('M d, Y', strtotime($comp['MediationDate'])) : 'Pending' ?></td>
                                 </tr>
                             <?php endforeach; ?>
@@ -229,13 +190,7 @@ if ($resident_id) {
                 </div>
                 <table class="data-table">
                     <thead>
-                        <tr>
-                            <th>Reference No.</th>
-                            <th>Facility</th>
-                            <th>Date</th>
-                            <th>Time Slot</th>
-                            <th>Status</th>
-                        </tr>
+                        <tr><th>Reference No.</th><th>Facility</th><th>Date</th><th>Time Slot</th><th>Status</th></tr>
                     </thead>
                     <tbody>
                         <?php if (empty($my_reservations)): ?>
@@ -247,11 +202,7 @@ if ($resident_id) {
                                     <td><?= htmlspecialchars($res['FacilityName']) ?></td>
                                     <td><?= date('M d, Y', strtotime($res['ReservationDate'])) ?></td>
                                     <td><?= htmlspecialchars($res['TimeSlot'] ?? '—') ?></td>
-                                    <td>
-                                        <span class="status-badge status-<?= strtolower($res['Status']) ?>">
-                                            <?= statusLabel($res['Status']) ?>
-                                        </span>
-                                    </td>
+                                    <td><span class="status-badge status-<?= strtolower($res['Status']) ?>"><?= $res['Status'] ?></span></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>

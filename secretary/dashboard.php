@@ -176,11 +176,11 @@ include '../includes/header.php';
                 </table>
             </div>
 
-            <!-- Documents Ready for Release (Prepared) — view only, release is Staff's job -->
+            <!-- Documents Ready for Release (Prepared) -->
             <div class="card">
                 <div class="card-header">
                     <h3>Documents Ready for Release</h3>
-                    <span style="font-size:0.8rem;color:var(--text-light);">Handled by Staff</span>
+                    <a href="document_release.php" class="btn btn-secondary btn-small">View All</a>
                 </div>
                 <table class="data-table">
                     <thead>
@@ -189,12 +189,13 @@ include '../includes/header.php';
                             <th>Resident</th>
                             <th>Type</th>
                             <th>Prepared Date</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($readyDocs)): ?>
                             <tr>
-                                <td colspan="4" class="empty-row">No documents ready for release.</td>
+                                <td colspan="5" class="empty-row">No documents ready for release.</td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($readyDocs as $doc): ?>
@@ -203,6 +204,7 @@ include '../includes/header.php';
                                     <td><?= htmlspecialchars($doc['ResidentName']) ?></td>
                                     <td><?= htmlspecialchars($doc['RequestType']) ?></td>
                                     <td><?= $doc['PreparedAt'] ? date('M d, Y', strtotime($doc['PreparedAt'])) : '—' ?></td>
+                                    <td><a href="document_release.php?id=<?= $doc['RequestID'] ?>" class="btn btn-small btn-secondary">Release</a></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>

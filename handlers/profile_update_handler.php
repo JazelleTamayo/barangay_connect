@@ -8,6 +8,7 @@
 require_once '../config/session.php';
 require_once '../config/db.php';
 require_once '../config/constants.php';
+require_once '../classes/AuditLog.php';
 require_role('resident');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -148,5 +149,7 @@ if (!empty($email)) {
     $stmt->execute([$email, $user_id]);
 }
 
+$audit = new AuditLog();
+$audit->log('Resident updated profile', 'UserAccountID: ' . $user_id);
 header('Location: ../resident/my_profile.php?msg=updated');
 exit;

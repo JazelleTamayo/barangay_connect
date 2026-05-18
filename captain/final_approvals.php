@@ -68,80 +68,128 @@ include '../includes/header.php';
                     </thead>
                     <tbody>
                         <?php if (empty($pendingRequests)): ?>
-                            <tr><td colspan="6" class="empty-row">No pending requests. 👍</div></tr>
-                        <?php else: foreach ($pendingRequests as $req): ?>
                             <tr>
-                                <td><strong><?= htmlspecialchars($req['ReferenceNo']) ?></strong></div>
-                                <td><?= htmlspecialchars($req['ResidentName']) ?></div>
-                                <td><?= htmlspecialchars($req['RequestType']) ?></div>
-                                <td><?= date('M d, Y h:i A', strtotime($req['CreatedAt'])) ?></div>
-                                <td class="text-muted"><?= htmlspecialchars($req['Remarks'] ?? '—') ?></div>
-                                <td>
-                                    <a href="request_detail.php?id=<?= $req['RequestID'] ?>" class="btn btn-small btn-primary">Review</a>
-                                </div>
-                            </tr>
-                        <?php endforeach; endif; ?>
-                    </tbody>
-                </table>
+                                <td colspan="6" class="empty-row">No pending requests. 👍
             </div>
-
-            <!-- CAPTAIN APPROVAL LOGS -->
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h3>📜 Captain Approval Logs</h3>
-                    <p class="card-desc">Last 20 actions taken by captains</p>
-                </div>
-                <?php if (empty($logs)): ?>
-                    <div class="alert alert-info" style="margin: 16px;">📭 No logs yet. Approve a request to see it here.</div>
-                <?php else: ?>
-                    <table class="data-table compact-table">
-                        <thead>
-                            <tr>
-                                <th>Reference No.</th>
-                                <th>Type</th>
-                                <th>Action</th>
-                                <th>Captain</th>
-                                <th>Remarks</th>
-                                <th>Date & Time</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($logs as $log): ?>
-                                <tr>
-                                    <td><strong><?= htmlspecialchars($log['reference_no'] ?? 'N/A') ?></strong></div>
-                                    <td><?= htmlspecialchars($log['RequestType'] ?? 'Deleted') ?></div>
-                                    <td>
-                                        <?php
-                                        $badgeClass = match($log['action']) {
-                                            'Approved' => 'badge-success',
-                                            'Rejected' => 'badge-error',
-                                            'Cancelled' => 'badge-warning',
-                                            default => ''
-                                        };
-                                        ?>
-                                        <span class="badge <?= $badgeClass ?>"><?= $log['action'] ?></span>
-                                    </div>
-                                    <td><?= htmlspecialchars($log['captain_name'] ?? 'Unknown') ?></div>
-                                    <td><?= htmlspecialchars($log['remarks'] ?? '—') ?></div>
-                                    <td><?= date('M d, Y h:i A', strtotime($log['created_at'])) ?></div>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                <?php endif; ?>
-            </div>
-
+            </tr>
+            <?php else: foreach ($pendingRequests as $req): ?>
+                <tr>
+                    <td><strong><?= htmlspecialchars($req['ReferenceNo']) ?></strong>
         </div>
-    </main>
+        <td><?= htmlspecialchars($req['ResidentName']) ?>
+</div>
+<td><?= htmlspecialchars($req['RequestType']) ?></div>
+<td><?= date('M d, Y h:i A', strtotime($req['CreatedAt'])) ?></div>
+<td class="text-muted"><?php $raw = trim($req['Remarks'] ?? '');
+                                $cleaned = trim(preg_replace('/\n?\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] Staff:\s*/i', "\n", $raw));
+                                echo htmlspecialchars($cleaned ?: '—'); ?></td>
+<td>
+    <a href="request_detail.php?id=<?= $req['RequestID'] ?>" class="btn btn-small btn-primary">Review</a>
+    </div>
+    </tr>
+<?php endforeach;
+                        endif; ?>
+</tbody>
+</table>
+</div>
+
+<!-- CAPTAIN APPROVAL LOGS -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h3>📜 Captain Approval Logs</h3>
+        <p class="card-desc">Last 20 actions taken by captains</p>
+    </div>
+    <?php if (empty($logs)): ?>
+        <div class="alert alert-info" style="margin: 16px;">📭 No logs yet. Approve a request to see it here.</div>
+    <?php else: ?>
+        <table class="data-table compact-table">
+            <thead>
+                <tr>
+                    <th>Reference No.</th>
+                    <th>Type</th>
+                    <th>Action</th>
+                    <th>Captain</th>
+                    <th>Remarks</th>
+                    <th>Date & Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($logs as $log): ?>
+                    <tr>
+                        <td><strong><?= htmlspecialchars($log['reference_no'] ?? 'N/A') ?></strong>
+</div>
+<td><?= htmlspecialchars($log['RequestType'] ?? 'Deleted') ?></div>
+<td>
+    <?php
+                    $badgeClass = match ($log['action']) {
+                        'Approved' => 'badge-success',
+                        'Rejected' => 'badge-error',
+                        'Cancelled' => 'badge-warning',
+                        default => ''
+                    };
+    ?>
+    <span class="badge <?= $badgeClass ?>"><?= $log['action'] ?></span>
+    </div>
+<td><?= htmlspecialchars($log['captain_name'] ?? 'Unknown') ?></div>
+<td><?= htmlspecialchars($log['remarks'] ?? '—') ?></div>
+<td><?= date('M d, Y h:i A', strtotime($log['created_at'])) ?></div>
+    </tr>
+<?php endforeach; ?>
+</tbody>
+</table>
+<?php endif; ?>
+</div>
+
+</div>
+</main>
 </div>
 
 <style>
-.text-muted { color: #9ca3af; font-size: 0.85rem; }
-.card-desc  { color: #6b7280; font-size: 0.82rem; margin: 4px 0 0; }
-.mt-4       { margin-top: 1rem; }
-.compact-table td, .compact-table th { padding: 8px 12px; }
-.badge-success { background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-.badge-error   { background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-.badge-warning { background: #fed7aa; color: #92400e; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .text-muted {
+        color: #9ca3af;
+        font-size: 0.85rem;
+    }
+
+    .card-desc {
+        color: #6b7280;
+        font-size: 0.82rem;
+        margin: 4px 0 0;
+    }
+
+    .mt-4 {
+        margin-top: 1rem;
+    }
+
+    .compact-table td,
+    .compact-table th {
+        padding: 8px 12px;
+    }
+
+    .badge-success {
+        background: #d1fae5;
+        color: #065f46;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-error {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-warning {
+        background: #fed7aa;
+        color: #92400e;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
 </style>
 <?php include '../includes/footer.php'; ?>

@@ -84,8 +84,5 @@ $role_labels = [
         <?php endforeach; ?>
     </nav>
 
-    <div class="sidebar-footer">
-        <span><?= htmlspecialchars($_SESSION['full_name'] ?? $_SESSION['username'] ?? 'User') ?></span>
-        <a href="/BARANGAY_CONNECT/public/logout.php" class="logout-link">Logout</a>
-    </div>
+
 </aside>
